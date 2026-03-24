@@ -56,7 +56,12 @@ public class CatalogPagesListComposer extends MessageComposer {
     }
 
     private void append(CatalogPage category) {
-        List<CatalogPage> pagesList = Emulator.getGameEnvironment().getCatalogManager().getCatalogPages(category.getId(), this.habbo);
+        List<CatalogPage> pagesList;
+        try {
+            pagesList = Emulator.getGameEnvironment().getCatalogManager().getCatalogPages(category.getId(), this.habbo);
+        } catch (Exception e) {
+            pagesList = java.util.Collections.emptyList();
+        }
 
         this.response.appendBoolean(category.isVisible());
         this.response.appendInt(category.getIconImage());

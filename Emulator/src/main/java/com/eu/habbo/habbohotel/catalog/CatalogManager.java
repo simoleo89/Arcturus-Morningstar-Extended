@@ -622,7 +622,12 @@ public class CatalogManager {
     public List<CatalogPage> getCatalogPages(int parentId, final Habbo habbo) {
         final List<CatalogPage> pages = new ArrayList<>();
 
-        this.catalogPages.get(parentId).childPages.forEachValue(new TObjectProcedure<CatalogPage>() {
+        CatalogPage parentPage = this.catalogPages.get(parentId);
+        if (parentPage == null) {
+            return pages;
+        }
+
+        parentPage.childPages.forEachValue(new TObjectProcedure<CatalogPage>() {
             @Override
             public boolean execute(CatalogPage object) {
 
