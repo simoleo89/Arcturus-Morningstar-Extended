@@ -556,6 +556,9 @@ public class Outgoing {
     public static final int SnowStormUserRematchedComposer = 5029;
 
 
+    // UI Settings
+    public static final int UiSettingsDataComposer = 10047;
+
     // Catalog Admin
     public static final int CatalogAdminResultComposer = 10059;
 

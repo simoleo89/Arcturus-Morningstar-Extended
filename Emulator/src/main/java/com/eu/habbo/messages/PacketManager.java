@@ -11,6 +11,7 @@ import com.eu.habbo.messages.incoming.ambassadors.AmbassadorVisitCommandEvent;
 import com.eu.habbo.messages.incoming.camera.*;
 import com.eu.habbo.messages.incoming.catalog.*;
 import com.eu.habbo.messages.incoming.catalog.catalogadmin.*;
+import com.eu.habbo.messages.incoming.uisettings.*;
 import com.eu.habbo.messages.incoming.catalog.marketplace.*;
 import com.eu.habbo.messages.incoming.catalog.recycler.OpenRecycleBoxEvent;
 import com.eu.habbo.messages.incoming.catalog.recycler.RecycleEvent;
@@ -270,6 +271,10 @@ public class PacketManager {
         this.registerHandler(Incoming.CatalogAdminMoveOfferEvent, CatalogAdminMoveOfferEvent.class);
         this.registerHandler(Incoming.CatalogAdminMovePageEvent, CatalogAdminMovePageEvent.class);
         this.registerHandler(Incoming.CatalogAdminPublishEvent, CatalogAdminPublishEvent.class);
+
+        // UI Settings
+        this.registerHandler(Incoming.UiSettingsLoadEvent, UiSettingsLoadEvent.class);
+        this.registerHandler(Incoming.UiSettingsSaveEvent, UiSettingsSaveEvent.class);
     }
 
     private void registerEvent() throws Exception {
