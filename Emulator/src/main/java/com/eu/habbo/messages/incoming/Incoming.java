@@ -412,6 +412,16 @@ public class Incoming {
     public static final int RequestInventoryPetDelete = 10030;
     public static final int RequestInventoryBadgeDelete  = 10031;
 
+    // Furni Editor
+    public static final int FurniEditorSearchEvent = 10040;
+    public static final int FurniEditorDetailEvent = 10041;
+    public static final int FurniEditorBySpriteEvent = 10042;
+    public static final int FurniEditorInteractionsEvent = 10043;
+    public static final int FurniEditorUpdateEvent = 10044;
+    public static final int FurniEditorDeleteEvent = 10045;
+    public static final int FurniEditorRoomItemDetailEvent = 10046;
+    public static final int FurniEditorRoomItemUpdateEvent = 10047;
+
     // Catalog Admin
     public static final int CatalogAdminSavePageEvent = 10050;
     public static final int CatalogAdminCreatePageEvent = 10051;
@@ -428,4 +438,5 @@ public class Incoming {
     public static final int SetActivePrefixEvent = 7012;
     public static final int DeletePrefixEvent = 7013;
     public static final int PurchasePrefixEvent = 7014;
+    public static final int EditPrefixEvent = 7015;
 }

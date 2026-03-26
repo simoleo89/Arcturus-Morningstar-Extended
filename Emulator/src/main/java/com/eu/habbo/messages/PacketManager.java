@@ -11,6 +11,7 @@ import com.eu.habbo.messages.incoming.ambassadors.AmbassadorVisitCommandEvent;
 import com.eu.habbo.messages.incoming.camera.*;
 import com.eu.habbo.messages.incoming.catalog.*;
 import com.eu.habbo.messages.incoming.catalog.catalogadmin.*;
+import com.eu.habbo.messages.incoming.catalog.furnieditor.*;
 import com.eu.habbo.messages.incoming.catalog.marketplace.*;
 import com.eu.habbo.messages.incoming.catalog.recycler.OpenRecycleBoxEvent;
 import com.eu.habbo.messages.incoming.catalog.recycler.RecycleEvent;
@@ -260,6 +261,16 @@ public class PacketManager {
         this.registerHandler(Incoming.CatalogRequestClubDiscountEvent, CatalogRequestClubDiscountEvent.class);
         this.registerHandler(Incoming.CatalogBuyClubDiscountEvent, CatalogBuyClubDiscountEvent.class);
 
+        // Furni Editor
+        this.registerHandler(Incoming.FurniEditorSearchEvent, FurniEditorSearchEvent.class);
+        this.registerHandler(Incoming.FurniEditorDetailEvent, FurniEditorDetailEvent.class);
+        this.registerHandler(Incoming.FurniEditorBySpriteEvent, FurniEditorBySpriteEvent.class);
+        this.registerHandler(Incoming.FurniEditorInteractionsEvent, FurniEditorInteractionsEvent.class);
+        this.registerHandler(Incoming.FurniEditorUpdateEvent, FurniEditorUpdateEvent.class);
+        this.registerHandler(Incoming.FurniEditorDeleteEvent, FurniEditorDeleteEvent.class);
+        this.registerHandler(Incoming.FurniEditorRoomItemDetailEvent, FurniEditorRoomItemDetailEvent.class);
+        this.registerHandler(Incoming.FurniEditorRoomItemUpdateEvent, FurniEditorRoomItemUpdateEvent.class);
+
         // Catalog Admin
         this.registerHandler(Incoming.CatalogAdminSavePageEvent, CatalogAdminSavePageEvent.class);
         this.registerHandler(Incoming.CatalogAdminCreatePageEvent, CatalogAdminCreatePageEvent.class);
@@ -389,6 +400,7 @@ public class PacketManager {
         this.registerHandler(Incoming.SetActivePrefixEvent, SetActivePrefixEvent.class);
         this.registerHandler(Incoming.DeletePrefixEvent, DeletePrefixEvent.class);
         this.registerHandler(Incoming.PurchasePrefixEvent, PurchasePrefixEvent.class);
+        this.registerHandler(Incoming.EditPrefixEvent, EditPrefixEvent.class);
     }
 
     void registerRooms() throws Exception {
