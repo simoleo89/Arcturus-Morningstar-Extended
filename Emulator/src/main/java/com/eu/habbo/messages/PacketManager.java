@@ -398,6 +398,7 @@ public class PacketManager {
         this.registerHandler(Incoming.SetActivePrefixEvent, SetActivePrefixEvent.class);
         this.registerHandler(Incoming.DeletePrefixEvent, DeletePrefixEvent.class);
         this.registerHandler(Incoming.PurchasePrefixEvent, PurchasePrefixEvent.class);
+        this.registerHandler(Incoming.EditPrefixEvent, EditPrefixEvent.class);
     }
 
     void registerRooms() throws Exception {

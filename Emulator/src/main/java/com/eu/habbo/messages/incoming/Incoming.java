@@ -436,4 +436,5 @@ public class Incoming {
     public static final int SetActivePrefixEvent = 7012;
     public static final int DeletePrefixEvent = 7013;
     public static final int PurchasePrefixEvent = 7014;
+    public static final int EditPrefixEvent = 7015;
 }
