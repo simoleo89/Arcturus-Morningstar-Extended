@@ -162,10 +162,14 @@ public class InteractionBattleBanzaiPuck extends InteractionPushable {
                         }
                     this.setExtradata(team.teamColor.type + "");
                     room.updateItemState(this);
+
+                    // Award points when the puck moves over a tile
+                    if (item instanceof InteractionBattleBanzaiTile && habbo.getHabboInfo().getGamePlayer() != null) {
+                        habbo.getHabboInfo().getGamePlayer().addScore(BattleBanzaiGame.POINTS_FILL_TILE);
+                    }
                 }
             }
         }
-        //TODO Implement point counting logic.
     }
 
     @Override

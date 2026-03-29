@@ -28,7 +28,7 @@ import java.util.Map;
 public class AchievementManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AchievementManager.class);
 
-    public static boolean TALENTTRACK_ENABLED = false;
+    public static boolean TALENTTRACK_ENABLED = true;
 
     private final HashMap<String, Achievement> achievements;
     private final HashMap<TalentTrackType, LinkedHashMap<Integer, TalentTrackLevel>> talentTrackLevels;
