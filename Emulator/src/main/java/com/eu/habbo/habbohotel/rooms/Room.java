@@ -130,8 +130,8 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
   private String password;
   private RoomState state;
   private int usersMax;
-  private volatile int score;
-  private volatile int category;
+  private int score;
+  private int category;
   private String floorPaint;
   private String wallPaint;
   private String backgroundPaint;
@@ -140,37 +140,37 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
   private int floorSize;
   private int guild;
   private String tags;
-  private volatile boolean publicRoom;
-  private volatile boolean staffPromotedRoom;
-  private volatile boolean allowPets;
-  private volatile boolean allowPetsEat;
-  private volatile boolean allowWalkthrough;
-  private volatile boolean allowBotsWalk;
-  private volatile boolean allowEffects;
-  private volatile boolean hideWall;
-  private volatile int chatMode;
-  private volatile int chatWeight;
-  private volatile int chatSpeed;
-  private volatile int chatDistance;
-  private volatile int chatProtection;
-  private volatile int muteOption;
-  private volatile int kickOption;
-  private volatile int banOption;
-  private volatile int pollId;
-  private volatile boolean promoted;
-  private volatile int tradeMode;
-  private volatile boolean moveDiagonally;
-  private volatile boolean allowUnderpass;
-  private volatile boolean jukeboxActive;
-  private volatile boolean hideWired;
+  private boolean publicRoom;
+  private boolean staffPromotedRoom;
+  private boolean allowPets;
+  private boolean allowPetsEat;
+  private boolean allowWalkthrough;
+  private boolean allowBotsWalk;
+  private boolean allowEffects;
+  private boolean hideWall;
+  private int chatMode;
+  private int chatWeight;
+  private int chatSpeed;
+  private int chatDistance;
+  private int chatProtection;
+  private int muteOption;
+  private int kickOption;
+  private int banOption;
+  private int pollId;
+  private boolean promoted;
+  private int tradeMode;
+  private boolean moveDiagonally;
+  private boolean allowUnderpass;
+  private boolean jukeboxActive;
+  private boolean hideWired;
   private RoomPromotion promotion;
   private volatile boolean needsUpdate;
   private volatile boolean loaded;
   private volatile boolean preLoaded;
   private volatile boolean loadingInProgress;
   private volatile CompletableFuture<Void> loadingFuture;
-  private volatile int rollerSpeed;
-  private volatile int lastTimerReset = Emulator.getIntUnixTimestamp();
+  private int rollerSpeed;
+  private int lastTimerReset = Emulator.getIntUnixTimestamp();
   private volatile boolean muted;
   private RoomSpecialTypes roomSpecialTypes;
   private TraxManager traxManager;
@@ -221,22 +221,8 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
     this.bannedHabbos = new TIntObjectHashMap<>();
 
-    try (Connection connection = Emulator.getDatabase().getDataSource()
-        .getConnection(); PreparedStatement statement = connection.prepareStatement(
-        "SELECT * FROM room_promotions WHERE room_id = ? AND end_timestamp > ? LIMIT 1")) {
-      if (this.promoted) {
-        statement.setInt(1, this.id);
-        statement.setInt(2, Emulator.getIntUnixTimestamp());
-
-        try (ResultSet promotionSet = statement.executeQuery()) {
-          this.promoted = false;
-          if (promotionSet.next()) {
-            this.promoted = true;
-            this.promotion = new RoomPromotion(this, promotionSet);
-          }
-        }
-      }
-
+    try (Connection connection = Emulator.getDatabase().getDataSource().getConnection()) {
+      // Load bans eagerly (needed for entry check before loadData)
       this.loadBans(connection);
     } catch (SQLException e) {
       LOGGER.error("Caught SQL exception", e);
@@ -489,7 +475,26 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
         LOGGER.error("Caught exception loading layout", e);
       }
 
-      // Phase 2: Load items and rights in parallel (independent operations)
+      if (this.promoted) {
+        CompletableFuture.runAsync(() -> {
+          try (Connection promoConnection = Emulator.getDatabase().getDataSource().getConnection();
+               PreparedStatement stmt = promoConnection.prepareStatement(
+                   "SELECT * FROM room_promotions WHERE room_id = ? AND end_timestamp > ? LIMIT 1")) {
+            stmt.setInt(1, this.id);
+            stmt.setInt(2, Emulator.getIntUnixTimestamp());
+            try (ResultSet promoSet = stmt.executeQuery()) {
+              this.promoted = false;
+              if (promoSet.next()) {
+                this.promoted = true;
+                this.promotion = new RoomPromotion(this, promoSet);
+              }
+            }
+          } catch (Exception e) {
+            LOGGER.error("Caught exception loading promotion", e);
+          }
+        }, Emulator.getThreading().getService());
+      }
+
       CompletableFuture<Void> itemsFuture = CompletableFuture.runAsync(() -> {
         try (Connection itemConnection = Emulator.getDatabase().getDataSource().getConnection()) {
           this.loadItems(itemConnection);
@@ -514,21 +519,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
         }
       }, Emulator.getThreading().getService());
 
-      // Wait for items to be loaded before loading wired data (wired depends on items)
-      try {
-        itemsFuture.join();
-      } catch (Exception e) {
-        LOGGER.error("Error waiting for items to load", e);
-      }
-
-      // Phase 3: Load heightmap after items are loaded (depends on items for stack heights)
-      try {
-        this.loadHeightmap();
-      } catch (Exception e) {
-        LOGGER.error("Caught exception loading heightmap", e);
-      }
-
-      // Phase 4: Load bots, pets, and wired data in parallel (all depend on layout + items)
+      // Bots and pets only need layout for positioning - start them now
       CompletableFuture<Void> botsFuture = CompletableFuture.runAsync(() -> {
         try (Connection botsConnection = Emulator.getDatabase().getDataSource().getConnection()) {
           this.loadBots(botsConnection);
@@ -545,6 +536,22 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
         }
       }, Emulator.getThreading().getService());
 
+      // Wait for items (needed for heightmap + wired)
+      try {
+        itemsFuture.join();
+      } catch (Exception e) {
+        LOGGER.error("Error waiting for items to load", e);
+      }
+
+      // Phase 3: Heightmap and wired in parallel (both depend on items, not on each other)
+      CompletableFuture<Void> heightmapFuture = CompletableFuture.runAsync(() -> {
+        try {
+          this.loadHeightmap();
+        } catch (Exception e) {
+          LOGGER.error("Caught exception loading heightmap", e);
+        }
+      }, Emulator.getThreading().getService());
+
       CompletableFuture<Void> wiredFuture = CompletableFuture.runAsync(() -> {
         try (Connection wiredConnection = Emulator.getDatabase().getDataSource().getConnection()) {
           this.loadWiredData(wiredConnection);
@@ -553,9 +560,9 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
         }
       }, Emulator.getThreading().getService());
 
-      // Wait for all parallel operations to complete
+      // Wait for all remaining operations
       try {
-        CompletableFuture.allOf(rightsFuture, wordFilterFuture, botsFuture, petsFuture, wiredFuture).join();
+        CompletableFuture.allOf(rightsFuture, wordFilterFuture, botsFuture, petsFuture, heightmapFuture, wiredFuture).join();
       } catch (Exception e) {
         LOGGER.error("Error waiting for parallel room data loading", e);
       }
