@@ -14,12 +14,10 @@ import com.eu.habbo.habbohotel.users.cache.HabboOfferPurchase;
 import com.eu.habbo.habbohotel.users.subscriptions.Subscription;
 import com.eu.habbo.plugin.events.users.subscriptions.UserSubscriptionCreatedEvent;
 import com.eu.habbo.plugin.events.users.subscriptions.UserSubscriptionExtendedEvent;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.THashSet;
-import gnu.trove.stack.array.TIntArrayStack;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.ArrayDeque;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,23 +25,24 @@ import java.lang.reflect.Constructor;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
 
 public class HabboStats implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HabboStats.class);
 
-    public final TIntArrayList secretRecipes;
+    public final ArrayList<Integer> secretRecipes;
     public final HabboNavigatorWindowSettings navigatorWindowSettings;
-    public final THashMap<String, Object> cache;
+    public final HashMap<String, Object> cache;
     public final ArrayList<CalendarRewardClaimed> calendarRewardsClaimed;
-    public final TIntObjectMap<HabboOfferPurchase> offerCache = new TIntObjectHashMap<>();
+    public final Map<Integer, HabboOfferPurchase> offerCache = new HashMap<>();
     private final AtomicInteger lastOnlineTime = new AtomicInteger(Emulator.getIntUnixTimestamp());
-    private final THashMap<Achievement, Integer> achievementProgress;
-    private final THashMap<Achievement, Integer> achievementCache;
-    private final THashMap<Integer, CatalogItem> recentPurchases;
-    private final TIntArrayList favoriteRooms;
-    private final TIntArrayList ignoredUsers;
-    private TIntArrayList roomsVists;
+    private final HashMap<Achievement, Integer> achievementProgress;
+    private final HashMap<Achievement, Integer> achievementCache;
+    private final HashMap<Integer, CatalogItem> recentPurchases;
+    private final ArrayList<Integer> favoriteRooms;
+    private final ArrayList<Integer> ignoredUsers;
+    private ArrayList<Integer> roomsVists;
     public int achievementScore;
     public int respectPointsReceived;
     public int respectPointsGiven;
@@ -62,7 +61,7 @@ public class HabboStats implements Runnable {
     public int guild;
     public List<Integer> guilds;
     public String[] tags;
-    public TIntArrayStack votedRooms;
+    public ArrayDeque<Integer> votedRooms;
     public int loginStreak;
     public int rentedItemId;
     public int rentedTimeEnd;
@@ -85,7 +84,7 @@ public class HabboStats implements Runnable {
     public boolean allowNameChange;
     public boolean isPurchasingFurniture = false;
     public int forumPostsCount;
-    public THashMap<Integer, List<Integer>> ltdPurchaseLog = new THashMap<>(0);
+    public HashMap<Integer, List<Integer>> ltdPurchaseLog = new HashMap<>(0);
     public long lastTradeTimestamp = Emulator.getIntUnixTimestamp();
     public long lastGiftTimestamp = Emulator.getIntUnixTimestamp();
     public long lastPurchaseTimestamp = Emulator.getIntUnixTimestamp();
@@ -100,17 +99,17 @@ public class HabboStats implements Runnable {
     public int lastHCPayday;
     public int hcGiftsClaimed;
     public int hcMessageLastModified = Emulator.getIntUnixTimestamp();
-    public THashSet<Subscription> subscriptions;
+    public HashSet<Subscription> subscriptions;
 
     private HabboStats(ResultSet set, HabboInfo habboInfo) throws SQLException {
-        this.cache = new THashMap<>(1000);
-        this.achievementProgress = new THashMap<>(0);
-        this.achievementCache = new THashMap<>(0);
-        this.recentPurchases = new THashMap<>(0);
-        this.favoriteRooms = new TIntArrayList(0);
-        this.ignoredUsers = new TIntArrayList(0);
-        this.roomsVists = new TIntArrayList(0);
-        this.secretRecipes = new TIntArrayList(0);
+        this.cache = new HashMap<>(1000);
+        this.achievementProgress = new HashMap<>(0);
+        this.achievementCache = new HashMap<>(0);
+        this.recentPurchases = new HashMap<>(0);
+        this.favoriteRooms = new ArrayList<Integer>(0);
+        this.ignoredUsers = new ArrayList<Integer>(0);
+        this.roomsVists = new ArrayList<Integer>(0);
+        this.secretRecipes = new ArrayList<Integer>(0);
         this.calendarRewardsClaimed = new ArrayList<>();
 
         this.habboInfo = habboInfo;
@@ -129,7 +128,7 @@ public class HabboStats implements Runnable {
         this.guilds = new ArrayList<>();
         this.tags = set.getString("tags").split(";");
         this.allowTrade = set.getString("can_trade").equals("1");
-        this.votedRooms = new TIntArrayStack();
+        this.votedRooms = new ArrayDeque<Integer>();
         this.clubExpireTimestamp = set.getInt("club_expire_timestamp");
         this.loginStreak = set.getInt("login_streak");
         this.rentedItemId = set.getInt("rent_space_id");
@@ -383,7 +382,7 @@ public class HabboStats implements Runnable {
 
             if (!this.offerCache.isEmpty()) {
                 try (PreparedStatement statement = connection.prepareStatement("UPDATE users_target_offer_purchases SET state = ?, amount = ?, last_purchase = ? WHERE user_id = ? AND offer_id = ?")) {
-                    for (HabboOfferPurchase purchase : this.offerCache.valueCollection()) {
+                    for (HabboOfferPurchase purchase : this.offerCache.values()) {
                         if (!purchase.needsUpdate()) continue;
 
                         statement.setInt(1, purchase.getState());
@@ -575,11 +574,11 @@ public class HabboStats implements Runnable {
         return totalGifts - this.hcGiftsClaimed;
     }
 
-    public THashMap<Achievement, Integer> getAchievementProgress() {
+    public HashMap<Achievement, Integer> getAchievementProgress() {
         return this.achievementProgress;
     }
 
-    public THashMap<Achievement, Integer> getAchievementCache() {
+    public HashMap<Achievement, Integer> getAchievementCache() {
         return this.achievementCache;
     }
 
@@ -589,7 +588,7 @@ public class HabboStats implements Runnable {
         }
     }
 
-    public THashMap<Integer, CatalogItem> getRecentPurchases() {
+    public HashMap<Integer, CatalogItem> getRecentPurchases() {
         return this.recentPurchases;
     }
 
@@ -636,7 +635,7 @@ public class HabboStats implements Runnable {
 
     public void addVisitRoom(int roomId) { this.roomsVists.add(roomId); }
 
-    public TIntArrayList getFavoriteRooms() {
+    public ArrayList<Integer> getFavoriteRooms() {
         return this.favoriteRooms;
     }
 

@@ -5,8 +5,8 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ public class ProfileFriendsComposer extends MessageComposer {
     private final List<MessengerBuddy> haters = new ArrayList<>();
     private final int userId;
 
-    public ProfileFriendsComposer(THashMap<Integer, THashSet<MessengerBuddy>> map, int userId) {
+    public ProfileFriendsComposer(HashMap<Integer, HashSet<MessengerBuddy>> map, int userId) {
         this.lovers.addAll(map.get(1));
         this.friends.addAll(map.get(2));
         this.haters.addAll(map.get(3));

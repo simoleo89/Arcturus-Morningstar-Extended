@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.guilds.Guild;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.guilds.forums.GuildForumListComposer;
 import com.eu.habbo.messages.outgoing.handshake.ConnectionErrorComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +49,8 @@ public class GuildForumListEvent extends MessageHandler {
         }
     }
 
-    private THashSet<Guild> getActiveForums() {
-        THashSet<Guild> guilds = new THashSet<Guild>();
+    private HashSet<Guild> getActiveForums() {
+        HashSet<Guild> guilds = new HashSet<Guild>();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT `guilds`.`id`, SUM(`guilds_forums_threads`.`posts_count`) AS `post_count` " +
                 "FROM `guilds_forums_threads` " +
@@ -76,8 +76,8 @@ public class GuildForumListEvent extends MessageHandler {
         return guilds;
     }
 
-    private THashSet<Guild> getMyForums(int userId) {
-        THashSet<Guild> guilds = new THashSet<Guild>();
+    private HashSet<Guild> getMyForums(int userId) {
+        HashSet<Guild> guilds = new HashSet<Guild>();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT `guilds`.`id` FROM `guilds_members` " +
                 "LEFT JOIN `guilds` ON `guilds`.`id` = `guilds_members`.`guild_id` " +

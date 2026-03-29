@@ -2,7 +2,7 @@ package com.eu.habbo.core;
 
 import com.eu.habbo.Emulator;
 import com.eu.habbo.plugin.events.emulator.EmulatorConfigUpdatedEvent;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +65,7 @@ public class ConfigurationManager {
 
         } else {
 
-            Map<String, String> envMapping = new THashMap<>();
+            Map<String, String> envMapping = new HashMap<>();
 
             // Database section
             envMapping.put("db.hostname", "DB_HOSTNAME");

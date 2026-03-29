@@ -19,10 +19,29 @@ public class AddFloorItemComposer extends MessageComposer {
     protected ServerMessage composeInternal() {
         this.response.init(Outgoing.AddFloorItemComposer);
         this.item.serializeFloorData(this.response);
-        this.response.appendInt(this.item instanceof InteractionGift ? ((((InteractionGift) this.item).getColorId() * 1000) + ((InteractionGift) this.item).getRibbonId()) : (this.item instanceof InteractionMusicDisc ? ((InteractionMusicDisc) this.item).getSongId() : 1));
+
+        int extraParam = switch (this.item) {
+            case InteractionGift gift -> (gift.getColorId() * 1000) + gift.getRibbonId();
+            case InteractionMusicDisc disc -> disc.getSongId();
+            default -> 1;
+        };
+        this.response.appendInt(extraParam);
+
         this.item.serializeExtradata(this.response);
         this.response.appendInt(-1);
-        this.response.appendInt(this.item instanceof InteractionTeleport || this.item instanceof InteractionSwitch || this.item instanceof InteractionSwitchRemoteControl || this.item instanceof InteractionVendingMachine || this.item instanceof InteractionInformationTerminal || this.item instanceof InteractionPostIt|| this.item instanceof InteractionPuzzleBox ? 2 : this.item.isUsable() ? 1 : 0);
+
+        int usability = switch (this.item) {
+            case InteractionTeleport _,
+                 InteractionSwitch _,
+                 InteractionSwitchRemoteControl _,
+                 InteractionVendingMachine _,
+                 InteractionInformationTerminal _,
+                 InteractionPostIt _,
+                 InteractionPuzzleBox _ -> 2;
+            default -> this.item.isUsable() ? 1 : 0;
+        };
+        this.response.appendInt(usability);
+
         this.response.appendInt(this.item.getUserId());
         this.response.appendString(this.itemOwnerName);
         return this.response;

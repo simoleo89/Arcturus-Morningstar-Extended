@@ -8,13 +8,11 @@ import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.plugin.events.inventory.InventoryItemAddedEvent;
 import com.eu.habbo.plugin.events.inventory.InventoryItemRemovedEvent;
 import com.eu.habbo.plugin.events.inventory.InventoryItemsAddedEvent;
-import gnu.trove.TCollections;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import java.util.Collections;
+
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +21,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
+import java.util.HashMap;
 
 public class ItemsComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemsComponent.class);
 
-    private final TIntObjectMap<HabboItem> items = TCollections.synchronizedMap(new TIntObjectHashMap<>());
+    private final Map<Integer, HabboItem> items = Collections.synchronizedMap(new HashMap<>());
 
     private final HabboInventory inventory;
 
@@ -36,8 +35,8 @@ public class ItemsComponent {
         this.items.putAll(loadItems(habbo));
     }
 
-    public static THashMap<Integer, HabboItem> loadItems(Habbo habbo) {
-        THashMap<Integer, HabboItem> itemsList = new THashMap<>();
+    public static HashMap<Integer, HabboItem> loadItems(Habbo habbo) {
+        HashMap<Integer, HabboItem> itemsList = new HashMap<>();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM items WHERE room_id = ? AND user_id = ?")) {
             statement.setInt(1, 0);
@@ -79,7 +78,7 @@ public class ItemsComponent {
         }
     }
 
-    public void addItems(THashSet<HabboItem> items) {
+    public void addItems(HashSet<HabboItem> items) {
         InventoryItemsAddedEvent event = new InventoryItemsAddedEvent(this.inventory, items);
         if (Emulator.getPluginManager().fireEvent(event).isCancelled()) {
             return;
@@ -103,15 +102,12 @@ public class ItemsComponent {
     public HabboItem getAndRemoveHabboItem(final Item item) {
         final HabboItem[] habboItem = {null};
         synchronized (this.items) {
-            this.items.forEachValue(new TObjectProcedure<HabboItem>() {
+            this.items.values().forEach(new Consumer<HabboItem>() {
                 @Override
-                public boolean execute(HabboItem object) {
+                public void accept(HabboItem object) {
                     if (object.getBaseItem() == item) {
                         habboItem[0] = object;
-                        return false;
                     }
-
-                    return true;
                 }
             });
         }
@@ -134,13 +130,13 @@ public class ItemsComponent {
         }
     }
 
-    public TIntObjectMap<HabboItem> getItems() {
+    public Map<Integer, HabboItem> getItems() {
         return this.items;
     }
 
-    public THashSet<HabboItem> getItemsAsValueCollection() {
-        THashSet<HabboItem> items = new THashSet<>();
-        items.addAll(this.items.valueCollection());
+    public HashSet<HabboItem> getItemsAsValueCollection() {
+        HashSet<HabboItem> items = new HashSet<>();
+        items.addAll(this.items.values());
 
         return items;
     }
@@ -151,23 +147,9 @@ public class ItemsComponent {
 
     public void dispose() {
         synchronized (this.items) {
-            TIntObjectIterator<HabboItem> items = this.items.iterator();
-
-            if (items == null) {
-                LOGGER.error("Items is NULL!");
-                return;
-            }
-
-            if (!this.items.isEmpty()) {
-                for (int i = this.items.size(); i-- > 0; ) {
-                    try {
-                        items.advance();
-                    } catch (NoSuchElementException e) {
-                        break;
-                    }
-                    if (items.value().needsUpdate())
-                        Emulator.getThreading().run(items.value());
-                }
+            for (HabboItem item : this.items.values()) {
+                if (item.needsUpdate())
+                    Emulator.getThreading().run(item);
             }
 
             this.items.clear();

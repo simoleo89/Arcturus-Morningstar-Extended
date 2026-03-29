@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.items.FurnitureType;
 import com.eu.habbo.habbohotel.items.Item;
 import com.eu.habbo.messages.ISerialize;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,8 +198,8 @@ public class CatalogItem implements ISerialize, Runnable, Comparable<CatalogItem
         Emulator.getThreading().run(this);
     }
 
-    public THashSet<Item> getBaseItems() {
-        THashSet<Item> items = new THashSet<>();
+    public HashSet<Item> getBaseItems() {
+        HashSet<Item> items = new HashSet<>();
 
         if (!this.itemId.isEmpty()) {
             String[] itemIds = this.itemId.split(";");
@@ -289,7 +289,7 @@ public class CatalogItem implements ISerialize, Runnable, Comparable<CatalogItem
         message.appendInt(this.getPointsType());
         message.appendBoolean(this.allowGift); //Can gift
 
-        THashSet<Item> items = this.getBaseItems();
+        HashSet<Item> items = this.getBaseItems();
 
         message.appendInt(items.size());
 

@@ -17,10 +17,10 @@ import com.eu.habbo.messages.outgoing.rooms.users.RoomUnitIdleComposer;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserIgnoredComposer;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserStatusComposer;
 import com.eu.habbo.plugin.events.users.UserExitRoomEvent;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.procedure.TIntObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +85,7 @@ public class RoomCycleManager {
             if (!this.room.getCurrentHabbos().isEmpty()) {
                 this.idleCycles = 0;
 
-                THashSet<RoomUnit> updatedUnit = new THashSet<>();
+                HashSet<RoomUnit> updatedUnit = new HashSet<>();
                 ArrayList<Habbo> toKick = new ArrayList<>();
 
                 final long millis = System.currentTimeMillis();
@@ -299,38 +299,23 @@ public class RoomCycleManager {
     /**
      * Processes all bots in the room.
      */
-    private void processBots(THashSet<RoomUnit> updatedUnit) {
-        TIntObjectMap<Bot> currentBots = this.room.getCurrentBots();
+    private void processBots(HashSet<RoomUnit> updatedUnit) {
+        Map<Integer, Bot> currentBots = this.room.getCurrentBots();
         if (currentBots.isEmpty()) {
             return;
         }
 
-        TIntObjectIterator<Bot> botIterator = currentBots.iterator();
-        for (int i = currentBots.size(); i-- > 0; ) {
-            try {
-                final Bot bot;
-                try {
-                    botIterator.advance();
-                    bot = botIterator.value();
-                } catch (Exception e) {
-                    break;
-                }
+        for (Bot bot : currentBots.values()) {
+            if (!this.room.isAllowBotsWalk() && bot.getRoomUnit().isWalking()) {
+                bot.getRoomUnit().stopWalking();
+                updatedUnit.add(bot.getRoomUnit());
+                continue;
+            }
 
-                if (!this.room.isAllowBotsWalk() && bot.getRoomUnit().isWalking()) {
-                    bot.getRoomUnit().stopWalking();
-                    updatedUnit.add(bot.getRoomUnit());
-                    continue;
-                }
+            bot.cycle(this.room.isAllowBotsWalk());
 
-                bot.cycle(this.room.isAllowBotsWalk());
-
-                if (this.cycleRoomUnit(bot.getRoomUnit(), RoomUnitType.BOT)) {
-                    updatedUnit.add(bot.getRoomUnit());
-                }
-
-            } catch (NoSuchElementException e) {
-                LOGGER.error("Caught exception", e);
-                break;
+            if (this.cycleRoomUnit(bot.getRoomUnit(), RoomUnitType.BOT)) {
+                updatedUnit.add(bot.getRoomUnit());
             }
         }
     }
@@ -338,22 +323,13 @@ public class RoomCycleManager {
     /**
      * Processes all pets in the room.
      */
-    private void processPets(THashSet<RoomUnit> updatedUnit) {
-        TIntObjectMap<Pet> currentPets = this.room.getCurrentPets();
+    private void processPets(HashSet<RoomUnit> updatedUnit) {
+        Map<Integer, Pet> currentPets = this.room.getCurrentPets();
         if (currentPets.isEmpty() || !this.room.isAllowBotsWalk()) {
             return;
         }
 
-        TIntObjectIterator<Pet> petIterator = currentPets.iterator();
-        for (int i = currentPets.size(); i-- > 0; ) {
-            try {
-                petIterator.advance();
-            } catch (NoSuchElementException e) {
-                LOGGER.error("Caught exception", e);
-                break;
-            }
-
-            Pet pet = petIterator.value();
+        for (Pet pet : currentPets.values()) {
             if (this.cycleRoomUnit(pet.getRoomUnit(), RoomUnitType.PET)) {
                 updatedUnit.add(pet.getRoomUnit());
             }
@@ -376,7 +352,7 @@ public class RoomCycleManager {
     /**
      * Processes roller cycle.
      */
-    private void processRollers(THashSet<RoomUnit> updatedUnit) {
+    private void processRollers(HashSet<RoomUnit> updatedUnit) {
         int rollerSpeed = this.room.getRollerSpeed();
         if (rollerSpeed != -1 && this.rollerCycle >= rollerSpeed) {
             this.rollerCycle = 0;
@@ -390,19 +366,18 @@ public class RoomCycleManager {
      * Processes the habbo queue.
      */
     private void processHabboQueue(boolean foundRightHolder) {
-        TIntObjectMap<Habbo> habboQueue = this.room.getHabboQueue();
+        Map<Integer, Habbo> habboQueue = this.room.getHabboQueue();
         synchronized (habboQueue) {
             if (!habboQueue.isEmpty() && !foundRightHolder) {
                 final Room room = this.room;
-                habboQueue.forEachEntry(new TIntObjectProcedure<Habbo>() {
+                habboQueue.forEach(new BiConsumer<Integer, Habbo>() {
                     @Override
-                    public boolean execute(int a, Habbo b) {
+                    public void accept(Integer a, Habbo b) {
                         if (b.isOnline()) {
                             if (b.getHabboInfo().getRoomQueueId() == room.getId()) {
                                 b.getClient().sendResponse(new RoomAccessDeniedComposer(""));
                             }
                         }
-                        return true;
                     }
                 });
                 habboQueue.clear();

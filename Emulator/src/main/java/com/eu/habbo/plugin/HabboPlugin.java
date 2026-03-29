@@ -1,15 +1,15 @@
 package com.eu.habbo.plugin;
 
 import com.eu.habbo.habbohotel.users.Habbo;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 
 public abstract class HabboPlugin {
-    public final THashMap<Class<? extends Event>, THashSet<Method>> registeredEvents = new THashMap<>();
+    public final HashMap<Class<? extends Event>, HashSet<Method>> registeredEvents = new HashMap<>();
 
     public HabboPluginConfiguration configuration;
     public URLClassLoader classLoader;

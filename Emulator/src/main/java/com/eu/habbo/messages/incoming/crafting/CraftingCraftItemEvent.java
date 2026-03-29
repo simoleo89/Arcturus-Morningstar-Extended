@@ -13,7 +13,7 @@ import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.messages.outgoing.inventory.RemoveHabboItemComposer;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItems;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import java.util.HashMap;
 
 import java.util.Map;
 
@@ -31,7 +31,7 @@ public class CraftingCraftItemEvent extends MessageHandler {
                 return;
             }
 
-            TIntObjectHashMap<HabboItem> toRemove = new TIntObjectHashMap<>();
+            HashMap<Integer, HabboItem> toRemove = new HashMap<>();
             for (Map.Entry<Item, Integer> set : recipe.getIngredients().entrySet()) {
                 for (int i = 0; i < set.getValue(); i++) {
                     HabboItem habboItem = this.client.getHabbo().getInventory().getItemsComponent().getAndRemoveHabboItem(set.getKey());
@@ -60,7 +60,7 @@ public class CraftingCraftItemEvent extends MessageHandler {
                 this.client.getHabbo().getInventory().getItemsComponent().addItem(rewardItem);
                 this.client.sendResponse(new AddHabboItemComposer(rewardItem));
                 AchievementManager.progressAchievement(this.client.getHabbo(), Emulator.getGameEnvironment().getAchievementManager().getAchievement("Atcg"));
-                toRemove.forEachValue(object -> {
+                toRemove.values().forEach(object -> {
                     CraftingCraftItemEvent.this.client.sendResponse(new RemoveHabboItemComposer(object.getGiftAdjustedId()));
                     return true;
                 });

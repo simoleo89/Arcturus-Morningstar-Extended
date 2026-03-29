@@ -2,8 +2,8 @@ package com.eu.habbo.habbohotel.crafting;
 
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.items.Item;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TObjectProcedure;
+import java.util.HashMap;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +15,10 @@ import java.sql.SQLException;
 public class CraftingManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CraftingManager.class);
 
-    private final THashMap<Item, CraftingAltar> altars;
+    private final HashMap<Item, CraftingAltar> altars;
 
     public CraftingManager() {
-        this.altars = new THashMap<>();
+        this.altars = new HashMap<>();
 
         this.reload();
     }
@@ -71,14 +71,12 @@ public class CraftingManager {
         final int[] i = {0};
 
         synchronized (this.altars) {
-            this.altars.forEachValue(new TObjectProcedure<CraftingAltar>() {
+            this.altars.values().forEach(new Consumer<CraftingAltar>() {
                 @Override
-                public boolean execute(CraftingAltar altar) {
+                public void accept(CraftingAltar altar) {
                     if (altar.hasIngredient(item)) {
                         i[0]++;
                     }
-
-                    return true;
                 }
             });
         }

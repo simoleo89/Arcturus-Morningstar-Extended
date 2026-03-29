@@ -15,7 +15,7 @@ import com.eu.habbo.messages.outgoing.rooms.users.RoomUserStatusComposer;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUsersComposer;
 import com.eu.habbo.plugin.events.bots.BotPickUpEvent;
 import com.eu.habbo.plugin.events.bots.BotPlacedEvent;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ import java.util.Map;
 public class BotManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(BotManager.class);
 
-    final private static THashMap<String, Class<? extends Bot>> botDefenitions = new THashMap<>();
+    final private static HashMap<String, Class<? extends Bot>> botDefenitions = new HashMap<>();
     public static int MINIMUM_CHAT_SPEED = 7;
     public static int MAXIMUM_CHAT_SPEED = 604800;
     public static int MAXIMUM_CHAT_LENGTH = 120;
@@ -70,7 +70,7 @@ public class BotManager {
         return true;
     }
 
-    public Bot createBot(THashMap<String, String> data, String type) {
+    public Bot createBot(HashMap<String, String> data, String type) {
         Bot bot = null;
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("INSERT INTO bots (user_id, room_id, name, motto, figure, gender, type) VALUES (0, 0, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, data.get("name"));

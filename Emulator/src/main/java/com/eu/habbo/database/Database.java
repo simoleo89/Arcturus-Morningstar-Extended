@@ -3,8 +3,8 @@ package com.eu.habbo.database;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.core.ConfigurationManager;
 import com.zaxxer.hikari.HikariDataSource;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,9 +63,9 @@ public class Database {
         return this.databasePool;
     }
 
-    public static PreparedStatement preparedStatementWithParams(Connection connection, String query, THashMap<String, Object> queryParams) throws SQLException {
-        THashMap<Integer, Object> params = new THashMap<Integer, Object>();
-        THashSet<String> quotedParams = new THashSet<>();
+    public static PreparedStatement preparedStatementWithParams(Connection connection, String query, HashMap<String, Object> queryParams) throws SQLException {
+        HashMap<Integer, Object> params = new HashMap<Integer, Object>();
+        HashSet<String> quotedParams = new HashSet<>();
 
         for(String key : queryParams.keySet()) {
             quotedParams.add(Pattern.quote(key));

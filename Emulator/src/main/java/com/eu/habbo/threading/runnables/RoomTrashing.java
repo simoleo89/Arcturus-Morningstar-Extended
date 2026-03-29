@@ -9,7 +9,7 @@ import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.rooms.items.FloorItemOnRollerComposer;
 import com.eu.habbo.plugin.EventHandler;
 import com.eu.habbo.plugin.events.users.UserTakeStepEvent;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class RoomTrashing implements Runnable {
     public static RoomTrashing INSTANCE;
@@ -38,9 +38,9 @@ public class RoomTrashing implements Runnable {
         if (INSTANCE.habbo == event.habbo) {
             if (event.habbo.getHabboInfo().getCurrentRoom() != null) {
                 if (event.habbo.getHabboInfo().getCurrentRoom().equals(INSTANCE.room)) {
-                    THashSet<ServerMessage> messages = new THashSet<>();
+                    HashSet<ServerMessage> messages = new HashSet<>();
 
-                    THashSet<HabboItem> items = INSTANCE.room.getItemsAt(event.toLocation);
+                    HashSet<HabboItem> items = INSTANCE.room.getItemsAt(event.toLocation);
 
                     int offset = Emulator.getRandom().nextInt(4) + 2;
 

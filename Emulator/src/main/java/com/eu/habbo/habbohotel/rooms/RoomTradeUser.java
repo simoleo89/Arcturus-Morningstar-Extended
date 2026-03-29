@@ -2,11 +2,11 @@ package com.eu.habbo.habbohotel.rooms;
 
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class RoomTradeUser {
     private final Habbo habbo;
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int userId;
     private boolean accepted;
     private boolean confirmed;
@@ -20,7 +20,7 @@ public class RoomTradeUser {
 
         this.accepted = false;
         this.confirmed = false;
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public int getUserId() {
@@ -65,7 +65,7 @@ public class RoomTradeUser {
         return null;
     }
 
-    public THashSet<HabboItem> getItems() {
+    public HashSet<HabboItem> getItems() {
         return this.items;
     }
 

@@ -16,8 +16,8 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import java.util.function.Consumer;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,23 +28,23 @@ import java.util.stream.Collectors;
 public class WiredEffectTriggerStacks extends InteractionWiredEffect {
     public static final WiredEffectType type = WiredEffectType.CALL_STACKS;
 
-    private THashSet<HabboItem> items;
+    private HashSet<HabboItem> items;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredEffectTriggerStacks(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredEffectTriggerStacks(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
     public void serializeWiredData(ServerMessage message, Room room) {
         List<HabboItem> itemsSnapshot = new ArrayList<>(this.items);
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         for (HabboItem item : itemsSnapshot) {
             if (item.getRoomId() != this.getRoomId() || Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId()).getHabboItem(item.getId()) == null)
@@ -72,7 +72,7 @@ public class WiredEffectTriggerStacks extends InteractionWiredEffect {
 
         if (this.requiresTriggeringUser()) {
             List<Integer> invalidTriggers = new ArrayList<>();
-            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new TObjectProcedure<InteractionWiredTrigger>() {
+            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new Consumer<InteractionWiredTrigger>() {
                 @Override
                 public boolean execute(InteractionWiredTrigger object) {
                     if (!object.isTriggeredByRoomUnit()) {
@@ -149,7 +149,7 @@ public class WiredEffectTriggerStacks extends InteractionWiredEffect {
 
         List<HabboItem> effectiveItems = WiredSourceUtil.resolveItems(ctx, this.furniSource, this.items);
 
-        THashSet<RoomTile> usedTiles = new THashSet<>();
+        HashSet<RoomTile> usedTiles = new HashSet<>();
 
         for (HabboItem item : effectiveItems) {
             if (item == null) continue;
@@ -193,7 +193,7 @@ public class WiredEffectTriggerStacks extends InteractionWiredEffect {
 
     @Override
     public void loadWiredData(ResultSet set, Room room) throws SQLException {
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
         String wiredData = set.getString("wired_data");
 
         if (wiredData.startsWith("{")) {

@@ -7,7 +7,7 @@ import com.eu.habbo.habbohotel.items.interactions.InteractionStackHelper;
 import com.eu.habbo.habbohotel.items.interactions.InteractionTileWalkMagic;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.plugin.events.furniture.FurnitureStackHeightEvent;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class RoomTileManager {
     /**
      * Updates multiple tiles and sends the update to clients.
      */
-    public void updateTiles(THashSet<RoomTile> tiles) {
+    public void updateTiles(HashSet<RoomTile> tiles) {
         for (RoomTile tile : tiles) {
             this.room.tileCache.remove(tile);
             this.room.getItemManager().tileCache.remove(tile);
@@ -65,7 +65,7 @@ public class RoomTileManager {
         }
 
         RoomTileState result = RoomTileState.OPEN;
-        THashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
+        HashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
 
         if (items == null) {
             return RoomTileState.INVALID;
@@ -105,7 +105,7 @@ public class RoomTileManager {
      * Calculates the walk surface height for underpass checks.
      * Returns the floor height or the top of the highest walkable item below any blocking items.
      */
-    private double getUnderpassWalkHeight(RoomTile tile, THashSet<HabboItem> items, HabboItem exclude) {
+    private double getUnderpassWalkHeight(RoomTile tile, HashSet<HabboItem> items, HabboItem exclude) {
         RoomLayout layout = this.room.getLayout();
         double walkHeight = layout != null ? layout.getHeightAtSquare(tile.x, tile.y) : 0;
 
@@ -210,7 +210,7 @@ public class RoomTileManager {
         double height = layout.getHeightAtSquare(x, y);
         boolean canStack = true;
 
-        THashSet<HabboItem> stackHelpers = this.room.getItemManager().getItemsAt(InteractionStackHelper.class, x, y);
+        HashSet<HabboItem> stackHelpers = this.room.getItemManager().getItemsAt(InteractionStackHelper.class, x, y);
         stackHelpers.addAll(this.room.getItemManager().getItemsAt(InteractionTileWalkMagic.class, x, y));
 
         if (stackHelpers.size() > 0) {
@@ -231,7 +231,7 @@ public class RoomTileManager {
             if (this.room.isAllowUnderpass() && !item.isWalkable() && !item.getBaseItem().allowWalk() && !item.getBaseItem().allowSit() && !item.getBaseItem().allowLay()) {
                 RoomLayout layout2 = this.room.getLayout();
                 RoomTile tile = layout2 != null ? layout2.getTile(x, y) : null;
-                THashSet<HabboItem> allItems = tile != null ? this.room.getItemManager().getItemsAt(tile) : null;
+                HashSet<HabboItem> allItems = tile != null ? this.room.getItemManager().getItemsAt(tile) : null;
                 double walkSurface = this.getUnderpassWalkHeight(tile, allItems, exclude);
                 if (item.getZ() - walkSurface >= RoomLayout.UNDERPASS_HEIGHT) {
                     height = walkSurface;
@@ -288,7 +288,7 @@ public class RoomTileManager {
     public HabboItem getLowestChair(RoomTile tile) {
         HabboItem lowestChair = null;
 
-        THashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
+        HashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
         if (items != null && !items.isEmpty()) {
             for (HabboItem item : items) {
                 if (!item.getBaseItem().allowSit()) {
@@ -312,7 +312,7 @@ public class RoomTileManager {
     public HabboItem getTallestChair(RoomTile tile) {
         HabboItem tallestChair = null;
 
-        THashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
+        HashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
         if (items != null && !items.isEmpty()) {
             for (HabboItem item : items) {
                 if (!item.getBaseItem().allowSit()) {
@@ -340,7 +340,7 @@ public class RoomTileManager {
         }
 
         RoomTile tile = this.room.getLayout().getTile((short) x, (short) y);
-        THashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
+        HashSet<HabboItem> items = this.room.getItemManager().getItemsAt(tile);
 
         return this.canSitAt(items) || this.canLayAt(items);
     }
@@ -360,7 +360,7 @@ public class RoomTileManager {
     /**
      * Checks if items allow sitting.
      */
-    public boolean canSitAt(THashSet<HabboItem> items) {
+    public boolean canSitAt(HashSet<HabboItem> items) {
         if (items == null) {
             return false;
         }
@@ -394,7 +394,7 @@ public class RoomTileManager {
     /**
      * Checks if items allow laying.
      */
-    public boolean canLayAt(THashSet<HabboItem> items) {
+    public boolean canLayAt(HashSet<HabboItem> items) {
         if (items == null || items.isEmpty()) {
             return true;
         }
@@ -424,7 +424,7 @@ public class RoomTileManager {
 
         HabboItem topItem = null;
         boolean canWalk = true;
-        THashSet<HabboItem> items = this.room.getItemManager().getItemsAt(roomTile);
+        HashSet<HabboItem> items = this.room.getItemManager().getItemsAt(roomTile);
         if (items != null) {
             for (HabboItem item : items) {
                 if (topItem == null) {

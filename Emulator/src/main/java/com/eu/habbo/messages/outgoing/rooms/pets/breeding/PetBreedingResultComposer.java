@@ -8,7 +8,7 @@ import com.eu.habbo.messages.ISerialize;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import java.util.HashMap;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class PetBreedingResultComposer extends MessageComposer {
         NormalDistribution normalDistribution = PetManager.getNormalDistributionForBreeding(avgLevel);
 
 
-        TIntObjectHashMap<ArrayList<PetBreedingReward>> rewardBreeds = Emulator.getGameEnvironment().getPetManager().getBreedingRewards(this.petType);
+        HashMap<Integer, ArrayList<PetBreedingReward>> rewardBreeds = Emulator.getGameEnvironment().getPetManager().getBreedingRewards(this.petType);
 
         this.response.appendInt(4); //Levels
         {

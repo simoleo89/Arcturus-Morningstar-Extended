@@ -8,8 +8,8 @@ import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.messages.outgoing.inventory.RemoveHabboItemComposer;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItems;
-import gnu.trove.iterator.hash.TObjectHashIterator;
-import gnu.trove.map.hash.TIntObjectHashMap;
+
+import java.util.HashMap;
 
 public class RequestInventoryItemsDelete extends MessageHandler {
     public int getRatelimit() {
@@ -30,13 +30,13 @@ public class RequestInventoryItemsDelete extends MessageHandler {
         final Habbo habbo = this.client.getHabbo();
         if (habbo == null)
             return;
-        TIntObjectHashMap<HabboItem> toRemove = new TIntObjectHashMap();
+        HashMap<Integer, HabboItem> toRemove = new HashMap<>();
         for (int i = 0; i < Math.abs(amount); i++) {
             HabboItem habboInventoryItem = habbo.getInventory().getItemsComponent().getAndRemoveHabboItem(item);
             if (habboInventoryItem != null)
                 toRemove.put(habboInventoryItem.getId(), habboInventoryItem);
         }
-        toRemove.forEachValue(object -> {
+        toRemove.values().forEach(object -> {
             habbo.getClient().sendResponse(new RemoveHabboItemComposer(object.getGiftAdjustedId()));
             return true;
         });
@@ -46,7 +46,7 @@ public class RequestInventoryItemsDelete extends MessageHandler {
 
     private boolean hasFurnitureInInventory(Habbo habbo, Item item, Integer amount) {
         int count = 0;
-        for (TObjectHashIterator<HabboItem> tObjectHashIterator = habbo.getInventory().getItemsComponent().getItemsAsValueCollection().iterator(); tObjectHashIterator.hasNext(); ) {
+        for (Iterator<HabboItem> tObjectHashIterator = habbo.getInventory().getItemsComponent().getItemsAsValueCollection().iterator(); tObjectHashIterator.hasNext(); ) {
             HabboItem habboItem = tObjectHashIterator.next();
             if (habboItem.getBaseItem().getId() == item.getId())
                 count++;

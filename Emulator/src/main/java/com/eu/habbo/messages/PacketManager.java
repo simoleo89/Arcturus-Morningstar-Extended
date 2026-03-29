@@ -69,7 +69,7 @@ import com.eu.habbo.messages.incoming.wired.WiredEffectSaveDataEvent;
 import com.eu.habbo.messages.incoming.wired.WiredTriggerSaveDataEvent;
 import com.eu.habbo.plugin.EventHandler;
 import com.eu.habbo.plugin.events.emulator.EmulatorConfigUpdatedEvent;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,13 +83,13 @@ public class PacketManager {
     private static final List<Integer> logList = new ArrayList<>();
     public static boolean DEBUG_SHOW_PACKETS = false;
     public static boolean MULTI_THREADED_PACKET_HANDLING = false;
-    private final THashMap<Integer, Class<? extends MessageHandler>> incoming;
-    private final THashMap<Integer, List<ICallable>> callables;
+    private final HashMap<Integer, Class<? extends MessageHandler>> incoming;
+    private final HashMap<Integer, List<ICallable>> callables;
     private final PacketNames names;
 
     public PacketManager() throws Exception {
-        this.incoming = new THashMap<>();
-        this.callables = new THashMap<>();
+        this.incoming = new HashMap<>();
+        this.callables = new HashMap<>();
         this.names = new PacketNames();
         this.names.initialize();
 

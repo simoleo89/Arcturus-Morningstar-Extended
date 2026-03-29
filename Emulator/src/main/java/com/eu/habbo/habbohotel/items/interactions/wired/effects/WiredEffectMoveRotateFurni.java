@@ -16,7 +16,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredSimulation;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -296,7 +296,7 @@ public class WiredEffectMoveRotateFurni extends InteractionWiredEffect implement
             } else if (this.rotation == 2) {
                 return item.getRotation() > 0 ? item.getRotation() - 1 : item.getMaximumRotations() - 1;
             } else if (this.rotation == 3) { //Random rotation
-                THashSet<Integer> possibleRotations = new THashSet<>();
+                HashSet<Integer> possibleRotations = new HashSet<>();
                 for (int i = 0; i < item.getMaximumRotations(); i++)
                 {
                     possibleRotations.add(i);
@@ -324,7 +324,7 @@ public class WiredEffectMoveRotateFurni extends InteractionWiredEffect implement
                 }
                 return rot;
             } else if (this.rotation == 3) { //Random rotation
-                THashSet<Integer> possibleRotations = new THashSet<>();
+                HashSet<Integer> possibleRotations = new HashSet<>();
                 for (int i = 0; i < item.getMaximumRotations(); i++)
                 {
                     possibleRotations.add(i * 2);

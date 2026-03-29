@@ -15,8 +15,8 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserActionComposer;
 import com.eu.habbo.threading.runnables.BattleBanzaiTilesFlicker;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +58,8 @@ public class BattleBanzaiGame extends Game {
             new ThreadPoolExecutor.DiscardOldestPolicy() // Drop oldest task when queue is full
     );
     
-    private final THashMap<GameTeamColors, THashSet<HabboItem>> lockedTiles;
-    private final THashMap<Integer, HabboItem> gameTiles;
+    private final HashMap<GameTeamColors, HashSet<HabboItem>> lockedTiles;
+    private final HashMap<Integer, HabboItem> gameTiles;
     private volatile long lastFloodFillTime = 0;
     private int tileCount;
     private int countDown;
@@ -68,8 +68,8 @@ public class BattleBanzaiGame extends Game {
     public BattleBanzaiGame(Room room) {
         super(BattleBanzaiGameTeam.class, BattleBanzaiGamePlayer.class, room, true);
 
-        this.lockedTiles = new THashMap<>();
-        this.gameTiles = new THashMap<>();
+        this.lockedTiles = new HashMap<>();
+        this.gameTiles = new HashMap<>();
 
         room.setAllowEffects(true);
     }
@@ -154,7 +154,7 @@ public class BattleBanzaiGame extends Game {
 
             int total = 0;
             synchronized (this.lockedTiles) {
-                for (Map.Entry<GameTeamColors, THashSet<HabboItem>> set : this.lockedTiles.entrySet()) {
+                for (Map.Entry<GameTeamColors, HashSet<HabboItem>> set : this.lockedTiles.entrySet()) {
                     total += set.getValue().size();
                 }
             }
@@ -274,7 +274,7 @@ public class BattleBanzaiGame extends Game {
         synchronized (this.lockedTiles) {
             if (item instanceof InteractionBattleBanzaiTile) {
                 if (!this.lockedTiles.containsKey(teamColor)) {
-                    this.lockedTiles.put(teamColor, new THashSet<>());
+                    this.lockedTiles.put(teamColor, new HashSet<>());
                 }
 
                 this.lockedTiles.get(teamColor).add(item);
@@ -303,7 +303,7 @@ public class BattleBanzaiGame extends Game {
             final int y = item.getY();
 
             final List<List<RoomTile>> filledAreas = new ArrayList<>();
-            final THashSet<HabboItem> lockedTiles = new THashSet<>(this.lockedTiles.get(teamColor));
+            final HashSet<HabboItem> lockedTiles = new HashSet<>(this.lockedTiles.get(teamColor));
 
             try {
                 executor.execute(() -> {
@@ -338,7 +338,7 @@ public class BattleBanzaiGame extends Game {
         }
     }
 
-    private List<RoomTile> floodFill(int x, int y, THashSet<HabboItem> lockedTiles, List<RoomTile> stack, GameTeamColors color) {
+    private List<RoomTile> floodFill(int x, int y, HashSet<HabboItem> lockedTiles, List<RoomTile> stack, GameTeamColors color) {
         if (this.isOutOfBounds(x, y) || this.isForeignLockedTile(x, y, color)) return null;
 
         RoomTile tile = this.room.getLayout().getTile((short) x, (short) y);
@@ -361,7 +361,7 @@ public class BattleBanzaiGame extends Game {
 
     }
 
-    private boolean hasLockedTileAtCoordinates(int x, int y, THashSet<HabboItem> lockedTiles) {
+    private boolean hasLockedTileAtCoordinates(int x, int y, HashSet<HabboItem> lockedTiles) {
         for (HabboItem item : lockedTiles) {
             if (item.getX() == x && item.getY() == y) return true;
         }
@@ -378,7 +378,7 @@ public class BattleBanzaiGame extends Game {
     }
 
     private boolean isForeignLockedTile(int x, int y, GameTeamColors color) {
-        for (HashMap.Entry<GameTeamColors, THashSet<HabboItem>> lockedTilesForColor : this.lockedTiles.entrySet()) {
+        for (HashMap.Entry<GameTeamColors, HashSet<HabboItem>> lockedTilesForColor : this.lockedTiles.entrySet()) {
             if (lockedTilesForColor.getKey() == color) continue;
 
             for (HabboItem item : lockedTilesForColor.getValue()) {
@@ -404,7 +404,7 @@ public class BattleBanzaiGame extends Game {
 
         int totalScore = this.teams.get(teamColors).getTotalScore();
 
-        THashMap<Integer, InteractionBattleBanzaiScoreboard> scoreBoards = this.room.getRoomSpecialTypes().getBattleBanzaiScoreboards(teamColors);
+        HashMap<Integer, InteractionBattleBanzaiScoreboard> scoreBoards = this.room.getRoomSpecialTypes().getBattleBanzaiScoreboards(teamColors);
 
         for (InteractionBattleBanzaiScoreboard scoreboard : scoreBoards.values()) {
             if (scoreboard.getExtradata().isEmpty()) {
@@ -423,7 +423,7 @@ public class BattleBanzaiGame extends Game {
 
     private void refreshGates() {
         Collection<InteractionBattleBanzaiGate> gates = this.room.getRoomSpecialTypes().getBattleBanzaiGates().values();
-        THashSet<RoomTile> tilesToUpdate = new THashSet<>(gates.size());
+        HashSet<RoomTile> tilesToUpdate = new HashSet<>(gates.size());
         for (HabboItem item : gates) {
             tilesToUpdate.add(this.room.getLayout().getTile(item.getX(), item.getY()));
         }

@@ -13,10 +13,7 @@ import com.eu.habbo.messages.outgoing.rooms.users.RoomUserUnbannedComposer;
 import com.eu.habbo.habbohotel.messenger.MessengerBuddy;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.plugin.events.users.UserRightsTakenEvent;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  * Manages room rights, bans, and mutes.
@@ -32,15 +30,15 @@ public class RoomRightsManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoomRightsManager.class);
 
     private final Room room;
-    private final TIntArrayList rights;
-    private final TIntObjectHashMap<RoomBan> bannedHabbos;
-    private final TIntIntHashMap mutedHabbos;
+    private final ArrayList<Integer> rights;
+    private final HashMap<Integer, RoomBan> bannedHabbos;
+    private final HashMap<Integer, Integer> mutedHabbos;
 
     public RoomRightsManager(Room room) {
         this.room = room;
-        this.rights = new TIntArrayList();
-        this.bannedHabbos = new TIntObjectHashMap<>();
-        this.mutedHabbos = new TIntIntHashMap();
+        this.rights = new ArrayList<>();
+        this.bannedHabbos = new HashMap<>();
+        this.mutedHabbos = new HashMap<>();
     }
 
     /**
@@ -288,8 +286,8 @@ public class RoomRightsManager {
     /**
      * Gets all users with rights in the room.
      */
-    public THashMap<Integer, String> getUsersWithRights() {
-        THashMap<Integer, String> rightsMap = new THashMap<>();
+    public HashMap<Integer, String> getUsersWithRights() {
+        HashMap<Integer, String> rightsMap = new HashMap<>();
 
         if (!this.rights.isEmpty()) {
             try (Connection connection = Emulator.getDatabase().getDataSource()
@@ -342,7 +340,7 @@ public class RoomRightsManager {
     /**
      * Gets all banned users.
      */
-    public TIntObjectHashMap<RoomBan> getBannedHabbos() {
+    public HashMap<Integer, RoomBan> getBannedHabbos() {
         return this.bannedHabbos;
     }
 
@@ -395,14 +393,14 @@ public class RoomRightsManager {
     /**
      * Gets the rights list.
      */
-    public TIntArrayList getRights() {
+    public ArrayList<Integer> getRights() {
         return this.rights;
     }
 
     /**
      * Gets the muted habbos map.
      */
-    public TIntIntHashMap getMutedHabbos() {
+    public HashMap<Integer, Integer> getMutedHabbos() {
         return this.mutedHabbos;
     }
 

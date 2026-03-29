@@ -44,8 +44,8 @@ import com.eu.habbo.threading.runnables.RoomTrashing;
 import com.eu.habbo.threading.runnables.ShutdownEmulator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gnu.trove.iterator.hash.TObjectHashIterator;
-import gnu.trove.set.hash.THashSet;
+
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +66,8 @@ public class PluginManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginManager.class);
 
-    private final THashSet<HabboPlugin> plugins = new THashSet<>();
-    private final THashSet<Method> methods = new THashSet<>();
+    private final HashSet<HabboPlugin> plugins = new HashSet<>();
+    private final HashSet<Method> methods = new HashSet<>();
 
     @EventHandler
     public static void globalOnConfigurationUpdated(EmulatorConfigUpdatedEvent event) {
@@ -294,7 +294,7 @@ public class PluginManager {
                             final Class<?> eventClass = method.getParameterTypes()[0];
 
                             if (!plugin.registeredEvents.containsKey(eventClass.asSubclass(Event.class))) {
-                                plugin.registeredEvents.put(eventClass.asSubclass(Event.class), new THashSet<>());
+                                plugin.registeredEvents.put(eventClass.asSubclass(Event.class), new HashSet<>());
                             }
 
                             plugin.registeredEvents.get(eventClass.asSubclass(Event.class)).add(method);
@@ -317,13 +317,13 @@ public class PluginManager {
             }
         }
 
-        TObjectHashIterator<HabboPlugin> iterator = this.plugins.iterator();
+        Iterator<HabboPlugin> iterator = this.plugins.iterator();
         while (iterator.hasNext()) {
             try {
                 HabboPlugin plugin = iterator.next();
 
                 if (plugin != null) {
-                    THashSet<Method> methods = plugin.registeredEvents.get(event.getClass().asSubclass(Event.class));
+                    HashSet<Method> methods = plugin.registeredEvents.get(event.getClass().asSubclass(Event.class));
 
                     if (methods != null) {
                         for (Method method : methods) {
@@ -345,7 +345,7 @@ public class PluginManager {
     }
 
     public boolean isRegistered(Class<? extends Event> clazz, boolean pluginsOnly) {
-        TObjectHashIterator<HabboPlugin> iterator = this.plugins.iterator();
+        Iterator<HabboPlugin> iterator = this.plugins.iterator();
         while (iterator.hasNext()) {
             try {
                 HabboPlugin plugin = iterator.next();
@@ -374,7 +374,7 @@ public class PluginManager {
     }
 
     private void disposePlugins() {
-        TObjectHashIterator<HabboPlugin> iterator = this.plugins.iterator();
+        Iterator<HabboPlugin> iterator = this.plugins.iterator();
         while (iterator.hasNext()) {
             try {
                 HabboPlugin p = iterator.next();
@@ -430,7 +430,7 @@ public class PluginManager {
         }
     }
 
-    public THashSet<HabboPlugin> getPlugins() {
+    public HashSet<HabboPlugin> getPlugins() {
         return this.plugins;
     }
 }

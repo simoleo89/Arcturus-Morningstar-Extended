@@ -4,7 +4,7 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertComposer;
 import com.google.gson.Gson;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 public class ImageAlertUser extends RCONMessage<ImageAlertUser.JSON> {
     public ImageAlertUser() {
@@ -20,7 +20,7 @@ public class ImageAlertUser extends RCONMessage<ImageAlertUser.JSON> {
             return;
         }
 
-        THashMap<String, String> keys = new THashMap<>();
+        HashMap<String, String> keys = new HashMap<>();
 
         if (!json.message.isEmpty()) {
             keys.put("message", json.message);

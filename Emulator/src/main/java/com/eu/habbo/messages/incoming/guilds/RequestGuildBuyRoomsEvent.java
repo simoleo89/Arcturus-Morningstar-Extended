@@ -4,7 +4,7 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.guilds.GuildBuyRoomsComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class RequestGuildBuyRoomsEvent extends MessageHandler {
     public void handle() throws Exception {
         List<Room> rooms = Emulator.getGameEnvironment().getRoomManager().getRoomsForHabbo(this.client.getHabbo());
 
-        THashSet<Room> roomList = new THashSet<Room>();
+        HashSet<Room> roomList = new HashSet<Room>();
 
         for (Room room : rooms) {
             if (room.getGuildId() == 0)

@@ -15,7 +15,7 @@ import com.eu.habbo.messages.outgoing.rooms.users.RoomUnitOnRollerComposer;
 import com.eu.habbo.plugin.Event;
 import com.eu.habbo.plugin.events.furniture.FurnitureRolledEvent;
 import com.eu.habbo.plugin.events.users.UserRolledEvent;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,16 +41,16 @@ public class RoomRollerManager {
      * @param cycleTimestamp Current cycle timestamp
      * @return true if roller cycle was processed
      */
-    public boolean processRollerCycle(THashSet<RoomUnit> updatedUnit, long cycleTimestamp) {
+    public boolean processRollerCycle(HashSet<RoomUnit> updatedUnit, long cycleTimestamp) {
         // Note: cycle gating is handled by RoomCycleManager.processRollers().
         // Do not add a second gate here — it would cause rollers to fire at
         // speed^2 intervals instead of the intended speed.
 
-        THashSet<MessageComposer> messages = new THashSet<>();
-        THashSet<Integer> rollerFurniIds = new THashSet<>();
-        THashSet<Integer> rolledUnitIds = new THashSet<>();
+        HashSet<MessageComposer> messages = new HashSet<>();
+        HashSet<Integer> rollerFurniIds = new HashSet<>();
+        HashSet<Integer> rolledUnitIds = new HashSet<>();
 
-        this.room.getRoomSpecialTypes().getRollers().forEachValue(roller -> {
+        this.room.getRoomSpecialTypes().getRollers().values().forEach(roller -> {
             processRoller(roller, messages, rollerFurniIds, rolledUnitIds, updatedUnit);
             return true;
         });
@@ -71,9 +71,9 @@ public class RoomRollerManager {
     /**
      * Processes a single roller and its contents.
      */
-    private void processRoller(InteractionRoller roller, THashSet<MessageComposer> messages,
-                               THashSet<Integer> rollerFurniIds, THashSet<Integer> rolledUnitIds,
-                               THashSet<RoomUnit> updatedUnit) {
+    private void processRoller(InteractionRoller roller, HashSet<MessageComposer> messages,
+                               HashSet<Integer> rollerFurniIds, HashSet<Integer> rolledUnitIds,
+                               HashSet<RoomUnit> updatedUnit) {
 
         HabboItem newRoller = null;
         RoomLayout layout = this.room.getLayout();
@@ -83,7 +83,7 @@ public class RoomRollerManager {
             return;
         }
 
-        THashSet<HabboItem> itemsOnRoller = new THashSet<>();
+        HashSet<HabboItem> itemsOnRoller = new HashSet<>();
         for (HabboItem item : this.room.getItemsAt(rollerTile)) {
             if (item.getZ() >= roller.getZ() + Item.getCurrentHeight(roller)) {
                 itemsOnRoller.add(item);
@@ -149,7 +149,7 @@ public class RoomRollerManager {
             return;
         }
 
-        THashSet<HabboItem> itemsNewTile = new THashSet<>();
+        HashSet<HabboItem> itemsNewTile = new HashSet<>();
         itemsNewTile.addAll(this.room.getItemsAt(tileInFront));
         itemsNewTile.removeAll(itemsOnRoller);
 
@@ -243,11 +243,11 @@ public class RoomRollerManager {
      */
     private void processUnitsOnRoller(InteractionRoller roller, RoomTile rollerTile,
                                       RoomTile tileInFront, HabboItem topItem,
-                                      THashSet<HabboItem> itemsOnRoller,
-                                      THashSet<HabboItem> itemsNewTile,
+                                      HashSet<HabboItem> itemsOnRoller,
+                                      HashSet<HabboItem> itemsNewTile,
                                       boolean stackContainsRoller, boolean allowFurniture,
-                                      double zOffset, THashSet<MessageComposer> messages,
-                                      THashSet<Integer> rolledUnitIds, THashSet<RoomUnit> updatedUnit) {
+                                      double zOffset, HashSet<MessageComposer> messages,
+                                      HashSet<Integer> rolledUnitIds, HashSet<RoomUnit> updatedUnit) {
 
         Event roomUserRolledEvent = null;
 
@@ -270,7 +270,7 @@ public class RoomRollerManager {
 
         this.room.getTallestChair(tileInFront);
 
-        THashSet<Integer> usersRolledThisTile = new THashSet<>();
+        HashSet<Integer> usersRolledThisTile = new HashSet<>();
 
         for (RoomUnit unit : unitsOnTile) {
             if (rolledUnitIds.contains(unit.getId())) {
@@ -367,10 +367,10 @@ public class RoomRollerManager {
     /**
      * Processes furniture items on a roller.
      */
-    private void processFurnitureOnRoller(InteractionRoller roller, THashSet<HabboItem> itemsOnRoller,
+    private void processFurnitureOnRoller(InteractionRoller roller, HashSet<HabboItem> itemsOnRoller,
                                           HabboItem newRoller, HabboItem topItem, RoomTile tileInFront,
-                                          double zOffset, THashSet<MessageComposer> messages,
-                                          THashSet<Integer> rollerFurniIds) {
+                                          double zOffset, HashSet<MessageComposer> messages,
+                                          HashSet<Integer> rollerFurniIds) {
 
         Event furnitureRolledEvent = null;
 
@@ -402,7 +402,7 @@ public class RoomRollerManager {
         }
     }
 
-    private double calculateTargetZ(RoomTile targetTile, THashSet<HabboItem> itemsBeingRolled) {
+    private double calculateTargetZ(RoomTile targetTile, HashSet<HabboItem> itemsBeingRolled) {
         HabboItem topItem = this.room.getTopItemAt(targetTile.x, targetTile.y);
 
         // Ignore items that are being rolled along with the unit

@@ -4,7 +4,7 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.outgoing.events.calendar.AdventCalendarProductComposer;
 import com.eu.habbo.plugin.events.users.calendar.UserClaimRewardEvent;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public class CalendarManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CalendarCampaign.class);
 
-    final private static Map<Integer, CalendarCampaign> calendarCampaigns = new THashMap<>();
+    final private static Map<Integer, CalendarCampaign> calendarCampaigns = new HashMap<>();
     public static double HC_MODIFIER;
 
     public CalendarManager() {
@@ -117,7 +117,7 @@ public class CalendarManager {
         if (habbo.getHabboStats().calendarRewardsClaimed.stream().noneMatch(claimed -> claimed.getCampaignId() == campaign.getId() && claimed.getDay() == day)) {
 
             Set<Integer> keys = campaign.getRewards().keySet();
-            Map<Integer, Integer> rewards = new THashMap<>();
+            Map<Integer, Integer> rewards = new HashMap<>();
             if(keys.isEmpty()) return;
             keys.forEach(key -> rewards.put(rewards.size() + 1, key));
             int rand = Emulator.getRandom().nextInt(rewards.size() - 1 + 1) + 1;

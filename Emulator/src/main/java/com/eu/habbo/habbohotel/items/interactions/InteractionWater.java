@@ -6,7 +6,7 @@ import com.eu.habbo.habbohotel.pets.Pet;
 import com.eu.habbo.habbohotel.rooms.*;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.apache.commons.math3.util.Pair;
 
 import java.awt.*;
@@ -105,8 +105,8 @@ public class InteractionWater extends InteractionDefault {
     }
 
     @Override
-    public boolean canStackAt(Room room, List<Pair<RoomTile, THashSet<HabboItem>>> itemsAtLocation) {
-        for (Pair<RoomTile, THashSet<HabboItem>> set : itemsAtLocation) {
+    public boolean canStackAt(Room room, List<Pair<RoomTile, HashSet<HabboItem>>> itemsAtLocation) {
+        for (Pair<RoomTile, HashSet<HabboItem>> set : itemsAtLocation) {
             for (HabboItem item : set.getValue()) {
                 if (!(item instanceof InteractionWater)) {
                     return false;

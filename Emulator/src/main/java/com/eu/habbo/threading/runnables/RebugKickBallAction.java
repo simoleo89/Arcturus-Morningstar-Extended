@@ -9,7 +9,7 @@ import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.outgoing.rooms.items.FloorItemOnRollerComposer;
 import com.eu.habbo.messages.outgoing.rooms.items.ItemStateComposer;
 import com.eu.habbo.util.pathfinding.Direction8;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class RebugKickBallAction implements Runnable {
 
@@ -142,7 +142,7 @@ public class RebugKickBallAction implements Runnable {
             }
 
             if (!this.zigzag && this.tilesSinceBounce > 1 && !this.isDribble) {
-                THashSet<Habbo> habbos = this.room.getHabbosAt(nextTile.x, nextTile.y);
+                HashSet<Habbo> habbos = this.room.getHabbosAt(nextTile.x, nextTile.y);
                 if (!habbos.isEmpty()) {
                     this.direction = this.direction.rotateDirection180Degrees();
                     this.tilesSinceBounce = 0;
@@ -165,7 +165,7 @@ public class RebugKickBallAction implements Runnable {
                 this.dead = true;
             }
 
-            THashSet<HabboItem> oldItems = this.room.getItemsAt(oldTile);
+            HashSet<HabboItem> oldItems = this.room.getItemsAt(oldTile);
             if (oldItems != null && !oldItems.isEmpty()) {
                 oldItems.remove(this.ball);
             }

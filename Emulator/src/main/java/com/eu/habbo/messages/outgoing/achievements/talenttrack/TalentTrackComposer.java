@@ -50,7 +50,7 @@ public class TalentTrackComposer extends MessageComposer {
                     this.response.appendInt(level.achievements.size());
 
                     final TalentTrackState finalState = state;
-                    level.achievements.forEachEntry((achievement, index) -> {
+                    level.achievements.forEach((achievement, index) -> {
                         if (achievement != null) {
                             this.response.appendInt(achievement.id);
 

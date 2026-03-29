@@ -4,10 +4,10 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.pets.Pet;
 import com.eu.habbo.habbohotel.pets.PetManager;
 import com.eu.habbo.habbohotel.users.Habbo;
-import gnu.trove.TCollections;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import java.util.Collections;
+
+import java.util.Map;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,7 @@ import java.util.Set;
 
 public class PetsComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(PetsComponent.class);
-    private final TIntObjectMap<Pet> pets = TCollections.synchronizedMap(new TIntObjectHashMap<>());
+    private final Map<Integer, Pet> pets = Collections.synchronizedMap(new HashMap<>());
 
     public PetsComponent(Habbo habbo) {
         this.loadPets(habbo);
@@ -66,7 +66,7 @@ public class PetsComponent {
         }
     }
 
-    public TIntObjectMap<Pet> getPets() {
+    public Map<Integer, Pet> getPets() {
         return this.pets;
     }
 
@@ -76,16 +76,9 @@ public class PetsComponent {
 
     public void dispose() {
         synchronized (this.pets) {
-            TIntObjectIterator<Pet> petIterator = this.pets.iterator();
-
-            for (int i = this.pets.size(); i-- > 0; ) {
-                try {
-                    petIterator.advance();
-                } catch (NoSuchElementException e) {
-                    break;
-                }
-                if (petIterator.value().needsUpdate)
-                    Emulator.getThreading().run(petIterator.value());
+            for (Pet pet : this.pets.values()) {
+                if (pet.needsUpdate)
+                    Emulator.getThreading().run(pet);
             }
         }
     }

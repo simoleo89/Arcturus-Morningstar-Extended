@@ -4,12 +4,12 @@ import com.eu.habbo.habbohotel.messenger.Messenger;
 import com.eu.habbo.habbohotel.messenger.MessengerBuddy;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.friends.UserSearchResultComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SearchUserEvent extends MessageHandler {
-    public static ConcurrentHashMap<String, THashSet<MessengerBuddy>> cachedResults = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, HashSet<MessengerBuddy>> cachedResults = new ConcurrentHashMap<>();
 
     @Override
     public void handle() throws Exception {
@@ -26,7 +26,7 @@ public class SearchUserEvent extends MessageHandler {
         }
 
         if (this.client.getHabbo().getMessenger() != null) {
-            THashSet<MessengerBuddy> buddies = cachedResults.get(username);
+            HashSet<MessengerBuddy> buddies = cachedResults.get(username);
 
             if (buddies == null) {
                 buddies = Messenger.searchUsers(username);

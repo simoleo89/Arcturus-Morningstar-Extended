@@ -69,18 +69,17 @@ import com.eu.habbo.habbohotel.wired.highscores.WiredHighscoreManager;
 import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
 import com.eu.habbo.plugin.events.emulator.EmulatorLoadItemsManagerEvent;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItem;
-import gnu.trove.TCollections;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.Collections;
+
+import java.util.Map;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.sql.*;
 import java.util.*;
+import java.util.HashMap;
 
 public class ItemManager {
 
@@ -89,19 +88,19 @@ public class ItemManager {
     //Configuration. Loaded from database & updated accordingly.
     public static boolean RECYCLER_ENABLED = true;
 
-    private final TIntObjectMap<Item> items;
-    private final TIntObjectHashMap<CrackableReward> crackableRewards;
-    private final THashSet<ItemInteraction> interactionsList;
-    private final THashMap<String, SoundTrack> soundTracks;
+    private final Map<Integer, Item> items;
+    private final HashMap<Integer, CrackableReward> crackableRewards;
+    private final HashSet<ItemInteraction> interactionsList;
+    private final HashMap<String, SoundTrack> soundTracks;
     private final YoutubeManager youtubeManager;
     private final WiredHighscoreManager highscoreManager;
     private final TreeMap<Integer, NewUserGift> newuserGifts;
 
     public ItemManager() {
-        this.items = TCollections.synchronizedMap(new TIntObjectHashMap<>());
-        this.crackableRewards = new TIntObjectHashMap<>();
-        this.interactionsList = new THashSet<>();
-        this.soundTracks = new THashMap<>();
+        this.items = Collections.synchronizedMap(new HashMap<>());
+        this.crackableRewards = new HashMap<>();
+        this.interactionsList = new HashSet<>();
+        this.soundTracks = new HashMap<>();
         this.youtubeManager = new YoutubeManager();
         this.highscoreManager = new WiredHighscoreManager();
         this.newuserGifts = new TreeMap<>();
@@ -828,21 +827,14 @@ public class ItemManager {
         return this.items.get(itemId);
     }
 
-    public TIntObjectMap<Item> getItems() {
+    public Map<Integer, Item> getItems() {
         return this.items;
     }
 
     public Item getItem(String itemName) {
-        TIntObjectIterator<Item> item = this.items.iterator();
-
-        for (int i = this.items.size(); i-- > 0; ) {
-            try {
-                item.advance();
-                if (item.value().getName().equalsIgnoreCase(itemName)) {
-                    return item.value();
-                }
-            } catch (NoSuchElementException e) {
-                break;
+        for (Item item : this.items.values()) {
+            if (item.getName().equalsIgnoreCase(itemName)) {
+                return item;
             }
         }
 

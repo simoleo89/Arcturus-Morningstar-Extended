@@ -12,7 +12,7 @@ import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
 import com.eu.habbo.messages.outgoing.handshake.ConnectionErrorComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class GuildForumDataComposer extends MessageComposer {
 
     public static void serializeForumData(ServerMessage response, Guild guild, Habbo habbo) {
 
-        final THashSet<ForumThread> forumThreads = ForumThread.getByGuildId(guild.getId());
+        final HashSet<ForumThread> forumThreads = ForumThread.getByGuildId(guild.getId());
         int lastSeenAt = 0;
 
         int totalComments = 0;

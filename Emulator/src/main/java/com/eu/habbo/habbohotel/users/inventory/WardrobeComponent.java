@@ -3,10 +3,10 @@ package com.eu.habbo.habbohotel.users.inventory;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboGender;
-import gnu.trove.TIntCollection;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,14 +18,14 @@ import java.util.regex.Pattern;
 
 public class WardrobeComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(WardrobeComponent.class);
-    private final THashMap<Integer, WardrobeItem> looks;
-    private final TIntSet clothing;
-    private final TIntSet clothingSets;
+    private final HashMap<Integer, WardrobeItem> looks;
+    private final Set<Integer> clothing;
+    private final Set<Integer> clothingSets;
 
     public WardrobeComponent(Habbo habbo) {
-        this.looks = new THashMap<>();
-        this.clothing = new TIntHashSet();
-        this.clothingSets = new TIntHashSet();
+        this.looks = new HashMap<>();
+        this.clothing = new HashSet<>();
+        this.clothingSets = new HashSet<>();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM users_wardrobe WHERE user_id = ?")) {
@@ -62,15 +62,15 @@ public class WardrobeComponent {
         return new WardrobeItem(habbo.getHabboInfo().getGender(), look, slotId, habbo);
     }
 
-    public THashMap<Integer, WardrobeItem> getLooks() {
+    public HashMap<Integer, WardrobeItem> getLooks() {
         return this.looks;
     }
 
-    public TIntCollection getClothing() {
+    public Collection<Integer> getClothing() {
         return this.clothing;
     }
 
-    public TIntCollection getClothingSets() {
+    public Collection<Integer> getClothingSets() {
         return this.clothingSets;
     }
 

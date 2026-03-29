@@ -4,13 +4,13 @@ import com.eu.habbo.habbohotel.pets.PetRace;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class PetBreedsComposer extends MessageComposer {
     private final String petName;
-    private final THashSet<PetRace> petRaces;
+    private final HashSet<PetRace> petRaces;
 
-    public PetBreedsComposer(String petName, THashSet<PetRace> petRaces) {
+    public PetBreedsComposer(String petName, HashSet<PetRace> petRaces) {
         this.petName = petName;
         this.petRaces = petRaces;
     }
@@ -36,7 +36,7 @@ public class PetBreedsComposer extends MessageComposer {
         return petName;
     }
 
-    public THashSet<PetRace> getPetRaces() {
+    public HashSet<PetRace> getPetRaces() {
         return petRaces;
     }
 }

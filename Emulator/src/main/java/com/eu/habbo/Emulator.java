@@ -6,6 +6,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import com.eu.habbo.core.*;
 import com.eu.habbo.core.consolecommands.ConsoleCommand;
 import com.eu.habbo.database.Database;
+import com.eu.habbo.gui.EmulatorGUI;
 import com.eu.habbo.habbohotel.GameEnvironment;
 import com.eu.habbo.habbohotel.gameclients.SessionResumeManager;
 import com.eu.habbo.networking.gameserver.GameServer;
@@ -89,135 +90,164 @@ public final class Emulator {
     }
 
     @SuppressWarnings("resource")
-
     public static void main(String[] args) throws Exception {
-        try {
-            if (OS_NAME.startsWith("Windows") && !CLASS_PATH.contains("idea_rt.jar")) {
-                ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-                ConsoleAppender<ILoggingEvent> appender = (ConsoleAppender<ILoggingEvent>) root.getAppender("Console");
+        // Check for --gui flag
+        boolean guiMode = false;
+        for (String arg : args) {
+            if ("--gui".equalsIgnoreCase(arg)) {
+                guiMode = true;
+                break;
+            }
+        }
 
+        if (guiMode) {
+            // GUI mode: JavaFX launches the server via startServer()
+            EmulatorGUI.launchGUI(args);
+        } else {
+            // Console mode: traditional startup
+            try {
+                startServer();
+                startConsoleLoop();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Starts the emulator server. Called from main() in console mode,
+     * or from EmulatorGUI in GUI mode.
+     */
+    public static void startServer() throws Exception {
+        if (OS_NAME.startsWith("Windows") && !CLASS_PATH.contains("idea_rt.jar")) {
+            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            ConsoleAppender<ILoggingEvent> appender = (ConsoleAppender<ILoggingEvent>) root.getAppender("Console");
+
+            if (appender != null) {
                 appender.stop();
                 appender.setWithJansi(true);
                 appender.start();
             }
+        }
 
-            Locale.setDefault(Locale.of("en"));
-            setBuild();
-            Emulator.stopped = false;
-            ConsoleCommand.load();
-            Emulator.logging = new Logging();
+        Locale.setDefault(Locale.of("en"));
+        setBuild();
+        Emulator.stopped = false;
+        ConsoleCommand.load();
+        Emulator.logging = new Logging();
 
-            System.out.println(logo);
+        System.out.println(logo);
 
-            long startTime = System.nanoTime();
+        long startTime = System.nanoTime();
 
-            Emulator.runtime = Runtime.getRuntime();
-            Emulator.config = new ConfigurationManager("config.ini");
-            Emulator.crypto = new CryptoConfig(
-                    Emulator.getConfig().getBoolean("enc.enabled", false),
-                    Emulator.getConfig().getValue("enc.e"),
-                    Emulator.getConfig().getValue("enc.n"),
-                    Emulator.getConfig().getValue("enc.d"));
-            Emulator.database = new Database(Emulator.getConfig());
-            Emulator.databaseLogger = new DatabaseLogger();
-            Emulator.config.loaded = true;
-            Emulator.config.loadFromDatabase();
-            Emulator.threading = new ThreadPooling(Emulator.getConfig().getInt("runtime.threads"));
-            Emulator.getDatabase().getDataSource().setMaximumPoolSize(Emulator.getConfig().getInt("runtime.threads") * 2);
-            Emulator.getDatabase().getDataSource().setMinimumIdle(10);
-            Emulator.pluginManager = new PluginManager();
-            Emulator.pluginManager.reload();
-            Emulator.getPluginManager().fireEvent(new EmulatorConfigUpdatedEvent());
-            Emulator.texts = new TextsManager();
+        Emulator.runtime = Runtime.getRuntime();
+        Emulator.config = new ConfigurationManager("config.ini");
+        Emulator.crypto = new CryptoConfig(
+                Emulator.getConfig().getBoolean("enc.enabled", false),
+                Emulator.getConfig().getValue("enc.e"),
+                Emulator.getConfig().getValue("enc.n"),
+                Emulator.getConfig().getValue("enc.d"));
+        Emulator.database = new Database(Emulator.getConfig());
+        Emulator.databaseLogger = new DatabaseLogger();
+        Emulator.config.loaded = true;
+        Emulator.config.loadFromDatabase();
+        Emulator.threading = new ThreadPooling(Emulator.getConfig().getInt("runtime.threads"));
+        Emulator.getDatabase().getDataSource().setMaximumPoolSize(Emulator.getConfig().getInt("runtime.threads") * 2);
+        Emulator.getDatabase().getDataSource().setMinimumIdle(10);
+        Emulator.pluginManager = new PluginManager();
+        Emulator.pluginManager.reload();
+        Emulator.getPluginManager().fireEvent(new EmulatorConfigUpdatedEvent());
+        Emulator.texts = new TextsManager();
 
-            Emulator.config.register("camera.url", "http://localhost/camera/");
-            Emulator.config.register("imager.location.output.camera", "/public/camera/");
-            Emulator.config.register("imager.location.output.thumbnail", "/public/camera/thumbnails/");
-            Emulator.config.register("camera.price.points.publish", "1");
-            Emulator.config.register("camera.price.points.publish.type", "5");
-            Emulator.config.register("camera.publish.delay", "180");
-            Emulator.config.register("camera.price.credits", "2");
-            Emulator.config.register("camera.price.points", "0");
-            Emulator.config.register("camera.price.points.type", "5");
-            Emulator.config.register("camera.render.delay", "5");
-            Emulator.config.register("hotel.timezone", java.time.ZoneId.systemDefault().getId());
-            String hotelTimezoneId = Emulator.getConfig().getValue("hotel.timezone", java.time.ZoneId.systemDefault().getId());
-            System.out.println();
-            LOGGER.info("https://github.com/duckietm/Arcturus-Morningstar-Extended, ");
-            System.out.println();
-            LOGGER.info("This project is for educational purposes only. This Emulator is an open-source fork of Arcturus created by TheGeneral.");
-            LOGGER.info("Version: {}", version);
-            LOGGER.info("Build: {}", build);
-            LOGGER.info("Build Timestamp: {} [{}]", formatBuildTimestamp(buildTimestamp, hotelTimezoneId), hotelTimezoneId);
-            Emulator.texts.register("camera.permission", "You don't have permission to use the camera!");
-            Emulator.texts.register("camera.wait", "Please wait %seconds% seconds before making another picture.");
-            Emulator.texts.register("camera.error.creation", "Failed to create your picture. *sadpanda*");
+        Emulator.config.register("camera.url", "http://localhost/camera/");
+        Emulator.config.register("imager.location.output.camera", "/public/camera/");
+        Emulator.config.register("imager.location.output.thumbnail", "/public/camera/thumbnails/");
+        Emulator.config.register("camera.price.points.publish", "1");
+        Emulator.config.register("camera.price.points.publish.type", "5");
+        Emulator.config.register("camera.publish.delay", "180");
+        Emulator.config.register("camera.price.credits", "2");
+        Emulator.config.register("camera.price.points", "0");
+        Emulator.config.register("camera.price.points.type", "5");
+        Emulator.config.register("camera.render.delay", "5");
+        Emulator.config.register("hotel.timezone", java.time.ZoneId.systemDefault().getId());
+        String hotelTimezoneId = Emulator.getConfig().getValue("hotel.timezone", java.time.ZoneId.systemDefault().getId());
+        System.out.println();
+        LOGGER.info("https://github.com/duckietm/Arcturus-Morningstar-Extended, ");
+        System.out.println();
+        LOGGER.info("This project is for educational purposes only. This Emulator is an open-source fork of Arcturus created by TheGeneral.");
+        LOGGER.info("Version: {}", version);
+        LOGGER.info("Build: {}", build);
+        LOGGER.info("Build Timestamp: {} [{}]", formatBuildTimestamp(buildTimestamp, hotelTimezoneId), hotelTimezoneId);
+        Emulator.texts.register("camera.permission", "You don't have permission to use the camera!");
+        Emulator.texts.register("camera.wait", "Please wait %seconds% seconds before making another picture.");
+        Emulator.texts.register("camera.error.creation", "Failed to create your picture. *sadpanda*");
 
-            File thumbnailDir = new File(Emulator.config.getValue("imager.location.output.thumbnail"));
-            if (!thumbnailDir.exists()) {
-                thumbnailDir.mkdirs();
-            }
+        File thumbnailDir = new File(Emulator.config.getValue("imager.location.output.thumbnail"));
+        if (!thumbnailDir.exists()) {
+            thumbnailDir.mkdirs();
+        }
 
-            new CleanerThread();
-            Emulator.gameServer = new GameServer(getConfig().getValue("game.host", "127.0.0.1"), getConfig().getInt("game.port", 30000));
-            Emulator.rconServer = new RCONServer(getConfig().getValue("rcon.host", "127.0.0.1"), getConfig().getInt("rcon.port", 30001));
-            Emulator.gameEnvironment = new GameEnvironment();
-            Emulator.gameEnvironment.load();
-            Emulator.gameServer.initializePipeline();
-            Emulator.gameServer.connect();
-            Emulator.getGameServer().getGameClientManager().CFKeepAlive();
-            Emulator.rconServer.initializePipeline();
-            Emulator.rconServer.connect();
-            Emulator.badgeImager = new BadgeImager();
+        new CleanerThread();
+        Emulator.gameServer = new GameServer(getConfig().getValue("game.host", "127.0.0.1"), getConfig().getInt("game.port", 30000));
+        Emulator.rconServer = new RCONServer(getConfig().getValue("rcon.host", "127.0.0.1"), getConfig().getInt("rcon.port", 30001));
+        Emulator.gameEnvironment = new GameEnvironment();
+        Emulator.gameEnvironment.load();
+        Emulator.gameServer.initializePipeline();
+        Emulator.gameServer.connect();
+        Emulator.getGameServer().getGameClientManager().CFKeepAlive();
+        Emulator.rconServer.initializePipeline();
+        Emulator.rconServer.connect();
+        Emulator.badgeImager = new BadgeImager();
 
-            LOGGER.info("Arcturus Morningstar has successfully loaded.");
-            LOGGER.info("System launched in: {}ms. Using {} threads!", (System.nanoTime() - startTime) / 1e6, Runtime.getRuntime().availableProcessors() * 2);
-            LOGGER.info("Memory: {}/{}MB", (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024), (runtime.freeMemory()) / (1024 * 1024));
+        LOGGER.info("Arcturus Morningstar has successfully loaded.");
+        LOGGER.info("System launched in: {}ms. Using {} threads!", (System.nanoTime() - startTime) / 1e6, Runtime.getRuntime().availableProcessors() * 2);
+        LOGGER.info("Memory: {}/{}MB", (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024), (runtime.freeMemory()) / (1024 * 1024));
 
-            Emulator.debugging = Emulator.getConfig().getBoolean("debug.mode");
+        Emulator.debugging = Emulator.getConfig().getBoolean("debug.mode");
 
-            if (debugging) {
-                ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-                root.setLevel(Level.DEBUG);
-                LOGGER.debug("Debugging enabled.");
-            }
+        if (debugging) {
+            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            root.setLevel(Level.DEBUG);
+            LOGGER.debug("Debugging enabled.");
+        }
 
-            Emulator.getPluginManager().fireEvent(new EmulatorLoadedEvent());
-            Emulator.isReady = true;
-            Emulator.timeStarted = getIntUnixTimestamp();
+        Emulator.getPluginManager().fireEvent(new EmulatorLoadedEvent());
+        Emulator.isReady = true;
+        Emulator.timeStarted = getIntUnixTimestamp();
 
-            if (Emulator.getConfig().getInt("runtime.threads") < (Runtime.getRuntime().availableProcessors() * 2)) {
-                LOGGER.warn("Emulator settings runtime.threads ({}) can be increased to ({}) to possibly increase performance.",
-                        Emulator.getConfig().getInt("runtime.threads"),
-                        Runtime.getRuntime().availableProcessors() * 2);
-            }
+        if (Emulator.getConfig().getInt("runtime.threads") < (Runtime.getRuntime().availableProcessors() * 2)) {
+            LOGGER.warn("Emulator settings runtime.threads ({}) can be increased to ({}) to possibly increase performance.",
+                    Emulator.getConfig().getInt("runtime.threads"),
+                    Runtime.getRuntime().availableProcessors() * 2);
+        }
 
-            Emulator.getThreading().run(() -> {
-            }, 1500);
+        Emulator.getThreading().run(() -> {
+        }, 1500);
+    }
 
-            // Check if console mode is true or false, default is true
-            if (Emulator.getConfig().getBoolean("console.mode", true)) {
+    /**
+     * Starts the console input loop for traditional (non-GUI) mode.
+     */
+    private static void startConsoleLoop() {
+        if (!Emulator.getConfig().getBoolean("console.mode", true)) {
+            return;
+        }
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-                while (!isShuttingDown && isReady) {
-                    try {
-                        String line = reader.readLine();
+        while (!isShuttingDown && isReady) {
+            try {
+                String line = reader.readLine();
 
-                        if (line != null) {
-                            ConsoleCommand.handle(line);
-                        }
-                        System.out.println("Waiting for command: ");
-                    } catch (Exception e) {
-                        if (!(e instanceof IOException && e.getMessage().equals("Bad file descriptor"))) {
-                            LOGGER.error("Error while reading command", e);
-                        }
-                    }
+                if (line != null) {
+                    ConsoleCommand.handle(line);
+                }
+                System.out.println("Waiting for command: ");
+            } catch (Exception e) {
+                if (!(e instanceof IOException && e.getMessage().equals("Bad file descriptor"))) {
+                    LOGGER.error("Error while reading command", e);
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

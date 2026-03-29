@@ -3,7 +3,7 @@ package com.eu.habbo.habbohotel.rooms;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.rooms.pathfinding.Pathfinder;
 import com.eu.habbo.habbohotel.rooms.pathfinding.impl.PathfinderImpl;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import java.awt.Rectangle;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -432,8 +432,8 @@ public class RoomLayout {
     return true;
   }
 
-  public THashSet<RoomTile> getTilesAt(RoomTile tile, int width, int length, int rotation) {
-    THashSet<RoomTile> pointList = new THashSet<>(width * length, 0.1f);
+  public HashSet<RoomTile> getTilesAt(RoomTile tile, int width, int length, int rotation) {
+    HashSet<RoomTile> pointList = new HashSet<>(width * length, 0.1f);
 
     if (tile != null) {
       if (rotation == 0 || rotation == 4) {

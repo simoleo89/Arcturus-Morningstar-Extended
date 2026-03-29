@@ -8,7 +8,7 @@ import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.apache.commons.math3.util.Pair;
 
 import java.sql.ResultSet;
@@ -74,8 +74,8 @@ public class InteractionFreezeTile extends HabboItem {
 
 
     @Override
-    public boolean canStackAt(Room room, List<Pair<RoomTile, THashSet<HabboItem>>> itemsAtLocation) {
-        for (Pair<RoomTile, THashSet<HabboItem>> set : itemsAtLocation) {
+    public boolean canStackAt(Room room, List<Pair<RoomTile, HashSet<HabboItem>>> itemsAtLocation) {
+        for (Pair<RoomTile, HashSet<HabboItem>> set : itemsAtLocation) {
             if (set.getValue() != null && !set.getValue().isEmpty()) return false;
         }
 

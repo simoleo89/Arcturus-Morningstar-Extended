@@ -8,7 +8,7 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.rooms.RoomRightsComposer;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserRemoveRightsComposer;
-import gnu.trove.procedure.TIntProcedure;
+import java.util.function.IntConsumer;
 
 public class RoomRemoveAllRightsEvent extends MessageHandler {
     @Override
@@ -19,9 +19,9 @@ public class RoomRemoveAllRightsEvent extends MessageHandler {
             return;
 
         if (room.getOwnerId() == this.client.getHabbo().getHabboInfo().getId() || this.client.getHabbo().hasPermission(Permission.ACC_ANYROOMOWNER)) {
-            room.getRights().forEach(new TIntProcedure() {
+            room.getRights().forEach(new IntConsumer() {
                 @Override
-                public boolean execute(int value) {
+                public void accept(int value) {
                     Habbo habbo = room.getHabbo(value);
 
                     if (habbo != null) {
@@ -29,8 +29,6 @@ public class RoomRemoveAllRightsEvent extends MessageHandler {
                         habbo.getRoomUnit().removeStatus(RoomUnitStatus.FLAT_CONTROL);
                         habbo.getClient().sendResponse(new RoomRightsComposer(RoomRightLevels.NONE));
                     }
-
-                    return true;
                 }
             });
 

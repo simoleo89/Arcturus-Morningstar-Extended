@@ -21,8 +21,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>19</source>
-                    <target>19</target>
+                    <source>21</source>
+                    <target>21</target>
                     <release>21</release>
                 </configuration>
             </plugin>
@@ -94,13 +94,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Trove -->
-        <dependency>
-            <groupId>net.sf.trove4j</groupId>
-            <artifactId>trove4j</artifactId>
-            <version>3.0.3</version>
-            <scope>compile</scope>
-        </dependency>
 
         <!-- HikariCP -->
         <dependency>
@@ -156,11 +149,18 @@
             <version>2.4.1</version>
         </dependency>
 
-        <!-- Joda Time -->
+        <!-- JavaFX Controls -->
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.13.0</version>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>24</version>
+        </dependency>
+
+        <!-- JavaFX FXML -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>24</version>
         </dependency>
     </dependencies>
 </project>

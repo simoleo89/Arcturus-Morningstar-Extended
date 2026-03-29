@@ -4,14 +4,14 @@ import com.eu.habbo.habbohotel.messenger.MessengerBuddy;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import java.util.function.Consumer;
+import java.util.HashSet;
 
 public class RoomInviteErrorComposer extends MessageComposer {
     private final int errorCode;
-    private final THashSet<MessengerBuddy> buddies;
+    private final HashSet<MessengerBuddy> buddies;
 
-    public RoomInviteErrorComposer(int errorCode, THashSet<MessengerBuddy> buddies) {
+    public RoomInviteErrorComposer(int errorCode, HashSet<MessengerBuddy> buddies) {
         this.errorCode = errorCode;
         this.buddies = buddies;
     }
@@ -21,11 +21,10 @@ public class RoomInviteErrorComposer extends MessageComposer {
         this.response.init(Outgoing.RoomInviteErrorComposer);
         this.response.appendInt(this.errorCode);
         this.response.appendInt(this.buddies.size());
-        this.buddies.forEach(new TObjectProcedure<MessengerBuddy>() {
+        this.buddies.forEach(new Consumer<MessengerBuddy>() {
             @Override
-            public boolean execute(MessengerBuddy object) {
+            public void accept(MessengerBuddy object) {
                 RoomInviteErrorComposer.this.response.appendInt(object.getId());
-                return true;
             }
         });
         return this.response;
@@ -35,7 +34,7 @@ public class RoomInviteErrorComposer extends MessageComposer {
         return errorCode;
     }
 
-    public THashSet<MessengerBuddy> getBuddies() {
+    public HashSet<MessengerBuddy> getBuddies() {
         return buddies;
     }
 }

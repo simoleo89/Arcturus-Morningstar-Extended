@@ -7,7 +7,7 @@ import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class ClearRentedSpace implements Runnable {
     private final InteractionRentableSpace item;
@@ -20,7 +20,7 @@ public class ClearRentedSpace implements Runnable {
 
     @Override
     public void run() {
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         for (RoomTile t : this.room.getLayout().getTilesAt(this.room.getLayout().getTile(this.item.getX(), this.item.getY()), this.item.getBaseItem().getWidth(), this.item.getBaseItem().getLength(), this.item.getRotation())) {
             for (HabboItem i : this.room.getItemsAt(t)) {

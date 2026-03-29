@@ -40,7 +40,7 @@ public class MoodLightSaveSettingsEvent extends MessageHandler {
             return;
         }
 
-        for (RoomMoodlightData data : room.getMoodlightData().valueCollection()) {
+        for (RoomMoodlightData data : room.getMoodlightData().values()) {
             if (data.getId() == id) {
                 data.setBackgroundOnly(backgroundOnly == 2);
                 data.setColor(color);

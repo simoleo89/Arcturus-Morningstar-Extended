@@ -30,7 +30,7 @@ import com.eu.habbo.plugin.events.emulator.EmulatorLoadedEvent;
 import com.eu.habbo.plugin.events.users.UserWiredRewardReceived;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -738,7 +738,7 @@ public final class WiredManager {
             return null;
         }
 
-        THashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(
+        HashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(
                 triggerItem.getX(),
                 triggerItem.getY());
 
@@ -785,10 +785,10 @@ public final class WiredManager {
      * @param callStackDepth current recursion depth for trigger stacks
      * @return true if any effects were executed
      */
-    public static boolean executeEffectsAtTiles(THashSet<RoomTile> tiles, final RoomUnit roomUnit, final Room room, final int callStackDepth) {
+    public static boolean executeEffectsAtTiles(HashSet<RoomTile> tiles, final RoomUnit roomUnit, final Room room, final int callStackDepth) {
         for (RoomTile tile : tiles) {
             if (room != null) {
-                THashSet<HabboItem> items = room.getItemsAt(tile);
+                HashSet<HabboItem> items = room.getItemsAt(tile);
 
                 long millis = room.getCycleTimestamp();
                 for (final HabboItem item : items) {

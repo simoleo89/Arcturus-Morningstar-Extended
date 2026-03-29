@@ -19,8 +19,8 @@ import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
 import com.eu.habbo.messages.outgoing.generic.alerts.UpdateFailedComposer;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import java.util.function.Consumer;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,7 +40,7 @@ public class WiredEffectGiveReward extends InteractionWiredEffect {
     public int given;
     public int rewardTime;
     public boolean uniqueRewards;
-    public THashSet<WiredGiveRewardItem> rewardItems = new THashSet<>();
+    public HashSet<WiredGiveRewardItem> rewardItems = new HashSet<>();
     public int userSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredEffectGiveReward(ResultSet set, Item baseItem) throws SQLException {
@@ -165,7 +165,7 @@ public class WiredEffectGiveReward extends InteractionWiredEffect {
 
         if (this.requiresTriggeringUser()) {
             List<Integer> invalidTriggers = new ArrayList<>();
-            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new TObjectProcedure<InteractionWiredTrigger>() {
+            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new Consumer<InteractionWiredTrigger>() {
                 @Override
                 public boolean execute(InteractionWiredTrigger object) {
                     if (!object.isTriggeredByRoomUnit()) {
@@ -303,11 +303,11 @@ public class WiredEffectGiveReward extends InteractionWiredEffect {
         this.uniqueRewards = uniqueRewards;
     }
     
-    public THashSet<WiredGiveRewardItem> getRewardItems() {
+    public HashSet<WiredGiveRewardItem> getRewardItems() {
         return this.rewardItems;
     }
     
-    public void setRewardItems(THashSet<WiredGiveRewardItem> rewardItems) {
+    public void setRewardItems(HashSet<WiredGiveRewardItem> rewardItems) {
         this.rewardItems = rewardItems;
     }
 }

@@ -22,9 +22,9 @@ import com.eu.habbo.plugin.events.users.UserIdleEvent;
 import com.eu.habbo.plugin.events.users.UserTakeStepEvent;
 import com.eu.habbo.threading.runnables.RoomUnitKick;
 import com.eu.habbo.util.pathfinding.Rotation;
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class RoomUnit {
   public boolean isWiredTeleporting = false;
   public boolean isLeavingTeleporter = false;
   private final ConcurrentHashMap<RoomUnitStatus, String> status;
-  private final THashMap<String, Object> cacheable;
+  private final HashMap<String, Object> cacheable;
   public boolean canRotate = true;
   public boolean animateWalk = false;
   public boolean cmdTeleport = false;
@@ -83,14 +83,14 @@ public class RoomUnit {
   private int idleTimer;
   private Room room;
   private RoomRightLevels rightsLevel = RoomRightLevels.NONE;
-  private THashSet<Integer> overridableTiles;
+  private HashSet<Integer> overridableTiles;
 
   public RoomUnit() {
     this.id = 0;
     this.inRoom = false;
     this.canWalk = true;
     this.status = new ConcurrentHashMap<>();
-    this.cacheable = new THashMap<>();
+    this.cacheable = new HashMap<>();
     this.roomUnitType = RoomUnitType.UNKNOWN;
     this.danceType = DanceType.NONE;
     this.handItem = 0;
@@ -98,7 +98,7 @@ public class RoomUnit {
     this.walkTimeOut = Emulator.getIntUnixTimestamp();
     this.effectId = 0;
     this.isKicked = false;
-    this.overridableTiles = new THashSet<>();
+    this.overridableTiles = new HashSet<>();
   }
 
   public void clearWalking() {
@@ -648,7 +648,7 @@ public class RoomUnit {
     return this.statusUpdate;
   }
 
-  public TMap<String, Object> getCacheable() {
+  public Map<String, Object> getCacheable() {
     return this.cacheable;
   }
 

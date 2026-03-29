@@ -10,7 +10,7 @@ import com.eu.habbo.messages.outgoing.rooms.users.RoomUserStatusComposer;
 import com.eu.habbo.messages.outgoing.trading.*;
 import com.eu.habbo.plugin.events.trading.TradeConfirmEvent;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItem;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +67,7 @@ public class RoomTrade {
         this.updateWindow();
     }
 
-    public void offerMultipleItems(Habbo habbo, THashSet<HabboItem> items) {
+    public void offerMultipleItems(Habbo habbo, HashSet<HabboItem> items) {
         RoomTradeUser user = this.getRoomTradeUserForHabbo(habbo);
 
         for (HabboItem item : items) {
@@ -217,14 +217,14 @@ public class RoomTrade {
             LOGGER.error("Caught SQL exception", e);
         }
 
-        THashSet<HabboItem> itemsUserOne = new THashSet<>(userOne.getItems());
-        THashSet<HabboItem> itemsUserTwo = new THashSet<>(userTwo.getItems());
+        HashSet<HabboItem> itemsUserOne = new HashSet<>(userOne.getItems());
+        HashSet<HabboItem> itemsUserTwo = new HashSet<>(userTwo.getItems());
 
         userOne.clearItems();
         userTwo.clearItems();
 
         int creditsForUserTwo = 0;
-        THashSet<HabboItem> creditFurniUserOne = new THashSet<>();
+        HashSet<HabboItem> creditFurniUserOne = new HashSet<>();
         for (HabboItem item : itemsUserOne) {
             int worth = RoomTrade.getCreditsByItem(item);
             if (worth > 0) {
@@ -236,7 +236,7 @@ public class RoomTrade {
         itemsUserOne.removeAll(creditFurniUserOne);
 
         int creditsForUserOne = 0;
-        THashSet<HabboItem> creditFurniUserTwo = new THashSet<>();
+        HashSet<HabboItem> creditFurniUserTwo = new HashSet<>();
         for (HabboItem item : itemsUserTwo) {
             int worth = RoomTrade.getCreditsByItem(item);
             if (worth > 0) {

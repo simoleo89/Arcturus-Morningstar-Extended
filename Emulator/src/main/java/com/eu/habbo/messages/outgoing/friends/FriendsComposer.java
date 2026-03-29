@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.users.HabboGender;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class FriendsComposer extends MessageComposer {
 
     public static ArrayList<ServerMessage> getMessagesForBuddyList(Collection<MessengerBuddy> buddies) {
         ArrayList<ServerMessage> messages = new ArrayList<ServerMessage>();
-        THashSet<MessengerBuddy> friends = new THashSet<MessengerBuddy>();
+        HashSet<MessengerBuddy> friends = new HashSet<MessengerBuddy>();
 
         int totalPages = (int)Math.ceil(buddies.size() / 750.0);
         int page = 0;

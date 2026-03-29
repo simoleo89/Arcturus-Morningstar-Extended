@@ -9,7 +9,7 @@ import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertComposer;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class CannonKickAction implements Runnable {
         if (this.client != null) {
             this.client.getHabbo().getRoomUnit().setCanWalk(true);
         }
-        THashMap<String, String> dater = new THashMap<>();
+        HashMap<String, String> dater = new HashMap<>();
         dater.put("title", "${notification.room.kick.cannonball.title}");
         dater.put("message", "${notification.room.kick.cannonball.message}");
 

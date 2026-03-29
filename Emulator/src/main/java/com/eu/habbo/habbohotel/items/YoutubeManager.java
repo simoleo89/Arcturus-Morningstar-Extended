@@ -5,7 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +74,8 @@ public class YoutubeManager {
         }
     }
 
-    private final THashMap<Integer, ArrayList<YoutubePlaylist>> playlists = new THashMap<>();
-    private final THashMap<String, YoutubePlaylist> playlistCache = new THashMap<>();
+    private final HashMap<Integer, ArrayList<YoutubePlaylist>> playlists = new HashMap<>();
+    private final HashMap<String, YoutubePlaylist> playlistCache = new HashMap<>();
     private final String apiKey = Emulator.getConfig().getValue("youtube.apikey");
 
     public void load() {

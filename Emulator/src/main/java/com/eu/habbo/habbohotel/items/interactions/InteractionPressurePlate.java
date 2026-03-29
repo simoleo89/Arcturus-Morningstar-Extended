@@ -6,7 +6,7 @@ import com.eu.habbo.habbohotel.items.Item;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -77,12 +77,12 @@ public class InteractionPressurePlate extends InteractionDefault {
 
         if (tileAtItem == null) return;
 
-        THashSet<RoomTile> tiles = room.getLayout().getTilesAt(tileAtItem, this.getBaseItem().getWidth(), this.getBaseItem().getLength(), this.getRotation());
+        HashSet<RoomTile> tiles = room.getLayout().getTilesAt(tileAtItem, this.getBaseItem().getWidth(), this.getBaseItem().getLength(), this.getRotation());
 
         if (tiles == null) return;
 
         for (RoomTile tile : tiles) {
-            THashSet<RoomUnit> tileHasHabboOrBot = room.getHabbosAndBotsAt(tile.x, tile.y);
+            HashSet<RoomUnit> tileHasHabboOrBot = room.getHabbosAndBotsAt(tile.x, tile.y);
             if (tileHasHabboOrBot.isEmpty() && this.requiresAllTilesOccupied()) {
                 occupied = false;
                 break;

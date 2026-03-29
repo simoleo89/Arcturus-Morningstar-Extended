@@ -8,7 +8,7 @@ import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.rooms.UpdateStackHeightComposer;
 import com.eu.habbo.messages.outgoing.rooms.items.UpdateStackHeightTileHeightComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class SetStackHelperHeightEvent extends MessageHandler {
     @Override
@@ -26,7 +26,7 @@ public class SetStackHelperHeightEvent extends MessageHandler {
                 RoomTile itemTile = room.getLayout().getTile(item.getX(), item.getY());
                 double stackerHeight = this.packet.readInt();
 
-                THashSet<RoomTile> tiles = room.getLayout().getTilesAt(itemTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
+                HashSet<RoomTile> tiles = room.getLayout().getTilesAt(itemTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
                 if (stackerHeight == -100) {
                     for (RoomTile tile : tiles) {
                         double stackheight = room.getStackHeight(tile.x, tile.y, false, item) * 100;

@@ -17,7 +17,7 @@ import com.eu.habbo.plugin.events.games.GameHabboLeaveEvent;
 import com.eu.habbo.plugin.events.games.GameStartedEvent;
 import com.eu.habbo.plugin.events.games.GameStoppedEvent;
 import com.eu.habbo.threading.runnables.SaveScoreForTeam;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public abstract class Game implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
-    protected final THashMap<GameTeamColors, GameTeam> teams = new THashMap<>();
+    protected final HashMap<GameTeamColors, GameTeam> teams = new HashMap<>();
     protected final Room room;
     private final Class<? extends GameTeam> gameTeamClazz;
     private final Class<? extends GamePlayer> gamePlayerClazz;
@@ -238,7 +238,7 @@ public abstract class Game implements Runnable {
         if (this.room == null)
             return;
 
-        THashMap<GameTeamColors, GameTeam> teamsCopy = new THashMap<>();
+        HashMap<GameTeamColors, GameTeam> teamsCopy = new HashMap<>();
         teamsCopy.putAll(this.teams);
 
         for (Map.Entry<GameTeamColors, GameTeam> teamEntry : teamsCopy.entrySet()) {
@@ -291,7 +291,7 @@ public abstract class Game implements Runnable {
         return gamePlayerClazz;
     }
 
-    public THashMap<GameTeamColors, GameTeam> getTeams() {
+    public HashMap<GameTeamColors, GameTeam> getTeams() {
         return teams;
     }
 

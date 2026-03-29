@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.gameclients.GameClient;
 import com.eu.habbo.habbohotel.pets.Pet;
 import com.eu.habbo.habbohotel.pets.PetManager;
 import com.eu.habbo.habbohotel.rooms.RoomChatMessageBubbles;
-import gnu.trove.procedure.TIntObjectProcedure;
+import java.util.function.BiConsumer;
 
 public class PetInfoCommand extends Command {
     public PetInfoCommand() {
@@ -20,7 +20,7 @@ public class PetInfoCommand extends Command {
 
             String name = params[1];
 
-            gameClient.getHabbo().getHabboInfo().getCurrentRoom().getCurrentPets().forEachEntry(new TIntObjectProcedure<Pet>() {
+            gameClient.getHabbo().getHabboInfo().getCurrentRoom().getCurrentPets().forEach(new BiConsumer<Integer, Pet>() {
                 @Override
                 public boolean execute(int a, Pet pet) {
                     if (pet.getName().equalsIgnoreCase(name)) {

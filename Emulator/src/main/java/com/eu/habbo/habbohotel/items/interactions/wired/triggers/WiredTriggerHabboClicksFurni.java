@@ -15,7 +15,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.habbohotel.wired.core.WiredTriggerSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredTriggerSaveException;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,17 +25,17 @@ import java.util.stream.Collectors;
 public class WiredTriggerHabboClicksFurni extends InteractionWiredTrigger {
     public static final WiredTriggerType type = WiredTriggerType.CLICKS_FURNI;
 
-    protected final THashSet<HabboItem> items;
+    protected final HashSet<HabboItem> items;
     protected int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredTriggerHabboClicksFurni(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredTriggerHabboClicksFurni(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class WiredTriggerHabboClicksFurni extends InteractionWiredTrigger {
 
     @Override
     public void serializeWiredData(ServerMessage message, Room room) {
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         if (Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId()) == null) {
             items.addAll(this.items);

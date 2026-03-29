@@ -13,7 +13,7 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.threading.runnables.HabboItemNewState;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,18 +21,18 @@ import java.util.Objects;
 
 public class InteractionObstacle extends HabboItem implements ICycleable {
 
-    private THashSet<RoomTile> middleTiles;
+    private HashSet<RoomTile> middleTiles;
 
     public InteractionObstacle(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
         this.setExtradata("0");
-        this.middleTiles = new THashSet<>();
+        this.middleTiles = new HashSet<>();
     }
 
     public InteractionObstacle(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
         this.setExtradata("0");
-        this.middleTiles = new THashSet<>();
+        this.middleTiles = new HashSet<>();
     }
 
     @Override

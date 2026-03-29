@@ -5,12 +5,12 @@ import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class GuildBuyRoomsComposer extends MessageComposer {
-    private final THashSet<Room> rooms;
+    private final HashSet<Room> rooms;
 
-    public GuildBuyRoomsComposer(THashSet<Room> rooms) {
+    public GuildBuyRoomsComposer(HashSet<Room> rooms) {
         this.rooms = rooms;
     }
 
@@ -50,7 +50,7 @@ public class GuildBuyRoomsComposer extends MessageComposer {
         return this.response;
     }
 
-    public THashSet<Room> getRooms() {
+    public HashSet<Room> getRooms() {
         return rooms;
     }
 }

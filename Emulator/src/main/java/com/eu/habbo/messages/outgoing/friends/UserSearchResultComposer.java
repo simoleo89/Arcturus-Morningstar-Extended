@@ -5,20 +5,20 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class UserSearchResultComposer extends MessageComposer {
-    private final THashSet<MessengerBuddy> users;
-    private final THashSet<MessengerBuddy> friends;
+    private final HashSet<MessengerBuddy> users;
+    private final HashSet<MessengerBuddy> friends;
     private final Habbo habbo;
 
     private static Comparator<MessengerBuddy> COMPARATOR = Comparator.comparing((MessengerBuddy b) -> b.getUsername().length()).thenComparing((MessengerBuddy b, MessengerBuddy b2) -> b.getUsername().compareToIgnoreCase(b2.getUsername()));
 
-    public UserSearchResultComposer(THashSet<MessengerBuddy> users, THashSet<MessengerBuddy> friends, Habbo habbo) {
+    public UserSearchResultComposer(HashSet<MessengerBuddy> users, HashSet<MessengerBuddy> friends, Habbo habbo) {
         this.users = users;
         this.friends = friends;
         this.habbo = habbo;
@@ -78,11 +78,11 @@ public class UserSearchResultComposer extends MessageComposer {
         return false;
     }
 
-    public THashSet<MessengerBuddy> getUsers() {
+    public HashSet<MessengerBuddy> getUsers() {
         return users;
     }
 
-    public THashSet<MessengerBuddy> getFriends() {
+    public HashSet<MessengerBuddy> getFriends() {
         return friends;
     }
 

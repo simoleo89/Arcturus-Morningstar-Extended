@@ -8,8 +8,8 @@ import com.eu.habbo.habbohotel.users.HabboInfo;
 import com.eu.habbo.habbohotel.users.HabboManager;
 import com.eu.habbo.messages.outgoing.friends.UpdateFriendComposer;
 import com.eu.habbo.plugin.events.users.friends.UserAcceptFriendRequestEvent;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,11 +31,11 @@ public class Messenger {
     public static int MAXIMUM_FRIENDS_HC = 500;
 
     private final ConcurrentHashMap<Integer, MessengerBuddy> friends;
-    private final THashSet<FriendRequest> friendRequests;
+    private final HashSet<FriendRequest> friendRequests;
 
     public Messenger() {
         this.friends = new ConcurrentHashMap<>();
-        this.friendRequests = new THashSet<>();
+        this.friendRequests = new HashSet<>();
     }
 
     public static void unfriend(int userOne, int userTwo) {
@@ -50,8 +50,8 @@ public class Messenger {
         }
     }
 
-    public static THashSet<MessengerBuddy> searchUsers(String username) {
-        THashSet<MessengerBuddy> users = new THashSet<>();
+    public static HashSet<MessengerBuddy> searchUsers(String username) {
+        HashSet<MessengerBuddy> users = new HashSet<>();
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM users WHERE username LIKE ? ORDER BY username ASC LIMIT " + Emulator.getConfig().getInt("hotel.messenger.search.maxresults"))) {
             statement.setString(1, username + "%");
             try (ResultSet set = statement.executeQuery()) {
@@ -149,11 +149,11 @@ public class Messenger {
         return count;
     }
 
-    public static THashMap<Integer, THashSet<MessengerBuddy>> getFriends(int userId) {
-        THashMap<Integer, THashSet<MessengerBuddy>> map = new THashMap<>();
-        map.put(1, new THashSet<>());
-        map.put(2, new THashSet<>());
-        map.put(3, new THashSet<>());
+    public static HashMap<Integer, HashSet<MessengerBuddy>> getFriends(int userId) {
+        HashMap<Integer, HashSet<MessengerBuddy>> map = new HashMap<>();
+        map.put(1, new HashSet<>());
+        map.put(2, new HashSet<>());
+        map.put(3, new HashSet<>());
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT users.id, users.look, users.username, messenger_friendships.relation FROM messenger_friendships INNER JOIN users ON users.id = messenger_friendships.user_two_id WHERE user_one_id = ? ORDER BY RAND() LIMIT 50")) {
             statement.setInt(1, userId);
@@ -272,8 +272,8 @@ public class Messenger {
         this.friends.put(buddy.getId(), buddy);
     }
 
-    public THashSet<MessengerBuddy> getFriends(String username) {
-        THashSet<MessengerBuddy> users = new THashSet<>();
+    public HashSet<MessengerBuddy> getFriends(String username) {
+        HashSet<MessengerBuddy> users = new HashSet<>();
 
         for (Map.Entry<Integer, MessengerBuddy> map : this.friends.entrySet()) {
             if (StringUtils.containsIgnoreCase(map.getValue().getUsername(), username)) {
@@ -382,7 +382,7 @@ public class Messenger {
         return this.friends;
     }
 
-    public THashSet<FriendRequest> getFriendRequests() {
+    public HashSet<FriendRequest> getFriendRequests() {
         synchronized (this.friendRequests) {
             return this.friendRequests;
         }

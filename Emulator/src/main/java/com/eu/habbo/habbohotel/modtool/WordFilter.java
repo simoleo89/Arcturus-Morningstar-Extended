@@ -6,8 +6,8 @@ import com.eu.habbo.habbohotel.rooms.RoomChatMessage;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.outgoing.friends.FriendChatMessageComposer;
 import com.eu.habbo.plugin.events.users.UserTriggerWordFilterEvent;
-import gnu.trove.iterator.hash.TObjectHashIterator;
-import gnu.trove.set.hash.THashSet;
+
+import java.util.HashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +26,9 @@ public class WordFilter {
     //Configuration. Loaded from database & updated accordingly.
     public static boolean ENABLED_FRIENDCHAT = true;
     public static String DEFAULT_REPLACEMENT = "bobba";
-    protected THashSet<WordFilterWord> autoReportWords = new THashSet<>();
-    protected THashSet<WordFilterWord> hideMessageWords = new THashSet<>();
-    protected THashSet<WordFilterWord> words = new THashSet<>();
+    protected HashSet<WordFilterWord> autoReportWords = new HashSet<>();
+    protected HashSet<WordFilterWord> hideMessageWords = new HashSet<>();
+    protected HashSet<WordFilterWord> words = new HashSet<>();
 
     public WordFilter() {
         long start = System.currentTimeMillis();
@@ -91,7 +91,7 @@ public class WordFilter {
     public boolean autoReportCheck(RoomChatMessage roomChatMessage) {
         String message = this.normalise(roomChatMessage.getMessage()).toLowerCase();
 
-        TObjectHashIterator<WordFilterWord> iterator = this.autoReportWords.iterator();
+        Iterator<WordFilterWord> iterator = this.autoReportWords.iterator();
 
         while (iterator.hasNext()) {
             WordFilterWord word = (WordFilterWord) iterator.next();
@@ -112,7 +112,7 @@ public class WordFilter {
     public boolean hideMessageCheck(String message) {
         message = this.normalise(message).toLowerCase();
 
-        TObjectHashIterator<WordFilterWord> iterator = this.hideMessageWords.iterator();
+        Iterator<WordFilterWord> iterator = this.hideMessageWords.iterator();
 
         while (iterator.hasNext()) {
             WordFilterWord word = (WordFilterWord) iterator.next();
@@ -139,7 +139,7 @@ public class WordFilter {
             filteredMessage = this.normalise(filteredMessage);
         }
 
-        TObjectHashIterator<WordFilterWord> iterator = this.words.iterator();
+        Iterator<WordFilterWord> iterator = this.words.iterator();
 
         boolean foundShit = false;
 
@@ -174,7 +174,7 @@ public class WordFilter {
             message = this.normalise(message);
         }
 
-        TObjectHashIterator<WordFilterWord> iterator = this.words.iterator();
+        Iterator<WordFilterWord> iterator = this.words.iterator();
 
         while (iterator.hasNext()) {
             WordFilterWord word = (WordFilterWord) iterator.next();
@@ -195,8 +195,8 @@ public class WordFilter {
         }
     }
 
-    public THashSet<WordFilterWord> getWords() {
-        return new THashSet<>(this.words);
+    public HashSet<WordFilterWord> getWords() {
+        return new HashSet<>(this.words);
     }
 
     public void addWord(WordFilterWord word) {

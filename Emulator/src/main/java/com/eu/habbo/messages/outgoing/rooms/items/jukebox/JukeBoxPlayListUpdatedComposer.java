@@ -4,12 +4,12 @@ import com.eu.habbo.habbohotel.items.SoundTrack;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class JukeBoxPlayListUpdatedComposer extends MessageComposer {
-    private final THashSet<SoundTrack> tracks;
+    private final HashSet<SoundTrack> tracks;
 
-    public JukeBoxPlayListUpdatedComposer(THashSet<SoundTrack> tracks) {
+    public JukeBoxPlayListUpdatedComposer(HashSet<SoundTrack> tracks) {
         this.tracks = tracks;
     }
 
@@ -36,7 +36,7 @@ public class JukeBoxPlayListUpdatedComposer extends MessageComposer {
         return this.response;
     }
 
-    public THashSet<SoundTrack> getTracks() {
+    public HashSet<SoundTrack> getTracks() {
         return tracks;
     }
 }

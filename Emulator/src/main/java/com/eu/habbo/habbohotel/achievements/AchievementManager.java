@@ -16,8 +16,8 @@ import com.eu.habbo.messages.outgoing.users.UserBadgesComposer;
 import com.eu.habbo.plugin.Event;
 import com.eu.habbo.plugin.events.users.achievements.UserAchievementLeveledEvent;
 import com.eu.habbo.plugin.events.users.achievements.UserAchievementProgressEvent;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TObjectIntProcedure;
+import java.util.HashMap;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +30,12 @@ public class AchievementManager {
 
     public static boolean TALENTTRACK_ENABLED = false;
 
-    private final THashMap<String, Achievement> achievements;
-    private final THashMap<TalentTrackType, LinkedHashMap<Integer, TalentTrackLevel>> talentTrackLevels;
+    private final HashMap<String, Achievement> achievements;
+    private final HashMap<TalentTrackType, LinkedHashMap<Integer, TalentTrackLevel>> talentTrackLevels;
 
     public AchievementManager() {
-        this.achievements = new THashMap<>();
-        this.talentTrackLevels = new THashMap<>();
+        this.achievements = new HashMap<>();
+        this.talentTrackLevels = new HashMap<>();
     }
 
     public static void progressAchievement(int habboId, Achievement achievement) {
@@ -307,7 +307,7 @@ public class AchievementManager {
         return null;
     }
 
-    public THashMap<String, Achievement> getAchievements() {
+    public HashMap<String, Achievement> getAchievements() {
         return this.achievements;
     }
 
@@ -320,14 +320,12 @@ public class AchievementManager {
 
         for (Map.Entry<Integer, TalentTrackLevel> entry : this.talentTrackLevels.get(type).entrySet()) {
             final boolean[] allCompleted = {true};
-            entry.getValue().achievements.forEachEntry(new TObjectIntProcedure<Achievement>() {
+            entry.getValue().achievements.forEach(new BiConsumer<Achievement>() {
                 @Override
-                public boolean execute(Achievement a, int b) {
+                public void accept(Achievement a, Integer b) {
                     if (habbo.getHabboStats().getAchievementProgress(a) < b) {
                         allCompleted[0] = false;
                     }
-
-                    return allCompleted[0];
                 }
             });
 

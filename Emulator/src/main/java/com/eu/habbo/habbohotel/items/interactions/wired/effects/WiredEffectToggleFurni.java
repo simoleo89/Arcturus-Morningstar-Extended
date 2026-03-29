@@ -26,8 +26,8 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import java.util.function.Consumer;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,7 @@ public class WiredEffectToggleFurni extends InteractionWiredEffect {
 
     public static final WiredEffectType type = WiredEffectType.TOGGLE_STATE;
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int toggleType = TOGGLE_TYPE_NEXT;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
@@ -90,12 +90,12 @@ public class WiredEffectToggleFurni extends InteractionWiredEffect {
 
     public WiredEffectToggleFurni(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredEffectToggleFurni(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -134,7 +134,7 @@ public class WiredEffectToggleFurni extends InteractionWiredEffect {
 
         if (this.requiresTriggeringUser()) {
             List<Integer> invalidTriggers = new ArrayList<>();
-            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new TObjectProcedure<InteractionWiredTrigger>() {
+            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new Consumer<InteractionWiredTrigger>() {
                 @Override
                 public boolean execute(InteractionWiredTrigger object) {
                     if (!object.isTriggeredByRoomUnit()) {
@@ -202,10 +202,10 @@ public class WiredEffectToggleFurni extends InteractionWiredEffect {
         Habbo habbo = ctx.actor().map(unit -> room.getHabbo(unit)).orElse(null);
 
         // Snapshot this.items into a new list to avoid undefined behavior from concurrent
-        // THashSet access (serializeWiredData can modify items from the network thread).
+        // HashSet access (serializeWiredData can modify items from the network thread).
         List<HabboItem> effectiveItems = WiredSourceUtil.resolveItems(ctx, this.furniSource, this.items);
 
-        THashSet<HabboItem> itemsToRemove = new THashSet<>();
+        HashSet<HabboItem> itemsToRemove = new HashSet<>();
         for (HabboItem item : effectiveItems) {
             if (item == null || item.getRoomId() == 0 || FORBIDDEN_TYPES.stream().anyMatch(a -> a.isAssignableFrom(item.getClass()))) {
                 itemsToRemove.add(item);

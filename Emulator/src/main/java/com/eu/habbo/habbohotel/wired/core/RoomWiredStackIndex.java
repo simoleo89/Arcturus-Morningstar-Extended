@@ -15,7 +15,7 @@ import com.eu.habbo.habbohotel.wired.api.IWiredCondition;
 import com.eu.habbo.habbohotel.wired.api.IWiredEffect;
 import com.eu.habbo.habbohotel.wired.api.IWiredTrigger;
 import com.eu.habbo.habbohotel.wired.api.WiredStack;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,7 +134,7 @@ public final class RoomWiredStackIndex implements WiredStackIndex {
         }
 
         // Get all triggers of this type
-        THashSet<InteractionWiredTrigger> triggers = specialTypes.getTriggers(legacyType);
+        HashSet<InteractionWiredTrigger> triggers = specialTypes.getTriggers(legacyType);
         if (triggers == null || triggers.isEmpty()) {
             return Collections.emptyList();
         }
@@ -166,11 +166,11 @@ public final class RoomWiredStackIndex implements WiredStackIndex {
         IWiredTrigger wrappedTrigger = trigger;
 
         // Get conditions at this location
-        THashSet<InteractionWiredCondition> rawConditions = specialTypes.getConditions(x, y);
+        HashSet<InteractionWiredCondition> rawConditions = specialTypes.getConditions(x, y);
         List<IWiredCondition> conditions = collectConditions(rawConditions);
 
         // Get effects at this location
-        THashSet<InteractionWiredEffect> rawEffects = specialTypes.getEffects(x, y);
+        HashSet<InteractionWiredEffect> rawEffects = specialTypes.getEffects(x, y);
         List<IWiredEffect> effects = collectEffects(rawEffects);
 
         // Check for extras
@@ -194,7 +194,7 @@ public final class RoomWiredStackIndex implements WiredStackIndex {
     /**
      * Collect conditions into a list (they already implement IWiredCondition).
      */
-    private List<IWiredCondition> collectConditions(THashSet<InteractionWiredCondition> rawConditions) {
+    private List<IWiredCondition> collectConditions(HashSet<InteractionWiredCondition> rawConditions) {
         if (rawConditions == null || rawConditions.isEmpty()) {
             return Collections.emptyList();
         }
@@ -209,7 +209,7 @@ public final class RoomWiredStackIndex implements WiredStackIndex {
     /**
      * Collect effects into a list (they already implement IWiredEffect).
      */
-    private List<IWiredEffect> collectEffects(THashSet<InteractionWiredEffect> rawEffects) {
+    private List<IWiredEffect> collectEffects(HashSet<InteractionWiredEffect> rawEffects) {
         if (rawEffects == null || rawEffects.isEmpty()) {
             return Collections.emptyList();
         }

@@ -1,8 +1,8 @@
 package com.eu.habbo.habbohotel.users.subscriptions;
 
 import com.eu.habbo.Emulator;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +20,10 @@ public class SubscriptionManager {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionManager.class);
 
-    public THashMap<String, Class<? extends Subscription>> types;
+    public HashMap<String, Class<? extends Subscription>> types;
 
     public SubscriptionManager() {
-        this.types = new THashMap<>();
+        this.types = new HashMap<>();
     }
 
     public void init() {
@@ -55,8 +55,8 @@ public class SubscriptionManager {
         this.types.clear();
     }
 
-    public THashSet<Subscription> getSubscriptionsForUser(int userId) {
-        THashSet<Subscription> subscriptions = new THashSet<>();
+    public HashSet<Subscription> getSubscriptionsForUser(int userId) {
+        HashSet<Subscription> subscriptions = new HashSet<>();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement("SELECT * FROM users_subscriptions WHERE user_id = ?")) {

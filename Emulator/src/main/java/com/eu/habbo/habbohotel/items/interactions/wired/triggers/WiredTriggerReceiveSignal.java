@@ -17,7 +17,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredTriggerSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredTriggerSaveException;
 import com.eu.habbo.messages.outgoing.rooms.items.ItemStateComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,18 +34,18 @@ public class WiredTriggerReceiveSignal extends InteractionWiredTrigger {
     private static final String REQUIRE_ANTENNA_ERROR = "Puoi selezionare solo furni antenna.";
 
     private int channel = 0; // signal channel (0-based)
-    private THashSet<HabboItem> items;
+    private HashSet<HabboItem> items;
     private int furniSource = WiredSourceUtil.SOURCE_SELECTED;
     private final AtomicLong activationToken = new AtomicLong();
 
     public WiredTriggerReceiveSignal(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredTriggerReceiveSignal(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -94,7 +94,7 @@ public class WiredTriggerReceiveSignal extends InteractionWiredTrigger {
         } catch (Exception e) {
         }
 
-        THashSet<HabboItem> itemsToRemove = new THashSet<>();
+        HashSet<HabboItem> itemsToRemove = new HashSet<>();
         for (HabboItem item : this.items) {
             if (item.getRoomId() != this.getRoomId() || room.getHabboItem(item.getId()) == null) {
                 itemsToRemove.add(item);
@@ -200,7 +200,7 @@ public class WiredTriggerReceiveSignal extends InteractionWiredTrigger {
 
     @Override
     public void loadWiredData(ResultSet set, Room room) throws SQLException {
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
         String wiredData = set.getString("wired_data");
         this.furniSource = WiredSourceUtil.SOURCE_SELECTED;
 

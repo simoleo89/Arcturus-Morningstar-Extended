@@ -4,7 +4,7 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.permissions.Rank;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboBadge;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,14 +19,14 @@ import java.util.Set;
 public class BadgesComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(BadgesComponent.class);
 
-    private final THashSet<HabboBadge> badges = new THashSet<>();
+    private final HashSet<HabboBadge> badges = new HashSet<>();
 
     public BadgesComponent(Habbo habbo) {
         this.badges.addAll(loadBadges(habbo));
     }
 
-    private static THashSet<HabboBadge> loadBadges(Habbo habbo) {
-        THashSet<HabboBadge> badgesList = new THashSet<>();
+    private static HashSet<HabboBadge> loadBadges(Habbo habbo) {
+        HashSet<HabboBadge> badgesList = new HashSet<>();
         Set<String> staffBadges = Emulator.getGameEnvironment().getPermissionsManager().getStaffBadges();
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM users_badges WHERE user_id = ?")) {
             statement.setInt(1, habbo.getHabboInfo().getId());
@@ -124,7 +124,7 @@ public class BadgesComponent {
         }
     }
 
-    public THashSet<HabboBadge> getBadges() {
+    public HashSet<HabboBadge> getBadges() {
         return this.badges;
     }
 

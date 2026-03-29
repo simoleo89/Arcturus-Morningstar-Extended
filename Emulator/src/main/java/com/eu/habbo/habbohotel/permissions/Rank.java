@@ -1,6 +1,6 @@
 package com.eu.habbo.habbohotel.permissions;
 
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -12,8 +12,8 @@ public class Rank {
 
 
     private int level;
-    private final THashMap<String, Permission> permissions;
-    private final THashMap<String, String> variables;
+    private final HashMap<String, Permission> permissions;
+    private final HashMap<String, String> variables;
     private String name;
     private String badge;
     private int roomEffect;
@@ -35,8 +35,8 @@ public class Rank {
     private int gotwTimerAmount;
 
     public Rank(ResultSet set) throws SQLException {
-        this.permissions = new THashMap<>();
-        this.variables = new THashMap<>();
+        this.permissions = new HashMap<>();
+        this.variables = new HashMap<>();
         this.id = set.getInt("id");
         this.level = set.getInt("level");
         this.diamondsTimerAmount = 1;
@@ -101,11 +101,11 @@ public class Rank {
         return this.badge;
     }
 
-    public THashMap<String, Permission> getPermissions() {
+    public HashMap<String, Permission> getPermissions() {
         return this.permissions;
     }
 
-    public THashMap<String, String> getVariables() {
+    public HashMap<String, String> getVariables() {
         return this.variables;
     }
 

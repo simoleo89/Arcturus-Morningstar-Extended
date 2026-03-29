@@ -6,8 +6,8 @@ import com.eu.habbo.habbohotel.rooms.RoomBan;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.set.hash.THashSet;
+
+import java.util.HashSet;
 
 import java.util.NoSuchElementException;
 
@@ -22,19 +22,11 @@ public class RoomBannedUsersComposer extends MessageComposer {
     protected ServerMessage composeInternal() {
         int timeStamp = Emulator.getIntUnixTimestamp();
 
-        THashSet<RoomBan> roomBans = new THashSet<>();
+        HashSet<RoomBan> roomBans = new HashSet<>();
 
-        TIntObjectIterator<RoomBan> iterator = this.room.getBannedHabbos().iterator();
-
-        for (int i = this.room.getBannedHabbos().size(); i-- > 0; ) {
-            try {
-                iterator.advance();
-
-                if (iterator.value().endTimestamp > timeStamp)
-                    roomBans.add(iterator.value());
-            } catch (NoSuchElementException e) {
-                break;
-            }
+        for (RoomBan roomBan : this.room.getBannedHabbos().values()) {
+            if (roomBan.endTimestamp > timeStamp)
+                roomBans.add(roomBan);
         }
 
         if (roomBans.isEmpty())

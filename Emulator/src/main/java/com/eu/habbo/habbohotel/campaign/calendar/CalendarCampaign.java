@@ -1,6 +1,6 @@
 package com.eu.habbo.habbohotel.campaign.calendar;
 
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +10,7 @@ public class CalendarCampaign {
     private int id;
     private final String name;
     private final String image;
-    private Map<Integer , CalendarRewardObject> rewards = new THashMap<>();
+    private Map<Integer , CalendarRewardObject> rewards = new HashMap<>();
     private final Integer start_timestamp;
     private final int total_days;
     private final boolean lock_expired;

@@ -10,7 +10,7 @@ import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertComposer;
 import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertKeys;
 import com.eu.habbo.messages.outgoing.generic.alerts.GenericAlertComposer;
 import com.eu.habbo.messages.outgoing.rooms.ForwardToRoomComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,8 +105,8 @@ public class FloorPlanEditorSaveEvent extends MessageHandler {
                 errors.add("${notification.floorplan_editor.error.message.invalid_walls_fixed_height}");
             }
 
-            THashSet<RoomTile> locked_tileList = room.getLockedTiles();
-            THashSet<RoomTile> new_tileList = new THashSet<>();
+            HashSet<RoomTile> locked_tileList = room.getLockedTiles();
+            HashSet<RoomTile> new_tileList = new HashSet<>();
             blockingRoomItemScan:
             for (int y = 0; y < mapRows.length; y++) {
                 for (int x = 0; x < firstRowSize; x++) {

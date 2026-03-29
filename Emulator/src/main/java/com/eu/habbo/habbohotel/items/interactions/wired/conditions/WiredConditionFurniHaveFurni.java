@@ -13,7 +13,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredContext;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,17 +24,17 @@ public class WiredConditionFurniHaveFurni extends InteractionWiredCondition {
     public static final WiredConditionType type = WiredConditionType.FURNI_HAS_FURNI;
 
     private boolean all;
-    private THashSet<HabboItem> items;
+    private HashSet<HabboItem> items;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredConditionFurniHaveFurni(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredConditionFurniHaveFurni(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -56,7 +56,7 @@ public class WiredConditionFurniHaveFurni extends InteractionWiredCondition {
                 RoomTile baseTile = room.getLayout().getTile(item.getX(), item.getY());
                 if (baseTile == null) return false;
                 double minZ = item.getZ() + Item.getCurrentHeight(item);
-                THashSet<RoomTile> occupiedTiles = room.getLayout().getTilesAt(baseTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
+                HashSet<RoomTile> occupiedTiles = room.getLayout().getTilesAt(baseTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
                 if (occupiedTiles == null) return false;
                 return occupiedTiles.stream().anyMatch(tile -> tile != null && room.getItemsAt(tile).stream().anyMatch(matchedItem -> matchedItem != item && matchedItem.getZ() >= minZ));
             });
@@ -67,7 +67,7 @@ public class WiredConditionFurniHaveFurni extends InteractionWiredCondition {
                 RoomTile baseTile = room.getLayout().getTile(item.getX(), item.getY());
                 if (baseTile == null) return false;
                 double minZ = item.getZ() + Item.getCurrentHeight(item);
-                THashSet<RoomTile> occupiedTiles = room.getLayout().getTilesAt(baseTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
+                HashSet<RoomTile> occupiedTiles = room.getLayout().getTilesAt(baseTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
                 if (occupiedTiles == null) return false;
                 return occupiedTiles.stream().anyMatch(tile -> tile != null && room.getItemsAt(tile).stream().anyMatch(matchedItem -> matchedItem != item && matchedItem.getZ() >= minZ));
             });
@@ -195,7 +195,7 @@ public class WiredConditionFurniHaveFurni extends InteractionWiredCondition {
     }
 
     private void refresh() {
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         Room room = Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId());
         if (room == null) {

@@ -5,7 +5,7 @@ import com.eu.habbo.messages.rcon.*;
 import com.eu.habbo.networking.Server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -21,14 +21,14 @@ public class RCONServer extends Server {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RCONServer.class);
 
-    private final THashMap<String, Class<? extends RCONMessage>> messages;
+    private final HashMap<String, Class<? extends RCONMessage>> messages;
     private final GsonBuilder gsonBuilder;
     List<String> allowedAdresses = new ArrayList<>();
 
     public RCONServer(String host, int port) throws Exception {
         super("RCON Server", host, port, 1, 2);
 
-        this.messages = new THashMap<>();
+        this.messages = new HashMap<>();
 
         this.gsonBuilder = new GsonBuilder();
         this.gsonBuilder.registerTypeAdapter(RCONMessage.class, new RCONMessage.RCONMessageSerializer());

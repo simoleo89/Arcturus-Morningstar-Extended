@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertComposer;
 import com.google.gson.Gson;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public class ImageHotelAlert extends RCONMessage<ImageHotelAlert.JSON> {
 
     @Override
     public void handle(Gson gson, JSON json) {
-        THashMap<String, String> keys = new THashMap<>();
+        HashMap<String, String> keys = new HashMap<>();
 
         if (!json.message.isEmpty()) {
             keys.put("message", json.message);

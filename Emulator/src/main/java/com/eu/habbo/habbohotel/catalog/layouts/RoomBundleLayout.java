@@ -11,9 +11,8 @@ import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertComposer;
 import com.eu.habbo.messages.outgoing.generic.alerts.BubbleAlertKeys;
 import com.eu.habbo.messages.outgoing.navigator.CanCreateRoomComposer;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TObjectProcedure;
+import java.util.HashMap;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ public class RoomBundleLayout extends SingleBundle {
     }
 
     @Override
-    public TIntObjectMap<CatalogItem> getCatalogItems() {
+    public Map<Integer, CatalogItem> getCatalogItems() {
         if (Emulator.getIntUnixTimestamp() - this.lastUpdate < 120) {
             this.lastUpdate = Emulator.getIntUnixTimestamp();
             return super.getCatalogItems();
@@ -58,14 +57,13 @@ public class RoomBundleLayout extends SingleBundle {
 
         final CatalogItem[] item = {null};
 
-        super.getCatalogItems().forEachValue(new TObjectProcedure<CatalogItem>() {
+        super.getCatalogItems().values().forEach(new Consumer<CatalogItem>() {
             @Override
-            public boolean execute(CatalogItem object) {
+            public void accept(CatalogItem object) {
                 if (object == null)
-                    return true;
+                    return;
 
                 item[0] = object;
-                return false;
             }
         });
 
@@ -77,7 +75,7 @@ public class RoomBundleLayout extends SingleBundle {
         if (item[0] != null) {
             item[0].getBundle().clear();
 
-            THashMap<Item, Integer> items = new THashMap<>();
+            HashMap<Item, Integer> items = new HashMap<>();
 
             for (HabboItem i : this.room.getFloorItems()) {
                 if (!items.contains(i.getBaseItem())) {
@@ -199,7 +197,7 @@ public class RoomBundleLayout extends SingleBundle {
                     synchronized (this.room.getCurrentBots()) {
                         statement.setInt(1, userId);
                         statement.setInt(2, roomId);
-                        for (Bot bot : this.room.getCurrentBots().valueCollection()) {
+                        for (Bot bot : this.room.getCurrentBots().values()) {
                             statement.setString(3, bot.getName());
                             statement.setString(4, bot.getMotto());
                             statement.setString(5, bot.getFigure());
@@ -234,7 +232,7 @@ public class RoomBundleLayout extends SingleBundle {
         r.setFloorPaint(this.room.getFloorPaint());
         r.setScore(0);
         r.setNeedsUpdate(true);
-        THashMap<String, String> keys = new THashMap<>();
+        HashMap<String, String> keys = new HashMap<>();
         keys.put("ROOMNAME", r.getName());
         keys.put("ROOMID", r.getId() + "");
         keys.put("OWNER", r.getOwnerName());

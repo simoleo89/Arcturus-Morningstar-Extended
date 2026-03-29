@@ -1,9 +1,9 @@
 package com.eu.habbo.habbohotel.users.clothingvalidation;
 
 import com.eu.habbo.habbohotel.users.Habbo;
-import gnu.trove.TIntCollection;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.TIntHashSet;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,7 @@ public class ClothingValidationManager {
      * @return Cleaned figure string
      */
     public static String validateLook(String look, String gender) {
-        return validateLook(look, gender, false, new TIntHashSet());
+        return validateLook(look, gender, false, new HashSet<>());
     }
 
     /**
@@ -80,7 +80,7 @@ public class ClothingValidationManager {
      * @return Cleaned figure string
      */
     public static String validateLook(String look, String gender, boolean isHC) {
-        return validateLook(look, gender, isHC, new TIntHashSet());
+        return validateLook(look, gender, isHC, new HashSet<>());
     }
 
     /**
@@ -91,14 +91,14 @@ public class ClothingValidationManager {
      * @param ownedClothing Array of owned clothing set IDs. If sellable and setId not in this array clothing will be removed
      * @return Cleaned figure string
      */
-    public static String validateLook(String look, String gender, boolean isHC, TIntCollection ownedClothing) {
+    public static String validateLook(String look, String gender, boolean isHC, Collection<Integer> ownedClothing) {
         if(FIGUREDATA.palettes.size() == 0 || FIGUREDATA.settypes.size() == 0)
             return look;
 
         String[] newLookParts = look.split(Pattern.quote("."));
         ArrayList<String> lookParts = new ArrayList<>();
 
-        THashMap<String, String[]> parts = new THashMap<>();
+        HashMap<String, String[]> parts = new HashMap<>();
 
         // add mandatory settypes
         for(String lookpart : newLookParts) {

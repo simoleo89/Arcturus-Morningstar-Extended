@@ -23,8 +23,8 @@ import com.eu.habbo.messages.outgoing.generic.alerts.HotelWillCloseInMinutesComp
 import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.threading.runnables.ShutdownEmulator;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,7 +215,7 @@ public class CatalogBuyItemAsGiftEvent extends MessageHandler {
                         this.client.getHabbo().getHabboStats().addLtdLog(item.getId(), Emulator.getIntUnixTimestamp());
                     }
 
-                    THashSet<HabboItem> itemsList = new THashSet<>();
+                    HashSet<HabboItem> itemsList = new HashSet<>();
 
                     boolean badgeFound = false;
                     for (Item baseItem : item.getBaseItems()) {
@@ -363,7 +363,7 @@ public class CatalogBuyItemAsGiftEvent extends MessageHandler {
                         habbo.getClient().sendResponse(new AddHabboItemComposer(gift));
                         habbo.getClient().getHabbo().getInventory().getItemsComponent().addItem(gift);
                         habbo.getClient().sendResponse(new InventoryRefreshComposer());
-                        THashMap<String, String> keys = new THashMap<>();
+                        HashMap<String, String> keys = new HashMap<>();
                         keys.put("display", "BUBBLE");
                         keys.put("image", "${image.library.url}notifications/gift.gif");
                         keys.put("message", Emulator.getTexts().getValue("generic.gift.received.anonymous"));

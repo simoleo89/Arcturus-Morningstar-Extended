@@ -13,7 +13,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredEvent;
 import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.tick.WiredTickable;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.procedure.TObjectProcedure;
+import java.util.function.Consumer;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -113,7 +113,7 @@ public class WiredTriggerAtSetTime extends InteractionWiredTrigger implements Wi
 
         if (!this.isTriggeredByRoomUnit()) {
             List<Integer> invalidTriggers = new ArrayList<>();
-            room.getRoomSpecialTypes().getEffects(this.getX(), this.getY()).forEach(new TObjectProcedure<InteractionWiredEffect>() {
+            room.getRoomSpecialTypes().getEffects(this.getX(), this.getY()).forEach(new Consumer<InteractionWiredEffect>() {
                 @Override
                 public boolean execute(InteractionWiredEffect object) {
                     if (object.requiresTriggeringUser()) {

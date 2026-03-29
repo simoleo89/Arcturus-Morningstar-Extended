@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.items.interactions.InteractionMultiHeight;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.ISerialize;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.list.array.TIntArrayList;
+import java.util.ArrayList;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,7 +32,7 @@ public class Item implements ISerialize {
     private short stateCount;
     private short effectM;
     private short effectF;
-    private TIntArrayList vendingItems;
+    private ArrayList<Integer> vendingItems;
     private double[] multiHeights;
     private String customParams;
     private String clothingOnWalk;
@@ -100,7 +100,7 @@ public class Item implements ISerialize {
         this.clothingOnWalk = set.getString("clothing_on_walk");
 
         if (!set.getString("vending_ids").isEmpty()) {
-            this.vendingItems = new TIntArrayList();
+            this.vendingItems = new ArrayList<>();
             String[] vendingIds = set.getString("vending_ids").replace(";", ",").split(",");
             for (String s : vendingIds) {
                 this.vendingItems.add(Integer.parseInt(s.replace(" ", "")));
@@ -213,7 +213,7 @@ public class Item implements ISerialize {
         return this.interactionType;
     }
 
-    public TIntArrayList getVendingItems() {
+    public ArrayList<Integer> getVendingItems() {
         return this.vendingItems;
     }
 

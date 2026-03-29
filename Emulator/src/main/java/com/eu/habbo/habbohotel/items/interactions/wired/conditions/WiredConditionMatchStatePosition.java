@@ -14,7 +14,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.WiredMatchFurniSetting;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +28,7 @@ public class WiredConditionMatchStatePosition extends InteractionWiredCondition 
 
     public static final WiredConditionType type = WiredConditionType.MATCH_SSHOT;
 
-    private THashSet<WiredMatchFurniSetting> settings;
+    private HashSet<WiredMatchFurniSetting> settings;
 
     private boolean state;
     private boolean position;
@@ -39,12 +39,12 @@ public class WiredConditionMatchStatePosition extends InteractionWiredCondition 
 
     public WiredConditionMatchStatePosition(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.settings = new THashSet<>();
+        this.settings = new HashSet<>();
     }
 
     public WiredConditionMatchStatePosition(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.settings = new THashSet<>();
+        this.settings = new HashSet<>();
     }
 
     @Override
@@ -304,7 +304,7 @@ public class WiredConditionMatchStatePosition extends InteractionWiredCondition 
         Room room = Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId());
 
         if (room != null) {
-            THashSet<WiredMatchFurniSetting> remove = new THashSet<>();
+            HashSet<WiredMatchFurniSetting> remove = new HashSet<>();
 
             for (WiredMatchFurniSetting setting : this.settings) {
                 HabboItem item = room.getHabboItem(setting.item_id);
@@ -320,7 +320,7 @@ public class WiredConditionMatchStatePosition extends InteractionWiredCondition 
     }
 
     @Override
-    public THashSet<WiredMatchFurniSetting> getMatchFurniSettings() {
+    public HashSet<WiredMatchFurniSetting> getMatchFurniSettings() {
         return this.settings;
     }
 

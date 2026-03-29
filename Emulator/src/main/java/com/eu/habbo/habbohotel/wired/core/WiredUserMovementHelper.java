@@ -11,17 +11,16 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.outgoing.rooms.WiredMovementsComposer;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserStatusComposer;
-import gnu.trove.set.hash.THashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashSet;
 
 public final class WiredUserMovementHelper {
     public static final int DEFAULT_ANIMATION_DURATION = WiredMovementsComposer.DEFAULT_DURATION;
@@ -76,7 +75,7 @@ public final class WiredUserMovementHelper {
             roomUnit.resetIdleTimer();
 
             if (habbo != null) {
-                THashSet<Habbo> movedHabbos = new THashSet<>();
+                HashSet<Habbo> movedHabbos = new HashSet<>();
                 movedHabbos.add(habbo);
                 room.updateHabbosAt(targetTile.x, targetTile.y, movedHabbos);
             }
@@ -189,7 +188,7 @@ public final class WiredUserMovementHelper {
             roomUnit.resetIdleTimer();
 
             if (habbo != null) {
-                THashSet<Habbo> movedHabbos = new THashSet<>();
+                HashSet<Habbo> movedHabbos = new HashSet<>();
                 movedHabbos.add(habbo);
                 room.updateHabbosAt(targetTile.x, targetTile.y, movedHabbos);
             }

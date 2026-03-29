@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.procedure.TIntProcedure;
+import java.util.function.IntConsumer;
 
 public class FavoriteRoomsCountComposer extends MessageComposer {
     private final Habbo habbo;
@@ -19,11 +19,10 @@ public class FavoriteRoomsCountComposer extends MessageComposer {
         this.response.init(Outgoing.FavoriteRoomsCountComposer);
         this.response.appendInt(Emulator.getConfig().getInt("hotel.rooms.max.favorite"));
         this.response.appendInt(this.habbo.getHabboStats().getFavoriteRooms().size());
-        this.habbo.getHabboStats().getFavoriteRooms().forEach(new TIntProcedure() {
+        this.habbo.getHabboStats().getFavoriteRooms().forEach(new IntConsumer() {
             @Override
-            public boolean execute(int value) {
+            public void accept(int value) {
                 FavoriteRoomsCountComposer.this.response.appendInt(value);
-                return true;
             }
         });
         return this.response;

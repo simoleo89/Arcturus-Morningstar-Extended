@@ -7,7 +7,7 @@ import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,8 +128,8 @@ public class InteractionGift extends HabboItem {
         return this.ribbonId;
     }
 
-    public THashSet<HabboItem> loadItems() {
-        THashSet<HabboItem> items = new THashSet<>();
+    public HashSet<HabboItem> loadItems() {
+        HashSet<HabboItem> items = new HashSet<>();
         for (int anItemId : this.itemId) {
             if (anItemId == 0)
                 continue;

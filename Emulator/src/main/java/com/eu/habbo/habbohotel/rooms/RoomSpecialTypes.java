@@ -25,18 +25,17 @@ import com.eu.habbo.habbohotel.items.interactions.wired.effects.WiredEffectSendS
 import com.eu.habbo.habbohotel.wired.WiredConditionType;
 import com.eu.habbo.habbohotel.wired.WiredEffectType;
 import com.eu.habbo.habbohotel.wired.WiredTriggerType;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashSet;
 
 /**
  * Manages special room item types including wired components, game elements, and pets.
@@ -44,13 +43,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * to support high-frequency access patterns.
  */
 public class RoomSpecialTypes {
-    private final THashMap<Integer, InteractionBattleBanzaiTeleporter> banzaiTeleporters;
-    private final THashMap<Integer, InteractionNest> nests;
-    private final THashMap<Integer, InteractionPetDrink> petDrinks;
-    private final THashMap<Integer, InteractionPetFood> petFoods;
-    private final THashMap<Integer, InteractionPetToy> petToys;
-    private final THashMap<Integer, InteractionPetTree> petTrees;
-    private final THashMap<Integer, InteractionRoller> rollers;
+    private final HashMap<Integer, InteractionBattleBanzaiTeleporter> banzaiTeleporters;
+    private final HashMap<Integer, InteractionNest> nests;
+    private final HashMap<Integer, InteractionPetDrink> petDrinks;
+    private final HashMap<Integer, InteractionPetFood> petFoods;
+    private final HashMap<Integer, InteractionPetToy> petToys;
+    private final HashMap<Integer, InteractionPetTree> petTrees;
+    private final HashMap<Integer, InteractionRoller> rollers;
 
     // Thread-safe wired collections using ConcurrentHashMap for better concurrency
     private final ConcurrentHashMap<WiredTriggerType, Set<InteractionWiredTrigger>> wiredTriggers;
@@ -64,22 +63,22 @@ public class RoomSpecialTypes {
     private final ConcurrentHashMap<Long, Set<InteractionWiredCondition>> wiredConditionsByLocation;
     private final ConcurrentHashMap<Long, Set<InteractionWiredExtra>> wiredExtrasByLocation;
 
-    private final THashMap<Integer, InteractionGameScoreboard> gameScoreboards;
-    private final THashMap<Integer, InteractionGameGate> gameGates;
-    private final THashMap<Integer, InteractionGameTimer> gameTimers;
+    private final HashMap<Integer, InteractionGameScoreboard> gameScoreboards;
+    private final HashMap<Integer, InteractionGameGate> gameGates;
+    private final HashMap<Integer, InteractionGameTimer> gameTimers;
 
-    private final THashMap<Integer, InteractionFreezeExitTile> freezeExitTile;
-    private final THashMap<Integer, HabboItem> undefined;
+    private final HashMap<Integer, InteractionFreezeExitTile> freezeExitTile;
+    private final HashMap<Integer, HabboItem> undefined;
     private final Set<ICycleable> cycleTasks;
 
     public RoomSpecialTypes() {
-        this.banzaiTeleporters = new THashMap<>(0);
-        this.nests = new THashMap<>(0);
-        this.petDrinks = new THashMap<>(0);
-        this.petFoods = new THashMap<>(0);
-        this.petToys = new THashMap<>(0);
-        this.petTrees = new THashMap<>(0);
-        this.rollers = new THashMap<>(0);
+        this.banzaiTeleporters = new HashMap<>(0);
+        this.nests = new HashMap<>(0);
+        this.petDrinks = new HashMap<>(0);
+        this.petFoods = new HashMap<>(0);
+        this.petToys = new HashMap<>(0);
+        this.petTrees = new HashMap<>(0);
+        this.rollers = new HashMap<>(0);
 
         this.wiredTriggers = new ConcurrentHashMap<>();
         this.wiredEffects = new ConcurrentHashMap<>();
@@ -92,12 +91,12 @@ public class RoomSpecialTypes {
         this.wiredConditionsByLocation = new ConcurrentHashMap<>();
         this.wiredExtrasByLocation = new ConcurrentHashMap<>();
 
-        this.gameScoreboards = new THashMap<>(0);
-        this.gameGates = new THashMap<>(0);
-        this.gameTimers = new THashMap<>(0);
+        this.gameScoreboards = new HashMap<>(0);
+        this.gameGates = new HashMap<>(0);
+        this.gameTimers = new HashMap<>(0);
 
-        this.freezeExitTile = new THashMap<>(0);
-        this.undefined = new THashMap<>(0);
+        this.freezeExitTile = new HashMap<>(0);
+        this.undefined = new HashMap<>(0);
         this.cycleTasks = ConcurrentHashMap.newKeySet();
     }
     
@@ -122,9 +121,9 @@ public class RoomSpecialTypes {
         this.banzaiTeleporters.remove(item.getId());
     }
 
-    public THashSet<InteractionBattleBanzaiTeleporter> getBanzaiTeleporters() {
+    public HashSet<InteractionBattleBanzaiTeleporter> getBanzaiTeleporters() {
         synchronized (this.banzaiTeleporters) {
-            THashSet<InteractionBattleBanzaiTeleporter> battleBanzaiTeleporters = new THashSet<>();
+            HashSet<InteractionBattleBanzaiTeleporter> battleBanzaiTeleporters = new HashSet<>();
             battleBanzaiTeleporters.addAll(this.banzaiTeleporters.values());
 
             return battleBanzaiTeleporters;
@@ -162,9 +161,9 @@ public class RoomSpecialTypes {
         this.nests.remove(item.getId());
     }
 
-    public THashSet<InteractionNest> getNests() {
+    public HashSet<InteractionNest> getNests() {
         synchronized (this.nests) {
-            THashSet<InteractionNest> nests = new THashSet<>();
+            HashSet<InteractionNest> nests = new HashSet<>();
             nests.addAll(this.nests.values());
 
             return nests;
@@ -184,9 +183,9 @@ public class RoomSpecialTypes {
         this.petDrinks.remove(item.getId());
     }
 
-    public THashSet<InteractionPetDrink> getPetDrinks() {
+    public HashSet<InteractionPetDrink> getPetDrinks() {
         synchronized (this.petDrinks) {
-            THashSet<InteractionPetDrink> petDrinks = new THashSet<>();
+            HashSet<InteractionPetDrink> petDrinks = new HashSet<>();
             petDrinks.addAll(this.petDrinks.values());
 
             return petDrinks;
@@ -206,9 +205,9 @@ public class RoomSpecialTypes {
         this.petFoods.remove(petFood.getId());
     }
 
-    public THashSet<InteractionPetFood> getPetFoods() {
+    public HashSet<InteractionPetFood> getPetFoods() {
         synchronized (this.petFoods) {
-            THashSet<InteractionPetFood> petFoods = new THashSet<>();
+            HashSet<InteractionPetFood> petFoods = new HashSet<>();
             petFoods.addAll(this.petFoods.values());
 
             return petFoods;
@@ -228,9 +227,9 @@ public class RoomSpecialTypes {
         this.petToys.remove(petToy.getId());
     }
 
-    public THashSet<InteractionPetToy> getPetToys() {
+    public HashSet<InteractionPetToy> getPetToys() {
         synchronized (this.petToys) {
-            THashSet<InteractionPetToy> petToys = new THashSet<>();
+            HashSet<InteractionPetToy> petToys = new HashSet<>();
             petToys.addAll(this.petToys.values());
 
             return petToys;
@@ -250,9 +249,9 @@ public class RoomSpecialTypes {
         this.petTrees.remove(petTree.getId());
     }
 
-    public THashSet<InteractionPetTree> getPetTrees() {
+    public HashSet<InteractionPetTree> getPetTrees() {
         synchronized (this.petTrees) {
-            THashSet<InteractionPetTree> petTrees = new THashSet<>();
+            HashSet<InteractionPetTree> petTrees = new HashSet<>();
             petTrees.addAll(this.petTrees.values());
 
             return petTrees;
@@ -278,7 +277,7 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionRoller> getRollers() {
+    public HashMap<Integer, InteractionRoller> getRollers() {
         return this.rollers;
     }
 
@@ -303,8 +302,8 @@ public class RoomSpecialTypes {
      * Gets all wired triggers in the room.
      * @return A new set containing all triggers (safe for iteration)
      */
-    public THashSet<InteractionWiredTrigger> getTriggers() {
-        THashSet<InteractionWiredTrigger> result = new THashSet<>();
+    public HashSet<InteractionWiredTrigger> getTriggers() {
+        HashSet<InteractionWiredTrigger> result = new HashSet<>();
         for (Set<InteractionWiredTrigger> triggers : this.wiredTriggers.values()) {
             result.addAll(triggers);
         }
@@ -316,12 +315,12 @@ public class RoomSpecialTypes {
      * @param type The trigger type to filter by
      * @return A new set containing matching triggers (safe for iteration)
      */
-    public THashSet<InteractionWiredTrigger> getTriggers(WiredTriggerType type) {
+    public HashSet<InteractionWiredTrigger> getTriggers(WiredTriggerType type) {
         Set<InteractionWiredTrigger> triggers = this.wiredTriggers.get(type);
         if (triggers == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(triggers);
+        return new HashSet<>(triggers);
     }
 
     /**
@@ -330,13 +329,13 @@ public class RoomSpecialTypes {
      * @param y The Y coordinate
      * @return A new set containing triggers at the location (safe for iteration)
      */
-    public THashSet<InteractionWiredTrigger> getTriggers(int x, int y) {
+    public HashSet<InteractionWiredTrigger> getTriggers(int x, int y) {
         long key = coordinateKey(x, y);
         Set<InteractionWiredTrigger> triggers = this.wiredTriggersByLocation.get(key);
         if (triggers == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(triggers);
+        return new HashSet<>(triggers);
     }
 
     /**
@@ -491,8 +490,8 @@ public class RoomSpecialTypes {
      * Gets all wired effects in the room.
      * @return A new set containing all effects (safe for iteration)
      */
-    public THashSet<InteractionWiredEffect> getEffects() {
-        THashSet<InteractionWiredEffect> result = new THashSet<>();
+    public HashSet<InteractionWiredEffect> getEffects() {
+        HashSet<InteractionWiredEffect> result = new HashSet<>();
         for (Set<InteractionWiredEffect> effects : this.wiredEffects.values()) {
             result.addAll(effects);
         }
@@ -504,12 +503,12 @@ public class RoomSpecialTypes {
      * @param type The effect type to filter by
      * @return A new set containing matching effects (safe for iteration)
      */
-    public THashSet<InteractionWiredEffect> getEffects(WiredEffectType type) {
+    public HashSet<InteractionWiredEffect> getEffects(WiredEffectType type) {
         Set<InteractionWiredEffect> effects = this.wiredEffects.get(type);
         if (effects == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(effects);
+        return new HashSet<>(effects);
     }
 
     /**
@@ -518,13 +517,13 @@ public class RoomSpecialTypes {
      * @param y The Y coordinate
      * @return A new set containing effects at the location (safe for iteration)
      */
-    public THashSet<InteractionWiredEffect> getEffects(int x, int y) {
+    public HashSet<InteractionWiredEffect> getEffects(int x, int y) {
         long key = coordinateKey(x, y);
         Set<InteractionWiredEffect> effects = this.wiredEffectsByLocation.get(key);
         if (effects == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(effects);
+        return new HashSet<>(effects);
     }
 
     /**
@@ -611,8 +610,8 @@ public class RoomSpecialTypes {
      * Gets all wired conditions in the room.
      * @return A new set containing all conditions (safe for iteration)
      */
-    public THashSet<InteractionWiredCondition> getConditions() {
-        THashSet<InteractionWiredCondition> result = new THashSet<>();
+    public HashSet<InteractionWiredCondition> getConditions() {
+        HashSet<InteractionWiredCondition> result = new HashSet<>();
         for (Set<InteractionWiredCondition> conditions : this.wiredConditions.values()) {
             result.addAll(conditions);
         }
@@ -624,12 +623,12 @@ public class RoomSpecialTypes {
      * @param type The condition type to filter by
      * @return A new set containing matching conditions (safe for iteration)
      */
-    public THashSet<InteractionWiredCondition> getConditions(WiredConditionType type) {
+    public HashSet<InteractionWiredCondition> getConditions(WiredConditionType type) {
         Set<InteractionWiredCondition> conditions = this.wiredConditions.get(type);
         if (conditions == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(conditions);
+        return new HashSet<>(conditions);
     }
 
     /**
@@ -638,13 +637,13 @@ public class RoomSpecialTypes {
      * @param y The Y coordinate
      * @return A new set containing conditions at the location (safe for iteration)
      */
-    public THashSet<InteractionWiredCondition> getConditions(int x, int y) {
+    public HashSet<InteractionWiredCondition> getConditions(int x, int y) {
         long key = coordinateKey(x, y);
         Set<InteractionWiredCondition> conditions = this.wiredConditionsByLocation.get(key);
         if (conditions == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(conditions);
+        return new HashSet<>(conditions);
     }
 
     /**
@@ -715,8 +714,8 @@ public class RoomSpecialTypes {
      * Gets all wired extras in the room.
      * @return A new set containing all extras (safe for iteration)
      */
-    public THashSet<InteractionWiredExtra> getExtras() {
-        THashSet<InteractionWiredExtra> result = new THashSet<>();
+    public HashSet<InteractionWiredExtra> getExtras() {
+        HashSet<InteractionWiredExtra> result = new HashSet<>();
         result.addAll(this.wiredExtras.values());
         return result;
     }
@@ -736,13 +735,13 @@ public class RoomSpecialTypes {
      * @param y The Y coordinate
      * @return A new set containing extras at the location (safe for iteration)
      */
-    public THashSet<InteractionWiredExtra> getExtras(int x, int y) {
+    public HashSet<InteractionWiredExtra> getExtras(int x, int y) {
         long key = coordinateKey(x, y);
         Set<InteractionWiredExtra> extras = this.wiredExtrasByLocation.get(key);
         if (extras == null) {
-            return new THashSet<>(0);
+            return new HashSet<>(0);
         }
-        return new THashSet<>(extras);
+        return new HashSet<>(extras);
     }
 
     /**
@@ -833,9 +832,9 @@ public class RoomSpecialTypes {
         this.gameScoreboards.remove(scoreboard.getId());
     }
 
-    public THashMap<Integer, InteractionFreezeScoreboard> getFreezeScoreboards() {
+    public HashMap<Integer, InteractionFreezeScoreboard> getFreezeScoreboards() {
         synchronized (this.gameScoreboards) {
-            THashMap<Integer, InteractionFreezeScoreboard> boards = new THashMap<>();
+            HashMap<Integer, InteractionFreezeScoreboard> boards = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameScoreboard> set : this.gameScoreboards.entrySet()) {
                 if (set.getValue() instanceof InteractionFreezeScoreboard) {
@@ -847,9 +846,9 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionFreezeScoreboard> getFreezeScoreboards(GameTeamColors teamColor) {
+    public HashMap<Integer, InteractionFreezeScoreboard> getFreezeScoreboards(GameTeamColors teamColor) {
         synchronized (this.gameScoreboards) {
-            THashMap<Integer, InteractionFreezeScoreboard> boards = new THashMap<>();
+            HashMap<Integer, InteractionFreezeScoreboard> boards = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameScoreboard> set : this.gameScoreboards.entrySet()) {
                 if (set.getValue() instanceof InteractionFreezeScoreboard) {
@@ -862,9 +861,9 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionBattleBanzaiScoreboard> getBattleBanzaiScoreboards() {
+    public HashMap<Integer, InteractionBattleBanzaiScoreboard> getBattleBanzaiScoreboards() {
         synchronized (this.gameScoreboards) {
-            THashMap<Integer, InteractionBattleBanzaiScoreboard> boards = new THashMap<>();
+            HashMap<Integer, InteractionBattleBanzaiScoreboard> boards = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameScoreboard> set : this.gameScoreboards.entrySet()) {
                 if (set.getValue() instanceof InteractionBattleBanzaiScoreboard) {
@@ -876,9 +875,9 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionBattleBanzaiScoreboard> getBattleBanzaiScoreboards(GameTeamColors teamColor) {
+    public HashMap<Integer, InteractionBattleBanzaiScoreboard> getBattleBanzaiScoreboards(GameTeamColors teamColor) {
         synchronized (this.gameScoreboards) {
-            THashMap<Integer, InteractionBattleBanzaiScoreboard> boards = new THashMap<>();
+            HashMap<Integer, InteractionBattleBanzaiScoreboard> boards = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameScoreboard> set : this.gameScoreboards.entrySet()) {
                 if (set.getValue() instanceof InteractionBattleBanzaiScoreboard) {
@@ -891,9 +890,9 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionFootballScoreboard> getFootballScoreboards() {
+    public HashMap<Integer, InteractionFootballScoreboard> getFootballScoreboards() {
         synchronized (this.gameScoreboards) {
-            THashMap<Integer, InteractionFootballScoreboard> boards = new THashMap<>();
+            HashMap<Integer, InteractionFootballScoreboard> boards = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameScoreboard> set : this.gameScoreboards.entrySet()) {
                 if (set.getValue() instanceof InteractionFootballScoreboard) {
@@ -905,9 +904,9 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionFootballScoreboard> getFootballScoreboards(GameTeamColors teamColor) {
+    public HashMap<Integer, InteractionFootballScoreboard> getFootballScoreboards(GameTeamColors teamColor) {
         synchronized (this.gameScoreboards) {
-            THashMap<Integer, InteractionFootballScoreboard> boards = new THashMap<>();
+            HashMap<Integer, InteractionFootballScoreboard> boards = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameScoreboard> set : this.gameScoreboards.entrySet()) {
                 if (set.getValue() instanceof InteractionFootballScoreboard) {
@@ -933,9 +932,9 @@ public class RoomSpecialTypes {
         this.gameGates.remove(gameGate.getId());
     }
 
-    public THashMap<Integer, InteractionFreezeGate> getFreezeGates() {
+    public HashMap<Integer, InteractionFreezeGate> getFreezeGates() {
         synchronized (this.gameGates) {
-            THashMap<Integer, InteractionFreezeGate> gates = new THashMap<>();
+            HashMap<Integer, InteractionFreezeGate> gates = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameGate> set : this.gameGates.entrySet()) {
                 if (set.getValue() instanceof InteractionFreezeGate) {
@@ -947,9 +946,9 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashMap<Integer, InteractionBattleBanzaiGate> getBattleBanzaiGates() {
+    public HashMap<Integer, InteractionBattleBanzaiGate> getBattleBanzaiGates() {
         synchronized (this.gameGates) {
-            THashMap<Integer, InteractionBattleBanzaiGate> gates = new THashMap<>();
+            HashMap<Integer, InteractionBattleBanzaiGate> gates = new HashMap<>();
 
             for (Map.Entry<Integer, InteractionGameGate> set : this.gameGates.entrySet()) {
                 if (set.getValue() instanceof InteractionBattleBanzaiGate) {
@@ -974,7 +973,7 @@ public class RoomSpecialTypes {
         this.gameTimers.remove(gameTimer.getId());
     }
 
-    public THashMap<Integer, InteractionGameTimer> getGameTimers() {
+    public HashMap<Integer, InteractionGameTimer> getGameTimers() {
         return this.gameTimers;
     }
 
@@ -992,7 +991,7 @@ public class RoomSpecialTypes {
         this.freezeExitTile.put(freezeExitTile.getId(), freezeExitTile);
     }
 
-    public THashMap<Integer, InteractionFreezeExitTile> getFreezeExitTiles() {
+    public HashMap<Integer, InteractionFreezeExitTile> getFreezeExitTiles() {
         return this.freezeExitTile;
     }
 
@@ -1016,8 +1015,8 @@ public class RoomSpecialTypes {
         }
     }
 
-    public THashSet<HabboItem> getItemsOfType(Class<? extends HabboItem> type) {
-        THashSet<HabboItem> items = new THashSet<>();
+    public HashSet<HabboItem> getItemsOfType(Class<? extends HabboItem> type) {
+        HashSet<HabboItem> items = new HashSet<>();
         
         // Check pet trees collection for InteractionPetTree type
         if (type == InteractionPetTree.class) {

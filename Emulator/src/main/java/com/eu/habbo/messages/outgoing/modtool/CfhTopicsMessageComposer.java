@@ -6,30 +6,28 @@ import com.eu.habbo.habbohotel.modtool.CfhTopic;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.procedure.TObjectProcedure;
+import java.util.function.Consumer;
 
 public class CfhTopicsMessageComposer extends MessageComposer {
     @Override
     protected ServerMessage composeInternal() {
         this.response.init(Outgoing.CfhTopicsMessageComposer);
 
-        this.response.appendInt(Emulator.getGameEnvironment().getModToolManager().getCfhCategories().valueCollection().size());
+        this.response.appendInt(Emulator.getGameEnvironment().getModToolManager().getCfhCategories().values().size());
 
-        Emulator.getGameEnvironment().getModToolManager().getCfhCategories().forEachValue(new TObjectProcedure<CfhCategory>() {
+        Emulator.getGameEnvironment().getModToolManager().getCfhCategories().values().forEach(new Consumer<CfhCategory>() {
             @Override
-            public boolean execute(CfhCategory category) {
+            public void accept(CfhCategory category) {
                 CfhTopicsMessageComposer.this.response.appendString(category.getName());
-                CfhTopicsMessageComposer.this.response.appendInt(category.getTopics().valueCollection().size());
-                category.getTopics().forEachValue(new TObjectProcedure<CfhTopic>() {
+                CfhTopicsMessageComposer.this.response.appendInt(category.getTopics().values().size());
+                category.getTopics().values().forEach(new Consumer<CfhTopic>() {
                     @Override
-                    public boolean execute(CfhTopic topic) {
+                    public void accept(CfhTopic topic) {
                         CfhTopicsMessageComposer.this.response.appendString(topic.name);
                         CfhTopicsMessageComposer.this.response.appendInt(topic.id);
                         CfhTopicsMessageComposer.this.response.appendString(topic.action.toString());
-                        return true;
                     }
                 });
-                return true;
             }
         });
 

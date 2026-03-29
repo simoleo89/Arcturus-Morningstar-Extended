@@ -12,7 +12,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredContext;
 import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,7 +30,7 @@ public class WiredConditionHasAltitude extends InteractionWiredCondition {
 
     public static final WiredConditionType type = WiredConditionType.HAS_ALTITUDE;
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int comparison = COMPARISON_EQUAL;
     private double altitude = 0.0D;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
@@ -38,12 +38,12 @@ public class WiredConditionHasAltitude extends InteractionWiredCondition {
 
     public WiredConditionHasAltitude(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredConditionHasAltitude(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -208,7 +208,7 @@ public class WiredConditionHasAltitude extends InteractionWiredCondition {
     }
 
     private void refresh(Room room) {
-        THashSet<HabboItem> remove = new THashSet<>();
+        HashSet<HabboItem> remove = new HashSet<>();
 
         for (HabboItem item : this.items) {
             if (room.getHabboItem(item.getId()) == null) {

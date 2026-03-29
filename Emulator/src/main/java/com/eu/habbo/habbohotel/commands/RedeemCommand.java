@@ -6,12 +6,11 @@ import com.eu.habbo.habbohotel.rooms.RoomChatMessageBubbles;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItems;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntIntProcedure;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class RedeemCommand extends Command {
     public RedeemCommand() {
@@ -27,7 +26,7 @@ public class RedeemCommand extends Command {
         int credits = 0;
         int pixels = 0;
 
-        TIntIntMap points = new TIntIntHashMap();
+        Map<Integer, Integer> points = new HashMap<>();
 
         for (HabboItem item : gameClient.getHabbo().getInventory().getItemsComponent().getItemsAsValueCollection()) {
             if (item.getBaseItem().getName().startsWith("CF_") || item.getBaseItem().getName().startsWith("CFC_") || item.getBaseItem().getName().startsWith("DF_") || item.getBaseItem().getName().startsWith("PF_")) {
@@ -66,7 +65,7 @@ public class RedeemCommand extends Command {
             }
         }
 
-        TIntObjectHashMap<HabboItem> deleted = new TIntObjectHashMap<>();
+        HashMap<Integer, HabboItem> deleted = new HashMap<>();
         for (HabboItem item : items) {
             gameClient.getHabbo().getInventory().getItemsComponent().removeHabboItem(item);
             deleted.put(item.getId(), item);
@@ -89,7 +88,7 @@ public class RedeemCommand extends Command {
         }
 
         if (!points.isEmpty()) {
-            points.forEachEntry(new TIntIntProcedure() {
+            points.forEach(new BiConsumer<Integer, Integer>() {
                 @Override
                 public boolean execute(int a, int b) {
                     gameClient.getHabbo().givePoints(a, b);

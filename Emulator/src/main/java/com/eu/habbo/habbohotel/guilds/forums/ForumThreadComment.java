@@ -7,7 +7,7 @@ import com.eu.habbo.messages.ISerialize;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.plugin.events.guilds.forums.GuildForumThreadCommentBeforeCreated;
 import com.eu.habbo.plugin.events.guilds.forums.GuildForumThreadCommentCreated;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,7 @@ import java.sql.*;
 public class ForumThreadComment implements Runnable, ISerialize {
     private static final Logger LOGGER = LoggerFactory.getLogger(ForumThreadComment.class);
 
-    private static final THashMap<Integer, ForumThreadComment> forumCommentsCache = new THashMap<>();
+    private static final HashMap<Integer, ForumThreadComment> forumCommentsCache = new HashMap<>();
     private final int commentId;
     private final int threadId;
     private final int userId;

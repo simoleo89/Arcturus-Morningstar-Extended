@@ -19,9 +19,9 @@ import com.eu.habbo.plugin.events.users.UserCreditsEvent;
 import com.eu.habbo.plugin.events.users.UserDisconnectEvent;
 import com.eu.habbo.plugin.events.users.UserGetIPAddressEvent;
 import com.eu.habbo.plugin.events.users.UserPointsEvent;
-import gnu.trove.TIntCollection;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -363,7 +363,7 @@ public class Habbo implements Runnable {
     }
 
 
-    public void addFurniture(THashSet<HabboItem> items) {
+    public void addFurniture(HashSet<HabboItem> items) {
         this.habboInventory.getItemsComponent().addItems(items);
         this.client.sendResponse(new AddHabboItemComposer(items));
         this.client.sendResponse(new InventoryRefreshComposer());
@@ -414,7 +414,7 @@ public class Habbo implements Runnable {
             this.client.sendResponse(new AddUserBadgeComposer(badge));
             this.client.sendResponse(new AddHabboItemComposer(badge.getId(), AddHabboItemComposer.AddHabboItemCategory.BADGE));
 
-            THashMap<String, String> keys = new THashMap<>();
+            HashMap<String, String> keys = new HashMap<>();
             keys.put("display", "BUBBLE");
             keys.put("image", "${image.library.url}album1584/" + badge.getCode() + ".gif");
             keys.put("message", Emulator.getTexts().getValue("commands.generic.cmd_badge.received"));
@@ -472,7 +472,7 @@ public class Habbo implements Runnable {
         int currentTimestamp = Emulator.getIntUnixTimestamp();
         int twentyFourHoursInSeconds = 24 * 60 * 60; // 24 hours in seconds
 
-        THashMap<Integer, List<Integer>> newLog = new THashMap<>();
+        HashMap<Integer, List<Integer>> newLog = new HashMap<>();
 
         for (Map.Entry<Integer, List<Integer>> ltdLog : this.habboStats.ltdPurchaseLog.entrySet()) {
             List<Integer> filteredTimestamps = new ArrayList<>();
@@ -509,7 +509,7 @@ public class Habbo implements Runnable {
     }
 
     public Set<Integer> getForbiddenClothing() {
-        TIntCollection clothingIDs = this.getInventory().getWardrobeComponent().getClothing();
+        Collection<Integer> clothingIDs = this.getInventory().getWardrobeComponent().getClothing();
 
         return Emulator.getGameEnvironment().getCatalogManager().clothing.values().stream()
                 .filter(c -> !clothingIDs.contains(c.id))

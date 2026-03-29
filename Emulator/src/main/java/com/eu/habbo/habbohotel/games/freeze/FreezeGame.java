@@ -20,14 +20,13 @@ import com.eu.habbo.plugin.EventHandler;
 import com.eu.habbo.plugin.events.emulator.EmulatorConfigUpdatedEvent;
 import com.eu.habbo.threading.runnables.freeze.FreezeClearEffects;
 import com.eu.habbo.threading.runnables.freeze.FreezeThrowSnowball;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import java.util.function.Consumer;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 public class FreezeGame extends Game {
     private static final Logger LOGGER = LoggerFactory.getLogger(FreezeGame.class);
@@ -103,8 +102,8 @@ public class FreezeGame extends Game {
         }
     }
 
-    public THashSet<RoomTile> affectedTilesByExplosion(short x, short y, int radius) {
-        THashSet<RoomTile> tiles = new THashSet<>();
+    public HashSet<RoomTile> affectedTilesByExplosion(short x, short y, int radius) {
+        HashSet<RoomTile> tiles = new HashSet<>();
 
         RoomTile t = this.room.getLayout().getTile(x, y);
 
@@ -123,8 +122,8 @@ public class FreezeGame extends Game {
         return tiles;
     }
 
-    public THashSet<RoomTile> affectedTilesByExplosionDiagonal(short x, short y, int radius) {
-        THashSet<RoomTile> tiles = new THashSet<>();
+    public HashSet<RoomTile> affectedTilesByExplosionDiagonal(short x, short y, int radius) {
+        HashSet<RoomTile> tiles = new HashSet<>();
 
         for (int rotation = 1; rotation < 9; rotation += 2) {
             RoomTile t = this.room.getLayout().getTile(x, y);
@@ -248,7 +247,7 @@ public class FreezeGame extends Game {
 
                 int totalScore = team.getTotalScore();
 
-                THashMap<Integer, InteractionFreezeScoreboard> scoreBoards = this.room.getRoomSpecialTypes().getFreezeScoreboards(team.teamColor);
+                HashMap<Integer, InteractionFreezeScoreboard> scoreBoards = this.room.getRoomSpecialTypes().getFreezeScoreboards(team.teamColor);
 
                 for (InteractionFreezeScoreboard scoreboard : scoreBoards.values()) {
                     if (scoreboard.getExtradata().isEmpty()) {
@@ -282,7 +281,7 @@ public class FreezeGame extends Game {
         }
 
         for (GameTeam team : this.teams.values()) {
-            THashSet<GamePlayer> players = new THashSet<>();
+            HashSet<GamePlayer> players = new HashSet<>();
 
             players.addAll(team.getMembers());
 
@@ -318,19 +317,18 @@ public class FreezeGame extends Game {
     }
 
     public void setFreezeTileState(String state) {
-        this.room.getRoomSpecialTypes().getFreezeExitTiles().forEachValue(new TObjectProcedure<InteractionFreezeExitTile>() {
+        this.room.getRoomSpecialTypes().getFreezeExitTiles().values().forEach(new Consumer<InteractionFreezeExitTile>() {
             @Override
-            public boolean execute(InteractionFreezeExitTile object) {
+            public void accept(InteractionFreezeExitTile object) {
                 object.setExtradata(state);
                 FreezeGame.this.room.updateItemState(object);
-                return true;
             }
         });
 
     }
 
     private void refreshGates() {
-        THashSet<RoomTile> tilesToUpdate = new THashSet<>();
+        HashSet<RoomTile> tilesToUpdate = new HashSet<>();
         for (HabboItem item : this.room.getRoomSpecialTypes().getFreezeGates().values()) {
             tilesToUpdate.add(this.room.getLayout().getTile(item.getX(), item.getY()));
         }

@@ -7,8 +7,8 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.plugin.events.bots.BotServerItemEvent;
 import com.eu.habbo.threading.runnables.RoomUnitGiveHanditem;
 import com.eu.habbo.threading.runnables.RoomUnitWalkToRoomUnit;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class ButlerBot extends Bot {
     private static final Logger LOGGER = LoggerFactory.getLogger(ButlerBot.class);
-    public static THashMap<THashSet<String>, Integer> serveItems = new THashMap<>();
+    public static HashMap<HashSet<String>, Integer> serveItems = new HashMap<>();
 
     public ButlerBot(ResultSet set) throws SQLException {
         super(set);
@@ -35,14 +35,14 @@ public class ButlerBot extends Bot {
 
     public static void initialise() {
         if (serveItems == null)
-            serveItems = new THashMap<>();
+            serveItems = new HashMap<>();
 
         serveItems.clear();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); Statement statement = connection.createStatement(); ResultSet set = statement.executeQuery("SELECT * FROM bot_serves")) {
             while (set.next()) {
                 String[] keys = set.getString("keys").split(";");
-                THashSet<String> ks = new THashSet<>();
+                HashSet<String> ks = new HashSet<>();
                 Collections.addAll(ks, keys);
                 serveItems.put(ks, set.getInt("item"));
             }
@@ -66,7 +66,7 @@ public class ButlerBot extends Bot {
         if (distanceBetweenBotAndHabbo <= Emulator.getConfig().getInt("hotel.bot.butler.commanddistance")) {
 
             if (message.getUnfilteredMessage() != null) {
-                for (Map.Entry<THashSet<String>, Integer> set : serveItems.entrySet()) {
+                for (Map.Entry<HashSet<String>, Integer> set : serveItems.entrySet()) {
                     for (String keyword : set.getKey()) {
 
                         // Check if the string contains a certain keyword using a regex.

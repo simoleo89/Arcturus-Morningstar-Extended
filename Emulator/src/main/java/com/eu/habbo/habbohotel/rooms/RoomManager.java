@@ -47,11 +47,11 @@ import com.eu.habbo.plugin.events.rooms.UserVoteRoomEvent;
 import com.eu.habbo.plugin.events.users.HabboAddedToRoomEvent;
 import com.eu.habbo.plugin.events.users.UserEnterRoomEvent;
 import com.eu.habbo.plugin.events.users.UserExitRoomEvent;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TIntProcedure;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+
+import java.util.HashMap;
+import java.util.function.IntConsumer;
+import java.util.function.Consumer;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,14 +69,14 @@ public class RoomManager {
     public static int MAXIMUM_ROOMS_HC = 35;
     public static int HOME_ROOM_ID = 0;
     public static boolean SHOW_PUBLIC_IN_POPULAR_TAB = false;
-    private final THashMap<Integer, RoomCategory> roomCategories;
+    private final HashMap<Integer, RoomCategory> roomCategories;
     private final List<String> mapNames;
     private final ConcurrentHashMap<Integer, Room> activeRooms;
     private final ArrayList<Class<? extends Game>> gameTypes;
 
     public RoomManager() {
         long millis = System.currentTimeMillis();
-        this.roomCategories = new THashMap<>();
+        this.roomCategories = new HashMap<>();
         this.mapNames = new ArrayList<>();
         this.activeRooms = new ConcurrentHashMap<>();
         this.loadRoomCategories();
@@ -150,8 +150,8 @@ public class RoomManager {
         }
     }
 
-    public THashMap<Integer, List<Room>> findRooms(NavigatorFilterField filterField, String value, int category, boolean showInvisible) {
-        THashMap<Integer, List<Room>> rooms = new THashMap<>();
+    public HashMap<Integer, List<Room>> findRooms(NavigatorFilterField filterField, String value, int category, boolean showInvisible) {
+        HashMap<Integer, List<Room>> rooms = new HashMap<>();
         String query = filterField.databaseQuery + " AND rooms.state NOT LIKE " + (showInvisible ? "''" : "'invisible'") + (category >= 0 ? "AND rooms.category = '" + category + "'" : "") + "  ORDER BY rooms.users, rooms.id DESC LIMIT " + (page * NavigatorManager.MAXIMUM_RESULTS_PER_PAGE) + "" + ((page * NavigatorManager.MAXIMUM_RESULTS_PER_PAGE) + NavigatorManager.MAXIMUM_RESULTS_PER_PAGE);
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, (filterField.comparator == NavigatorFilterComparator.EQUALS ? value : "%" + value + "%"));
@@ -231,7 +231,7 @@ public class RoomManager {
         return false;
     }
 
-    public THashMap<Integer, RoomCategory> getRoomCategories() {
+    public HashMap<Integer, RoomCategory> getRoomCategories() {
         return this.roomCategories;
     }
 
@@ -407,7 +407,7 @@ public class RoomManager {
     }
 
     public void clearInactiveRooms() {
-        THashSet<Room> roomsToDispose = new THashSet<>();
+        HashSet<Room> roomsToDispose = new HashSet<>();
         for (Room room : this.activeRooms.values()) {
             if (!room.isPublicRoom() && !room.isStaffPromotedRoom() && !Emulator.getGameServer().getGameClientManager().containsHabbo(room.getOwnerId()) && room.isPreLoaded()) {
                 roomsToDispose.add(room);
@@ -789,16 +789,9 @@ public class RoomManager {
         }
 
 
-        habbo.getClient().sendResponse(new RoomUsersComposer(room.getCurrentBots().valueCollection(), true));
+        habbo.getClient().sendResponse(new RoomUsersComposer(room.getCurrentBots().values(), true));
         if (!room.getCurrentBots().isEmpty()) {
-            TIntObjectIterator<Bot> botIterator = room.getCurrentBots().iterator();
-            for (int i = room.getCurrentBots().size(); i-- > 0; ) {
-                try {
-                    botIterator.advance();
-                } catch (NoSuchElementException e) {
-                    break;
-                }
-                Bot bot = botIterator.value();
+            for (Bot bot : room.getCurrentBots().values()) {
                 if (!bot.getRoomUnit().getDanceType().equals(DanceType.NONE)) {
                     habbo.getClient().sendResponse(new RoomUserDanceComposer(bot.getRoomUnit()));
                 }
@@ -815,9 +808,9 @@ public class RoomManager {
 
         habbo.getClient().sendResponse(new RoomWallItemsComposer(room));
         {
-            final THashSet<HabboItem> floorItems = new THashSet<>();
+            final HashSet<HabboItem> floorItems = new HashSet<>();
 
-            THashSet<HabboItem> allFloorItems = new THashSet<>(room.getFloorItems());
+            HashSet<HabboItem> allFloorItems = new HashSet<>(room.getFloorItems());
 
             if (Emulator.getPluginManager().isRegistered(RoomFloorItemsLoadEvent.class, true)) {
                 RoomFloorItemsLoadEvent roomFloorItemsLoadEvent = Emulator.getPluginManager().fireEvent(new RoomFloorItemsLoadEvent(habbo, allFloorItems));
@@ -826,19 +819,17 @@ public class RoomManager {
                 }
             }
 
-            allFloorItems.forEach(new TObjectProcedure<HabboItem>() {
+            allFloorItems.forEach(new Consumer<HabboItem>() {
                 @Override
-                public boolean execute(HabboItem object) {
+                public void accept(HabboItem object) {
                     if (room.isHideWired() && object instanceof InteractionWired)
-                        return true;
+                        return;
 
                     floorItems.add(object);
                     if (floorItems.size() == 250) {
                         habbo.getClient().sendResponse(new RoomFloorItemsComposer(room.getFurniOwnerNames(), floorItems));
                         floorItems.clear();
                     }
-
-                    return true;
                 }
             });
 
@@ -848,7 +839,7 @@ public class RoomManager {
 
         if (!room.getCurrentPets().isEmpty()) {
             habbo.getClient().sendResponse(new RoomPetComposer(room.getCurrentPets()));
-            for (Pet pet : room.getCurrentPets().valueCollection()) {
+            for (Pet pet : room.getCurrentPets().values()) {
                 habbo.getClient().sendResponse(new RoomUserStatusComposer(pet.getRoomUnit()));
             }
         }
@@ -863,7 +854,7 @@ public class RoomManager {
             habbo.getHabboStats().mutedBubbleTracker = false;
         }
 
-        THashMap<Integer, String> guildBadges = new THashMap<>();
+        HashMap<Integer, String> guildBadges = new HashMap<>();
         for (Habbo roomHabbo : habbos) {
             {
                 if (roomHabbo.getRoomUnit().getDanceType().getType() > 0) {
@@ -915,7 +906,7 @@ public class RoomManager {
 
         if (room.hasRights(habbo) || (room.hasGuild() && room.getGuildRightLevel(habbo).isEqualOrGreaterThan(RoomRightLevels.GUILD_RIGHTS))) {
             if (!room.getHabboQueue().isEmpty()) {
-                for (Habbo waiting : room.getHabboQueue().valueCollection()) {
+                for (Habbo waiting : room.getHabboQueue().values()) {
                     habbo.getClient().sendResponse(new DoorbellAddUserComposer(waiting.getHabboInfo().getUsername()));
                 }
             }
@@ -1277,19 +1268,18 @@ public class RoomManager {
     public ArrayList<Room> getRoomsFavourite(Habbo habbo) {
         final ArrayList<Room> rooms = new ArrayList<>();
 
-        habbo.getHabboStats().getFavoriteRooms().forEach(new TIntProcedure() {
+        habbo.getHabboStats().getFavoriteRooms().forEach(new IntConsumer() {
             @Override
-            public boolean execute(int value) {
+            public void accept(int value) {
                 Room room = RoomManager.this.getRoom(value);
 
                 if (room != null) {
                     if (room.getState() == RoomState.INVISIBLE) {
                         room.loadData();
-                        if (!room.hasRights(habbo)) return true;
+                        if (!room.hasRights(habbo)) return;
                     }
                     rooms.add(room);
                 }
-                return true;
             }
         });
 

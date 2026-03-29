@@ -22,7 +22,7 @@ import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.messages.outgoing.navigator.CanCreateRoomComposer;
 import com.eu.habbo.messages.outgoing.users.AddUserBadgeComposer;
 import com.eu.habbo.threading.runnables.ShutdownEmulator;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.eu.habbo.messages.incoming.catalog.CheckPetNameEvent.PET_NAME_LENGTH_MAXIMUM;
@@ -84,7 +84,7 @@ public class CatalogBuyItemEvent extends MessageHandler {
 
                 if (page instanceof RoomBundleLayout) {
                     final CatalogItem[] item = new CatalogItem[1];
-                    page.getCatalogItems().forEachValue(object -> {
+                    page.getCatalogItems().values().forEach(object -> {
                         item[0] = object;
                         return false;
                     });
@@ -117,7 +117,7 @@ public class CatalogBuyItemEvent extends MessageHandler {
                             Emulator.getThreading().run(badge);
                             this.client.getHabbo().getInventory().getBadgesComponent().addBadge(badge);
                             this.client.sendResponse(new AddUserBadgeComposer(badge));
-                            THashMap<String, String> keys = new THashMap<>();
+                            HashMap<String, String> keys = new HashMap<>();
                             keys.put("display", "BUBBLE");
                             keys.put("image", "${image.library.url}album1584/" + badge.getCode() + ".gif");
                             keys.put("message", Emulator.getTexts().getValue("commands.generic.cmd_badge.received"));

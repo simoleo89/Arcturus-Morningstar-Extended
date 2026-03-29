@@ -4,19 +4,19 @@ import com.eu.habbo.habbohotel.pets.*;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntObjectProcedure;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.function.BiConsumer;
 
-public class RoomPetComposer extends MessageComposer implements TIntObjectProcedure<Pet> {
-    private final TIntObjectMap<Pet> pets;
+public class RoomPetComposer extends MessageComposer implements BiConsumer<Integer, Pet> {
+    private final Map<Integer, Pet> pets;
 
     public RoomPetComposer(Pet pet) {
-        this.pets = new TIntObjectHashMap<>();
+        this.pets = new HashMap<>();
         this.pets.put(pet.getId(), pet);
     }
 
-    public RoomPetComposer(TIntObjectMap<Pet> pets) {
+    public RoomPetComposer(Map<Integer, Pet> pets) {
         this.pets = pets;
     }
 
@@ -24,12 +24,12 @@ public class RoomPetComposer extends MessageComposer implements TIntObjectProced
     protected ServerMessage composeInternal() {
         this.response.init(Outgoing.RoomUsersComposer);
         this.response.appendInt(this.pets.size());
-        this.pets.forEachEntry(this);
+        this.pets.forEach(this);
         return this.response;
     }
 
     @Override
-    public boolean execute(int a, Pet pet) {
+    public void accept(Integer a, Pet pet) {
         this.response.appendInt(pet.getId());
         this.response.appendString(pet.getName());
         this.response.appendString("");
@@ -59,7 +59,5 @@ public class RoomPetComposer extends MessageComposer implements TIntObjectProced
         this.response.appendBoolean(pet instanceof MonsterplantPet && ((MonsterplantPet) pet).isPubliclyBreedable()); //Breedable checkbox //Toggle breeding permission
         this.response.appendInt(pet instanceof MonsterplantPet ? ((MonsterplantPet) pet).getGrowthStage() : pet.getLevel());
         this.response.appendString("");
-
-        return true;
     }
 }

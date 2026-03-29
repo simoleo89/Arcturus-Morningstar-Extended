@@ -10,7 +10,7 @@ import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.threading.runnables.RoomUnitGiveHanditem;
 import com.eu.habbo.threading.runnables.RoomUnitWalkToLocation;
 import com.eu.habbo.util.pathfinding.Rotation;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,8 +28,8 @@ public class InteractionVendingMachine extends HabboItem {
         this.setExtradata("0");
     }
     
-    public THashSet<RoomTile> getActivatorTiles(Room room) {
-        THashSet<RoomTile> tiles = new THashSet<>();
+    public HashSet<RoomTile> getActivatorTiles(Room room) {
+        HashSet<RoomTile> tiles = new HashSet<>();
         RoomTile tileInFront = getSquareInFront(room.getLayout(), this);
 
         if (tileInFront != null)
@@ -48,7 +48,7 @@ public class InteractionVendingMachine extends HabboItem {
     }
 
     private void tryInteract(GameClient client, Room room, RoomUnit unit) {
-        THashSet<RoomTile> activatorTiles = getActivatorTiles(room);
+        HashSet<RoomTile> activatorTiles = getActivatorTiles(room);
 
         if(activatorTiles.size() == 0)
             return;
@@ -105,7 +105,7 @@ public class InteractionVendingMachine extends HabboItem {
 
         RoomUnit unit = client.getHabbo().getRoomUnit();
 
-        THashSet<RoomTile> activatorTiles = getActivatorTiles(room);
+        HashSet<RoomTile> activatorTiles = getActivatorTiles(room);
 
         if(activatorTiles.size() == 0)
             return;

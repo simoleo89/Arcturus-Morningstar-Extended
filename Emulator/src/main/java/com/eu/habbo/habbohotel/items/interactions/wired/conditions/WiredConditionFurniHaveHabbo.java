@@ -16,7 +16,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredContext;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,18 +26,18 @@ import java.util.stream.Collectors;
 
 public class WiredConditionFurniHaveHabbo extends InteractionWiredCondition {
     public static final WiredConditionType type = WiredConditionType.FURNI_HAVE_HABBO;
-    protected THashSet<HabboItem> items;
+    protected HashSet<HabboItem> items;
     protected boolean all;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredConditionFurniHaveHabbo(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredConditionFurniHaveHabbo(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -61,8 +61,8 @@ public class WiredConditionFurniHaveHabbo extends InteractionWiredCondition {
             return false;
 
         Collection<Habbo> habbos = room.getHabbos();
-        Collection<Bot> bots = room.getCurrentBots().valueCollection();
-        Collection<Pet> pets = room.getCurrentPets().valueCollection();
+        Collection<Bot> bots = room.getCurrentBots().values();
+        Collection<Pet> pets = room.getCurrentPets().values();
 
         if (this.all) {
             return targets.stream().filter(item -> item != null).allMatch(item -> this.hasAvatarOnItem(item, room, habbos, bots, pets));
@@ -186,7 +186,7 @@ public class WiredConditionFurniHaveHabbo extends InteractionWiredCondition {
         RoomTile baseTile = room.getLayout().getTile(item.getX(), item.getY());
         if (baseTile == null) return false;
 
-        THashSet<RoomTile> occupiedTiles = room.getLayout().getTilesAt(baseTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
+        HashSet<RoomTile> occupiedTiles = room.getLayout().getTilesAt(baseTile, item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
         return occupiedTiles != null && (
                 habbos.stream().anyMatch(character -> character.getRoomUnit() != null && occupiedTiles.contains(character.getRoomUnit().getCurrentLocation())) ||
                 bots.stream().anyMatch(character -> character.getRoomUnit() != null && occupiedTiles.contains(character.getRoomUnit().getCurrentLocation())) ||
@@ -195,7 +195,7 @@ public class WiredConditionFurniHaveHabbo extends InteractionWiredCondition {
     }
 
     private void refresh() {
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         Room room = Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId());
         if (room == null) {

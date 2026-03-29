@@ -11,17 +11,16 @@ import com.eu.habbo.habbohotel.wired.WiredEffectType;
 import com.eu.habbo.messages.outgoing.rooms.items.ItemExtraDataComposer;
 import com.eu.habbo.messages.outgoing.rooms.items.RemoveFloorItemComposer;
 import com.eu.habbo.messages.outgoing.rooms.items.RoomFloorItemsComposer;
-import gnu.trove.TCollections;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.Collections;
+import java.util.Map;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 public class InteractionMuteArea extends InteractionCustomValues {
-    public static THashMap<String, String> defaultValues = new THashMap<String, String>() {
+    public static HashMap<String, String> defaultValues = new HashMap<String, String>() {
         {
             this.put("tilesLeft", "0");
         }
@@ -43,16 +42,16 @@ public class InteractionMuteArea extends InteractionCustomValues {
         }
     };
 
-    private THashSet<RoomTile> tiles;
+    private HashSet<RoomTile> tiles;
 
     public InteractionMuteArea(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem, defaultValues);
-        tiles = new THashSet<>();
+        tiles = new HashSet<>();
     }
 
     public InteractionMuteArea(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells, defaultValues);
-        tiles = new THashSet<>();
+        tiles = new HashSet<>();
     }
 
     @Override
@@ -124,7 +123,7 @@ public class InteractionMuteArea extends InteractionCustomValues {
     }
 
     @Override
-    public void onCustomValuesSaved(Room room, GameClient client, THashMap<String, String> oldValues) {
+    public void onCustomValuesSaved(Room room, GameClient client, HashMap<String, String> oldValues) {
         super.onCustomValuesSaved(room, client, oldValues);
 
         this.regenAffectedTiles(room);
@@ -133,9 +132,9 @@ public class InteractionMuteArea extends InteractionCustomValues {
         Item effectItem = Emulator.getGameEnvironment().getItemManager().getItem("mutearea_sign2");
 
         if(effectItem != null) {
-            TIntObjectMap<String> ownerNames = TCollections.synchronizedMap(new TIntObjectHashMap<>(0));
+            Map<Integer, String> ownerNames = Collections.synchronizedMap(new HashMap<>(0));
             ownerNames.put(-1, "System");
-            THashSet<HabboItem> items = new THashSet<>();
+            HashSet<HabboItem> items = new HashSet<>();
 
             int id = 0;
             for(RoomTile tile : this.tiles) {

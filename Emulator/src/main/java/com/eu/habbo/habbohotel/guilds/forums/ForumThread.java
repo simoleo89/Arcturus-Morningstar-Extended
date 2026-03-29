@@ -7,8 +7,8 @@ import com.eu.habbo.messages.ISerialize;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.plugin.events.guilds.forums.GuildForumThreadBeforeCreated;
 import com.eu.habbo.plugin.events.guilds.forums.GuildForumThreadCreated;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,14 +19,14 @@ public class ForumThread implements Runnable, ISerialize {
     private static final Logger LOGGER = LoggerFactory.getLogger(ForumThread.class);
 
 
-    private final static THashMap<Integer, THashSet<ForumThread>> guildThreadsCache = new THashMap<>();
-    private final static THashMap<Integer, ForumThread> forumThreadsCache = new THashMap<>();
+    private final static HashMap<Integer, HashSet<ForumThread>> guildThreadsCache = new HashMap<>();
+    private final static HashMap<Integer, ForumThread> forumThreadsCache = new HashMap<>();
     private final int threadId;
     private final int guildId;
     private final int openerId;
     private final String subject;
     private final int createdAt;
-    private final THashMap<Integer, ForumThreadComment> comments;
+    private final HashMap<Integer, ForumThreadComment> comments;
     private int postsCount;
     private int updatedAt;
     private ForumThreadState state;
@@ -51,7 +51,7 @@ public class ForumThread implements Runnable, ISerialize {
         this.locked = locked;
         this.adminId = adminId;
         this.lastComment = lastComment;
-        this.comments = new THashMap<>();
+        this.comments = new HashMap<>();
         this.needsUpdate = false;
         this.hasCommentsLoaded = false;
         this.commentIndex = 0;
@@ -77,7 +77,7 @@ public class ForumThread implements Runnable, ISerialize {
             LOGGER.error("ForumThread last_comment_id exception", e);
         }
 
-        this.comments = new THashMap<>();
+        this.comments = new HashMap<>();
         this.needsUpdate = false;
         this.hasCommentsLoaded = false;
         this.commentIndex = 0;
@@ -119,8 +119,8 @@ public class ForumThread implements Runnable, ISerialize {
         return createdThread;
     }
 
-    public static THashSet<ForumThread> getByGuildId(int guildId) {
-        THashSet<ForumThread> threads = null;
+    public static HashSet<ForumThread> getByGuildId(int guildId) {
+        HashSet<ForumThread> threads = null;
 
         if (guildThreadsCache.containsKey(guildId)) {
             threads = guildThreadsCache.get(guildId);
@@ -129,7 +129,7 @@ public class ForumThread implements Runnable, ISerialize {
         if (threads != null)
             return threads;
 
-        threads = new THashSet<ForumThread>();
+        threads = new HashSet<ForumThread>();
 
         guildThreadsCache.put(guildId, threads);
 
@@ -211,10 +211,10 @@ public class ForumThread implements Runnable, ISerialize {
             forumThreadsCache.put(thread.threadId, thread);
         }
 
-        THashSet<ForumThread> guildThreads = guildThreadsCache.get(thread.guildId);
+        HashSet<ForumThread> guildThreads = guildThreadsCache.get(thread.guildId);
 
         if (guildThreads == null) {
-            guildThreads = new THashSet<>();
+            guildThreads = new HashSet<>();
             synchronized (forumThreadsCache) {
                 guildThreadsCache.put(thread.guildId, guildThreads);
             }
@@ -223,7 +223,7 @@ public class ForumThread implements Runnable, ISerialize {
     }
 
     public static void clearCache() {
-        for (THashSet<ForumThread> threads : guildThreadsCache.values()) {
+        for (HashSet<ForumThread> threads : guildThreadsCache.values()) {
             for (ForumThread thread : threads) {
                 thread.run();
             }

@@ -13,8 +13,8 @@ import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserStatusComposer;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.procedure.TIntIntProcedure;
+import java.util.HashMap;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ public class HabboInfo implements Runnable {
     private int roomQueueId;
     private RideablePet riding;
     private Class<? extends Game> currentGame;
-    private TIntIntHashMap currencies;
+    private HashMap<Integer, Integer> currencies;
     private GamePlayer gamePlayer;
     private int photoRoomId;
     private int photoTimestamp;
@@ -100,7 +100,7 @@ public class HabboInfo implements Runnable {
     }
 
     private void loadCurrencies() {
-        this.currencies = new TIntIntHashMap();
+        this.currencies = new HashMap<>();
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM users_currency WHERE user_id = ?")) {
             statement.setInt(1, this.id);
@@ -116,9 +116,9 @@ public class HabboInfo implements Runnable {
 
     private void saveCurrencies() {
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("INSERT INTO users_currency (user_id, type, amount) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE amount = ?")) {
-            this.currencies.forEachEntry(new TIntIntProcedure() {
+            this.currencies.forEach(new BiConsumer<Integer, Integer>() {
                 @Override
-                public boolean execute(int a, int b) {
+                public void accept(Integer a, Integer b) {
                     try {
                         statement.setInt(1, HabboInfo.this.getId());
                         statement.setInt(2, a);
@@ -128,7 +128,6 @@ public class HabboInfo implements Runnable {
                     } catch (SQLException e) {
                         LOGGER.error("Caught SQL exception", e);
                     }
-                    return true;
                 }
             });
             statement.executeBatch();
@@ -242,7 +241,7 @@ public class HabboInfo implements Runnable {
         return this.currencies.get(type);
     }
 
-    public TIntIntHashMap getCurrencies() {
+    public HashMap<Integer, Integer> getCurrencies() {
         return this.currencies;
     }
 
