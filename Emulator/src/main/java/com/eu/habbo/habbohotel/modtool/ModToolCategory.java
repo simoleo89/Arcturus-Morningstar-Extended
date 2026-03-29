@@ -3,6 +3,7 @@ package com.eu.habbo.habbohotel.modtool;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ModToolCategory {
     private final String name;
@@ -10,7 +11,7 @@ public class ModToolCategory {
 
     public ModToolCategory(String name) {
         this.name = name;
-        this.presets = Collections.synchronizedMap(new HashMap<>());
+        this.presets = new java.util.concurrent.ConcurrentHashMap<>();
     }
 
     public void addPreset(ModToolPreset preset) {

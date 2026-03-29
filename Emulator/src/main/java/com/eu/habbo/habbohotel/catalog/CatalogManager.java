@@ -41,6 +41,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CatalogManager {
 
@@ -201,7 +202,7 @@ public class CatalogManager {
 
     public CatalogManager() {
         long millis = System.currentTimeMillis();
-        this.catalogPages = Collections.synchronizedMap(new HashMap<>());
+        this.catalogPages = new java.util.concurrent.ConcurrentHashMap<>();
         this.catalogFeaturedPages = new HashMap<>();
         this.prizes = new HashMap<>();
         this.giftWrappers = new HashMap<>();

@@ -80,6 +80,7 @@ import java.lang.reflect.Constructor;
 import java.sql.*;
 import java.util.*;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemManager {
 
@@ -97,7 +98,7 @@ public class ItemManager {
     private final TreeMap<Integer, NewUserGift> newuserGifts;
 
     public ItemManager() {
-        this.items = Collections.synchronizedMap(new HashMap<>());
+        this.items = new java.util.concurrent.ConcurrentHashMap<>();
         this.crackableRewards = new HashMap<>();
         this.interactionsList = new HashSet<>();
         this.soundTracks = new HashMap<>();

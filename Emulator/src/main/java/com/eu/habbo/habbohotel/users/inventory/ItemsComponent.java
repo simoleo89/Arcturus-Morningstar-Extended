@@ -22,11 +22,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemsComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemsComponent.class);
 
-    private final Map<Integer, HabboItem> items = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Integer, HabboItem> items = new java.util.concurrent.ConcurrentHashMap<>();
 
     private final HabboInventory inventory;
 
@@ -73,9 +74,7 @@ public class ItemsComponent {
             return;
         }
 
-        synchronized (this.items) {
-            this.items.put(event.item.getId(), event.item);
-        }
+        this.items.put(event.item.getId(), event.item);
     }
 
     public void addItems(HashSet<HabboItem> items) {
@@ -84,14 +83,12 @@ public class ItemsComponent {
             return;
         }
 
-        synchronized (this.items) {
-            for (HabboItem item : event.items) {
-                if (item == null) {
-                    continue;
-                }
-
-                this.items.put(item.getId(), item);
+        for (HabboItem item : event.items) {
+            if (item == null) {
+                continue;
             }
+
+            this.items.put(item.getId(), item);
         }
     }
 
@@ -125,9 +122,7 @@ public class ItemsComponent {
             return;
         }
 
-        synchronized (this.items) {
-            this.items.remove(event.item.getId());
-        }
+        this.items.remove(event.item.getId());
     }
 
     public Map<Integer, HabboItem> getItems() {

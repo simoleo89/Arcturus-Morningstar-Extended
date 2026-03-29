@@ -77,6 +77,7 @@ public final class Emulator {
     private static GameEnvironment gameEnvironment;
     private static PluginManager pluginManager;
     private static BadgeImager badgeImager;
+    private static com.eu.habbo.networking.restapi.RestApiServer restApiServer;
     private static final SecureRandom secureRandom = new SecureRandom();
 
     static {
@@ -198,6 +199,15 @@ public final class Emulator {
         Emulator.rconServer.initializePipeline();
         Emulator.rconServer.connect();
         Emulator.badgeImager = new BadgeImager();
+
+        // REST API Server
+        if (Emulator.getConfig().getBoolean("api.enabled", false)) {
+            String apiHost = Emulator.getConfig().getValue("api.host", "0.0.0.0");
+            int apiPort = Emulator.getConfig().getInt("api.port", 8081);
+            String apiToken = Emulator.getConfig().getValue("api.token", "");
+            Emulator.restApiServer = new com.eu.habbo.networking.restapi.RestApiServer(apiHost, apiPort, apiToken);
+            Emulator.restApiServer.start();
+        }
 
         LOGGER.info("Arcturus Morningstar has successfully loaded.");
         LOGGER.info("System launched in: {}ms. Using {} threads!", (System.nanoTime() - startTime) / 1e6, Runtime.getRuntime().availableProcessors() * 2);
@@ -351,6 +361,7 @@ public final class Emulator {
 
         if (Emulator.pluginManager != null)
             tryShutdown(() -> Emulator.pluginManager.fireEvent(new EmulatorStartShutdownEvent()));
+        if (Emulator.restApiServer != null) tryShutdown(() -> Emulator.restApiServer.stop());
         if (Emulator.rconServer != null) tryShutdown(() -> Emulator.rconServer.stop());
         tryShutdown(() -> SessionResumeManager.getInstance().disposeAll());
         if (Emulator.gameEnvironment != null) tryShutdown(() -> Emulator.gameEnvironment.dispose());

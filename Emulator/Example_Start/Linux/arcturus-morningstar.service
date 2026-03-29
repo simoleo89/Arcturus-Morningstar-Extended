@@ -1,0 +1,34 @@
+[Unit]
+Description=Arcturus Morningstar Extended - Habbo Hotel Emulator
+After=network.target mysql.service mariadb.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=habbo
+Group=habbo
+WorkingDirectory=/opt/arcturus
+ExecStart=/usr/bin/java -Dfile.encoding=UTF-8 -Xmx4096m -XX:+UseZGC -XX:+ZGenerational --enable-preview -jar Habbo-4.1.0-jar-with-dependencies.jar
+ExecStop=/bin/kill -SIGTERM $MAINPID
+
+# Restart on crash
+Restart=on-failure
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/arcturus /opt/arcturus/logging
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arcturus
+
+# Resource limits
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

@@ -65,9 +65,9 @@ public class RoomItemManager {
 
     public RoomItemManager(Room room) {
         this.room = room;
-        this.roomItems = Collections.synchronizedMap(new HashMap<>(0));
-        this.furniOwnerNames = Collections.synchronizedMap(new HashMap<>(0));
-        this.furniOwnerCount = Collections.synchronizedMap(new HashMap<Integer, Integer>(0));
+        this.roomItems = new java.util.concurrent.ConcurrentHashMap<>();
+        this.furniOwnerNames = new java.util.concurrent.ConcurrentHashMap<>();
+        this.furniOwnerCount = new java.util.concurrent.ConcurrentHashMap<>();
         this.tileCache = new ConcurrentHashMap<>();
     }
 

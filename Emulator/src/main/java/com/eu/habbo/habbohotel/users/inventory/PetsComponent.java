@@ -17,10 +17,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PetsComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(PetsComponent.class);
-    private final Map<Integer, Pet> pets = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Integer, Pet> pets = new java.util.concurrent.ConcurrentHashMap<>();
 
     public PetsComponent(Habbo habbo) {
         this.loadPets(habbo);
@@ -47,16 +48,12 @@ public class PetsComponent {
     }
 
     public void addPet(Pet pet) {
-        synchronized (this.pets) {
-            this.pets.put(pet.getId(), pet);
-        }
+        this.pets.put(pet.getId(), pet);
     }
 
     public void addPets(Set<Pet> pets) {
-        synchronized (this.pets) {
-            for (Pet p : pets) {
-                this.pets.put(p.getId(), p);
-            }
+        for (Pet p : pets) {
+            this.pets.put(p.getId(), p);
         }
     }
 

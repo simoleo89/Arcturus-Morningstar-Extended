@@ -3,6 +3,7 @@ package com.eu.habbo.habbohotel.modtool;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CfhCategory {
     private final String name;
@@ -10,7 +11,7 @@ public class CfhCategory {
 
     public CfhCategory(int id, String name) {
         this.name = name;
-        this.topics = Collections.synchronizedMap(new HashMap<>());
+        this.topics = new java.util.concurrent.ConcurrentHashMap<>();
     }
 
     public void addTopic(CfhTopic topic) {

@@ -18,6 +18,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GuildManager {
 
@@ -32,7 +33,7 @@ public class GuildManager {
     public GuildManager() {
         long millis = System.currentTimeMillis();
         this.guildParts = new HashMap<GuildPartType, HashMap<Integer, GuildPart>>();
-        this.guilds = Collections.synchronizedMap(new HashMap<Integer, Guild>());
+        this.guilds = new java.util.concurrent.ConcurrentHashMap<>();
 
         this.loadGuildParts();
         this.loadGuildViews();

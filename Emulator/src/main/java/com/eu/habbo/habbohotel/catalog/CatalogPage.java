@@ -11,13 +11,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CatalogPage implements Comparable<CatalogPage>, ISerialize {
     private static final Logger LOGGER = LoggerFactory.getLogger(CatalogPage.class);
 
     protected final ArrayList<Integer> offerIds = new ArrayList<>();
     protected final HashMap<Integer, CatalogPage> childPages = new HashMap<>();
-    private final Map<Integer, CatalogItem> catalogItems = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Integer, CatalogItem> catalogItems = new java.util.concurrent.ConcurrentHashMap<>();
     private final ArrayList<Integer> included = new ArrayList<>();
     protected int id;
     protected int parentId;

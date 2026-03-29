@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ModToolManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModToolManager.class);
@@ -38,7 +39,7 @@ public class ModToolManager {
 
     public ModToolManager() {
         long millis = System.currentTimeMillis();
-        this.category = Collections.synchronizedMap(new HashMap<>());
+        this.category = new java.util.concurrent.ConcurrentHashMap<>();
         this.presets = new HashMap<>();
         this.tickets = new HashMap<>();
         this.cfhCategories = new HashMap<>();

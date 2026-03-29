@@ -1,2 +1,44 @@
 #!/bin/sh
-java -Dfile.encoding=UTF8 -Xmx4096m -jar /PATH_TO_YOUR_EMULATOR/Habbo-3.5.3-jar-with-dependencies.jar
+# Arcturus Morningstar Extended v4.1.0
+# Startup script for Linux
+#
+# Usage:
+#   ./emulator                 - Start in console mode
+#   ./emulator --gui           - Start with JavaFX GUI
+#
+# Environment variables (optional):
+#   JAVA_HOME    - Path to JDK installation
+#   EMU_XMX      - Max heap size (default: 4096m)
+#   EMU_JAR      - JAR file path (default: auto-detect)
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+EMU_XMX="${EMU_XMX:-4096m}"
+EMU_JAR="${EMU_JAR:-$(find "$SCRIPT_DIR" -maxdepth 1 -name "Habbo-*-jar-with-dependencies.jar" | head -1)}"
+
+if [ -z "$EMU_JAR" ]; then
+    echo "Error: Could not find Habbo JAR file in $SCRIPT_DIR"
+    echo "Set EMU_JAR environment variable or place the JAR in the same directory as this script."
+    exit 1
+fi
+
+if [ -n "$JAVA_HOME" ]; then
+    JAVA="$JAVA_HOME/bin/java"
+else
+    JAVA="java"
+fi
+
+echo "Starting Arcturus Morningstar Extended..."
+echo "JAR: $EMU_JAR"
+echo "Max Memory: $EMU_XMX"
+echo ""
+
+exec "$JAVA" \
+    -Dfile.encoding=UTF-8 \
+    -Xmx"$EMU_XMX" \
+    -XX:+UseZGC \
+    -XX:+ZGenerational \
+    --enable-preview \
+    -jar "$EMU_JAR" \
+    "$@"

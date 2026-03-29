@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InteractionMuteArea extends InteractionCustomValues {
     public static HashMap<String, String> defaultValues = new HashMap<String, String>() {
@@ -132,7 +133,7 @@ public class InteractionMuteArea extends InteractionCustomValues {
         Item effectItem = Emulator.getGameEnvironment().getItemManager().getItem("mutearea_sign2");
 
         if(effectItem != null) {
-            Map<Integer, String> ownerNames = Collections.synchronizedMap(new HashMap<>(0));
+            Map<Integer, String> ownerNames = new java.util.concurrent.ConcurrentHashMap<>();
             ownerNames.put(-1, "System");
             HashSet<HabboItem> items = new HashSet<>();
 

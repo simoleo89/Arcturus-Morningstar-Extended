@@ -53,9 +53,9 @@ public class RoomUnitManager {
 
     // Unit collections - these are the actual data stores
     private final ConcurrentHashMap<Integer, Habbo> currentHabbos = new ConcurrentHashMap<>(3);
-    private final Map<Integer, Habbo> habboQueue = Collections.synchronizedMap(new HashMap<>(0));
-    private final Map<Integer, Bot> currentBots = Collections.synchronizedMap(new HashMap<>(0));
-    private final Map<Integer, Pet> currentPets = Collections.synchronizedMap(new HashMap<>(0));
+    private final Map<Integer, Habbo> habboQueue = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<Integer, Bot> currentBots = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<Integer, Pet> currentPets = new java.util.concurrent.ConcurrentHashMap<>();
 
     // Unit counter for assigning IDs
     private volatile int unitCounter;
