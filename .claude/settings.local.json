@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find C:/Users/Simone/Desktop/Arcturus-Morningstar-Extended -type d -name *gui* -o -type d -name *ui* -o -type d -name *view*)",
+      "Bash(wc -l \"/e/Simone/Emulatore Habbo/Emulator/src/main/java/com/eu/habbo/habbohotel\"/*.java)",
+      "Bash(xargs wc:*)"
+    ]
+  }
+}

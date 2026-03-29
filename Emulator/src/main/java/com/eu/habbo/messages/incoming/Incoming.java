@@ -420,6 +420,10 @@ public class Incoming {
     public static final int FurniEditorUpdateEvent = 10044;
     public static final int FurniEditorDeleteEvent = 10045;
 
+    // UI Settings
+    public static final int UiSettingsLoadEvent = 10047;
+    public static final int UiSettingsSaveEvent = 10048;
+
     // Catalog Admin
     public static final int CatalogAdminSavePageEvent = 10050;
     public static final int CatalogAdminCreatePageEvent = 10051;
