@@ -58,9 +58,7 @@ public class PetsComponent {
     }
 
     public void removePet(Pet pet) {
-        synchronized (this.pets) {
-            this.pets.remove(pet.getId());
-        }
+        this.pets.remove(pet.getId());
     }
 
     public Map<Integer, Pet> getPets() {

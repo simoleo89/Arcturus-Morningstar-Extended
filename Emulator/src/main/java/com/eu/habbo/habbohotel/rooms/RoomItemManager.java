@@ -77,9 +77,7 @@ public class RoomItemManager {
      * Loads items from the database.
      */
     public void loadItems(Connection connection) {
-        synchronized (this.roomItems) {
-            this.roomItems.clear();
-        }
+        this.roomItems.clear();
 
         try (PreparedStatement statement = connection.prepareStatement(
             "SELECT * FROM items WHERE room_id = ?")) {
@@ -138,9 +136,7 @@ public class RoomItemManager {
         }
 
         HabboItem item;
-        synchronized (this.roomItems) {
-            item = this.roomItems.get(id);
-        }
+        item = this.roomItems.get(id);
 
         // Check special types if not found in main storage
         RoomSpecialTypes specialTypes = this.room.getRoomSpecialTypes();
@@ -573,30 +569,25 @@ public class RoomItemManager {
             return;
         }
 
-        synchronized (this.roomItems) {
-            try {
-                this.roomItems.put(item.getId(), item);
-            } catch (Exception e) {
-                // Ignore
+        try {
+            this.roomItems.put(item.getId(), item);
+        } catch (Exception e) {
+            // Ignore
+        }
+
+        this.furniOwnerCount.merge(item.getUserId(), 1, Integer::sum);
+
+        this.furniOwnerNames.computeIfAbsent(item.getUserId(), userId -> {
+            HabboInfo habbo = HabboManager.getOfflineHabboInfo(userId);
+
+            if (habbo != null) {
+                return habbo.getUsername();
+            } else {
+                LOGGER.error("Failed to find username for item (ID: {}, UserID: {})",
+                    item.getId(), item.getUserId());
+                return null;
             }
-        }
-
-        synchronized (this.furniOwnerCount) {
-            this.furniOwnerCount.put(item.getUserId(), this.furniOwnerCount.get(item.getUserId()) + 1);
-        }
-
-        synchronized (this.furniOwnerNames) {
-            if (!this.furniOwnerNames.containsKey(item.getUserId())) {
-                HabboInfo habbo = HabboManager.getOfflineHabboInfo(item.getUserId());
-
-                if (habbo != null) {
-                    this.furniOwnerNames.put(item.getUserId(), habbo.getUsername());
-                } else {
-                    LOGGER.error("Failed to find username for item (ID: {}, UserID: {})", 
-                        item.getId(), item.getUserId());
-                }
-            }
-        }
+        });
 
         // Register with special types
         this.registerItemWithSpecialTypes(item);
@@ -704,9 +695,7 @@ public class RoomItemManager {
         }
 
         HabboItem i;
-        synchronized (this.roomItems) {
-            i = this.roomItems.remove(item.getId());
-        }
+        i = this.roomItems.remove(item.getId());
 
         if (i != null) {
             synchronized (this.furniOwnerCount) {
@@ -1091,15 +1080,9 @@ public class RoomItemManager {
      * Clears the item manager state.
      */
     public void clear() {
-        synchronized (this.roomItems) {
-            this.roomItems.clear();
-        }
-        synchronized (this.furniOwnerCount) {
-            this.furniOwnerCount.clear();
-        }
-        synchronized (this.furniOwnerNames) {
-            this.furniOwnerNames.clear();
-        }
+        this.roomItems.clear();
+        this.furniOwnerCount.clear();
+        this.furniOwnerNames.clear();
         this.tileCache.clear();
     }
 

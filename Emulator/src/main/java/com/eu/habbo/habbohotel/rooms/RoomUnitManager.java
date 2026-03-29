@@ -100,9 +100,7 @@ public class RoomUnitManager {
      * Clears the habbo queue.
      */
     public void clearQueue() {
-        synchronized (this.habboQueue) {
-            this.habboQueue.clear();
-        }
+        this.habboQueue.clear();
     }
 
     /**
@@ -463,18 +461,14 @@ public class RoomUnitManager {
      * Adds a Habbo to the queue.
      */
     public void addToQueue(Habbo habbo) {
-        synchronized (this.habboQueue) {
-            this.habboQueue.put(habbo.getHabboInfo().getId(), habbo);
-        }
+        this.habboQueue.put(habbo.getHabboInfo().getId(), habbo);
     }
 
     /**
      * Removes a Habbo from the queue.
      */
     public Habbo removeFromQueue(int habboId) {
-        synchronized (this.habboQueue) {
-            return this.habboQueue.remove(habboId);
-        }
+        return this.habboQueue.remove(habboId);
     }
 
     /**
