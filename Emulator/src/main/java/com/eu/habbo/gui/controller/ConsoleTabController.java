@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.eu.habbo.core.consolecommands.ConsoleCommand;
 import com.eu.habbo.gui.logging.GUILogAppender;
+import com.eu.habbo.gui.notifications.DesktopNotifications;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -14,7 +15,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -30,6 +34,7 @@ public class ConsoleTabController {
     private final CheckBox showInfo;
     private final CheckBox showWarn;
     private final CheckBox showError;
+    private final CheckBox autoScroll;
     private int lineCount = 0;
 
     public ConsoleTabController() {
@@ -47,9 +52,11 @@ public class ConsoleTabController {
         this.showInfo = new CheckBox("INFO");
         this.showWarn = new CheckBox("WARN");
         this.showError = new CheckBox("ERROR");
+        this.autoScroll = new CheckBox("Auto-scroll");
         this.showInfo.setSelected(true);
         this.showWarn.setSelected(true);
         this.showError.setSelected(true);
+        this.autoScroll.setSelected(true);
 
         this.commandInput.setOnAction(e -> executeCommand());
 
@@ -69,7 +76,10 @@ public class ConsoleTabController {
             lineCount = 0;
         });
 
-        HBox filterBox = new HBox(10, showDebug, showInfo, showWarn, showError, clearButton);
+        Button exportButton = new Button("Export");
+        exportButton.setOnAction(e -> exportLogs());
+
+        HBox filterBox = new HBox(10, showDebug, showInfo, showWarn, showError, autoScroll, clearButton, exportButton);
         filterBox.setPadding(new Insets(5));
 
         HBox inputBox = new HBox(5, commandInput, sendButton);
@@ -112,11 +122,22 @@ public class ConsoleTabController {
                 event.getFormattedMessage());
 
         Platform.runLater(() -> appendLog(logLine));
+
+        // Notify on errors when window might not be focused
+        if (level == Level.ERROR) {
+            DesktopNotifications.notify("Emulator Error",
+                    event.getFormattedMessage(),
+                    java.awt.TrayIcon.MessageType.ERROR);
+        }
     }
 
     private void appendLog(String text) {
         logArea.appendText(text);
         lineCount++;
+
+        if (autoScroll.isSelected()) {
+            logArea.setScrollTop(Double.MAX_VALUE);
+        }
 
         if (lineCount > MAX_LOG_LINES) {
             String content = logArea.getText();
@@ -124,6 +145,20 @@ public class ConsoleTabController {
             if (cutIndex > 0) {
                 logArea.setText(content.substring(cutIndex + 1));
                 lineCount = lineCount * 3 / 4;
+            }
+        }
+    }
+
+    private void exportLogs() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export Logs");
+        chooser.setInitialFileName("emulator-log.txt");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        File file = chooser.showSaveDialog(logArea.getScene().getWindow());
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(logArea.getText());
+            } catch (Exception ignored) {
             }
         }
     }

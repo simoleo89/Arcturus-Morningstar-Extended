@@ -3,14 +3,20 @@ package com.eu.habbo.gui;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.gui.controller.*;
 import com.eu.habbo.gui.logging.GUILogAppender;
+import com.eu.habbo.gui.notifications.DesktopNotifications;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.slf4j.LoggerFactory;
@@ -24,7 +30,9 @@ public class EmulatorGUI extends Application {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(EmulatorGUI.class);
     private Stage primaryStage;
+    private Scene scene;
     private TrayIcon trayIcon;
+    private boolean darkMode = true;
 
     @Override
     public void start(Stage primaryStage) {
@@ -38,6 +46,7 @@ public class EmulatorGUI extends Application {
         RoomsTabController roomsTab = new RoomsTabController();
         ConsoleTabController consoleTab = new ConsoleTabController();
         ConfigTabController configTab = new ConfigTabController();
+        PerformanceTabController performanceTab = new PerformanceTabController();
 
         TabPane tabPane = new TabPane();
         tabPane.getTabs().addAll(
@@ -45,16 +54,31 @@ public class EmulatorGUI extends Application {
                 playersTab.createTab(),
                 roomsTab.createTab(),
                 consoleTab.createTab(),
-                configTab.createTab()
+                configTab.createTab(),
+                performanceTab.createTab()
         );
 
-        Scene scene = new Scene(tabPane, 960, 650);
-        String css = getClass().getResource("/gui/style.css") != null
-                ? getClass().getResource("/gui/style.css").toExternalForm()
-                : "";
-        if (!css.isEmpty()) {
-            scene.getStylesheets().add(css);
-        }
+        // Theme toggle
+        ToggleButton themeToggle = new ToggleButton("Light Mode");
+        themeToggle.setSelected(false);
+        themeToggle.setStyle("-fx-font-size: 11px;");
+        themeToggle.setOnAction(e -> {
+            darkMode = !themeToggle.isSelected();
+            themeToggle.setText(darkMode ? "Light Mode" : "Dark Mode");
+            applyTheme();
+        });
+
+        HBox topBar = new HBox(themeToggle);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
+        topBar.setPadding(new Insets(4, 8, 4, 8));
+        topBar.setStyle("-fx-background-color: transparent;");
+
+        BorderPane root = new BorderPane();
+        root.setTop(topBar);
+        root.setCenter(tabPane);
+
+        scene = new Scene(root, 960, 680);
+        applyTheme();
 
         primaryStage.setTitle("Arcturus Morningstar " + Emulator.MAJOR + "." + Emulator.MINOR + "." + Emulator.BUILD);
         primaryStage.setScene(scene);
@@ -82,6 +106,17 @@ public class EmulatorGUI extends Application {
         });
     }
 
+    private void applyTheme() {
+        scene.getStylesheets().clear();
+        String cssFile = darkMode ? "/gui/style.css" : "/gui/style-light.css";
+        String css = getClass().getResource(cssFile) != null
+                ? getClass().getResource(cssFile).toExternalForm()
+                : "";
+        if (!css.isEmpty()) {
+            scene.getStylesheets().add(css);
+        }
+    }
+
     private Image createWindowIcon() {
         WritableImage img = new WritableImage(32, 32);
         var pw = img.getPixelWriter();
@@ -101,7 +136,6 @@ public class EmulatorGUI extends Application {
             }
         }
 
-        // Draw "A" letter in white
         Color white = Color.WHITE;
         for (int y = 6; y < 26; y++) {
             int half = (y - 6) / 2;
@@ -112,7 +146,6 @@ public class EmulatorGUI extends Application {
             if (left + 1 >= 2 && left + 1 < 30) pw.setColor(left + 1, y, white);
             if (right - 1 >= 2 && right - 1 < 30) pw.setColor(right - 1, y, white);
         }
-        // Crossbar
         for (int x = 10; x < 22; x++) {
             pw.setColor(x, 18, white);
             pw.setColor(x, 19, white);
@@ -166,6 +199,7 @@ public class EmulatorGUI extends Application {
             });
 
             SystemTray.getSystemTray().add(trayIcon);
+            DesktopNotifications.setTrayIcon(trayIcon);
         } catch (Exception e) {
             LOGGER.warn("Failed to setup system tray", e);
         }
