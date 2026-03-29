@@ -1,0 +1,37 @@
+package com.eu.arcturus.habbohotel.items.interactions;
+
+import com.eu.arcturus.habbohotel.items.Item;
+import com.eu.arcturus.habbohotel.rooms.Room;
+import com.eu.arcturus.habbohotel.rooms.RoomUnit;
+import com.eu.arcturus.habbohotel.users.Habbo;
+import com.eu.arcturus.messages.outgoing.habboway.nux.NuxAlertComposer;
+import java.util.HashMap;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class InteractionInformationTerminal extends InteractionCustomValues {
+    public static final HashMap<String, String> defaultValues = new HashMap<String, String>() {
+        {
+            this.put("internalLink", "habbopages/chat/commands");
+        }
+    };
+
+    public InteractionInformationTerminal(ResultSet set, Item baseItem) throws SQLException {
+        super(set, baseItem, defaultValues);
+    }
+
+    public InteractionInformationTerminal(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
+        super(id, userId, item, extradata, limitedStack, limitedSells, defaultValues);
+    }
+
+    @Override
+    public void onWalk(RoomUnit roomUnit, Room room, Object[] objects) throws Exception {
+        super.onWalk(roomUnit, room, objects);
+
+        Habbo habbo = room.getHabbo(roomUnit);
+        if (habbo != null && this.values.containsKey("internalLink")) {
+            habbo.getClient().sendResponse(new NuxAlertComposer(this.values.get("internalLink")));
+        }
+    }
+}

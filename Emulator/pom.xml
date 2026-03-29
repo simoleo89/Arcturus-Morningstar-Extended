@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.eu.habbo</groupId>
+    <groupId>com.eu.arcturus</groupId>
     <artifactId>Habbo</artifactId>
     <version>4.1.0</version>
 
@@ -37,7 +37,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.eu.habbo.Emulator</mainClass>
+                            <mainClass>com.eu.arcturus.Emulator</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

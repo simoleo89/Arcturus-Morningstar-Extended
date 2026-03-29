@@ -1,0 +1,98 @@
+package com.eu.arcturus.messages.outgoing.modtool;
+
+import com.eu.arcturus.Emulator;
+import com.eu.arcturus.habbohotel.modtool.ModToolCategory;
+import com.eu.arcturus.habbohotel.modtool.ModToolIssue;
+import com.eu.arcturus.habbohotel.modtool.ModToolTicketState;
+import com.eu.arcturus.habbohotel.permissions.Permission;
+import com.eu.arcturus.habbohotel.users.Habbo;
+import com.eu.arcturus.messages.ServerMessage;
+import com.eu.arcturus.messages.outgoing.MessageComposer;
+import com.eu.arcturus.messages.outgoing.Outgoing;
+import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.HashSet;
+
+import java.util.Iterator;
+
+public class ModToolComposer extends MessageComposer implements Consumer<ModToolCategory> {
+    private final Habbo habbo;
+
+    public ModToolComposer(Habbo habbo) {
+        this.habbo = habbo;
+    }
+
+    @Override
+    protected ServerMessage composeInternal() {
+        this.response.init(Outgoing.ModToolComposer);
+
+        if (this.habbo.hasPermission(Permission.ACC_MODTOOL_TICKET_Q)) {
+            HashSet<ModToolIssue> openTickets = new HashSet<>();
+
+            HashMap<Integer, ModToolIssue> tickets = Emulator.getGameEnvironment().getModToolManager().getTickets();
+
+            for (ModToolIssue t : tickets.values()) {
+                if (t.state != ModToolTicketState.CLOSED)
+                    openTickets.add(t);
+            }
+
+            int ticketsCount = openTickets.size();
+
+            if (ticketsCount > 100) {
+                ticketsCount = 100;
+            }
+
+            this.response.appendInt(ticketsCount); //tickets
+
+            Iterator<ModToolIssue> it = openTickets.iterator();
+
+            for (int i = 0; i < ticketsCount; i++) {
+                it.next().serialize(this.response);
+            }
+        } else {
+            this.response.appendInt(0);
+        }
+
+        synchronized (Emulator.getGameEnvironment().getModToolManager().getPresets()) {
+            this.response.appendInt(Emulator.getGameEnvironment().getModToolManager().getPresets().get("user").size());
+            for (String s : Emulator.getGameEnvironment().getModToolManager().getPresets().get("user")) {
+                this.response.appendString(s);
+            }
+        }
+
+        this.response.appendInt(Emulator.getGameEnvironment().getModToolManager().getCategory().size());
+
+        Emulator.getGameEnvironment().getModToolManager().getCategory().values().forEach(this);
+
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_TICKET_Q)); //ticketQueueueuhuehuehuehue
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_USER_LOGS)); //user chatlogs
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_USER_ALERT)); //can send caution
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_USER_KICK)); //can send kick
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_USER_BAN)); //can send ban
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_ROOM_INFO)); //room info ??Not sure
+        this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_ROOM_LOGS)); //room chatlogs ??Not sure
+
+        synchronized (Emulator.getGameEnvironment().getModToolManager().getPresets()) {
+            this.response.appendInt(Emulator.getGameEnvironment().getModToolManager().getPresets().get("room").size());
+            for (String s : Emulator.getGameEnvironment().getModToolManager().getPresets().get("room")) {
+                this.response.appendString(s);
+            }
+        }
+
+        return this.response;
+    }
+
+    @Override
+    public void accept(ModToolCategory category) {
+        this.response.appendString(category.getName());
+
+
+//
+
+//
+    }
+
+    public Habbo getHabbo() {
+        return habbo;
+    }
+}

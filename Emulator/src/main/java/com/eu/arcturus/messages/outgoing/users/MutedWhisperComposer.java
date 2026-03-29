@@ -1,0 +1,24 @@
+package com.eu.arcturus.messages.outgoing.users;
+
+import com.eu.arcturus.messages.ServerMessage;
+import com.eu.arcturus.messages.outgoing.MessageComposer;
+import com.eu.arcturus.messages.outgoing.Outgoing;
+
+public class MutedWhisperComposer extends MessageComposer {
+    private final int seconds;
+
+    public MutedWhisperComposer(int seconds) {
+        this.seconds = Math.max(0, seconds);
+    }
+
+    @Override
+    protected ServerMessage composeInternal() {
+        this.response.init(Outgoing.MutedWhisperComposer);
+        this.response.appendInt(this.seconds);
+        return this.response;
+    }
+
+    public int getSeconds() {
+        return seconds;
+    }
+}

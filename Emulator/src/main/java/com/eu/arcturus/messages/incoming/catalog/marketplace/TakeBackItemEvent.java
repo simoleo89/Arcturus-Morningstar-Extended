@@ -1,0 +1,17 @@
+package com.eu.arcturus.messages.incoming.catalog.marketplace;
+
+import com.eu.arcturus.habbohotel.catalog.marketplace.MarketPlace;
+import com.eu.arcturus.messages.incoming.MessageHandler;
+
+public class TakeBackItemEvent extends MessageHandler {
+    @Override
+    public int getRatelimit() {
+        return 500;
+    }
+
+    @Override
+    public void handle() throws Exception {
+        int offerId = this.packet.readInt();
+        MarketPlace.takeBackItem(this.client.getHabbo(), offerId);
+    }
+}

@@ -1,0 +1,31 @@
+package com.eu.arcturus.messages.outgoing.hotelview;
+
+import com.eu.arcturus.messages.ServerMessage;
+import com.eu.arcturus.messages.outgoing.MessageComposer;
+import com.eu.arcturus.messages.outgoing.Outgoing;
+
+public class HotelViewCustomTimerComposer extends MessageComposer {
+    private final String name;
+    private final int seconds;
+
+    public HotelViewCustomTimerComposer(String name, int seconds) {
+        this.name = name;
+        this.seconds = seconds;
+    }
+
+    @Override
+    protected ServerMessage composeInternal() {
+        this.response.init(Outgoing.HotelViewCustomTimerComposer);
+        this.response.appendString(this.name); //Send by the client.
+        this.response.appendInt(this.seconds);
+        return this.response;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getSeconds() {
+        return seconds;
+    }
+}

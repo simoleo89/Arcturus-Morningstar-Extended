@@ -42,7 +42,7 @@
 
     <appender name="FileErrorsSql" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logging/errors/sql.txt</file>
-        <filter class="com.eu.habbo.util.logback.SqlExceptionFilter" />
+        <filter class="com.eu.arcturus.util.logback.SqlExceptionFilter" />
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logging/errors/sql.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>

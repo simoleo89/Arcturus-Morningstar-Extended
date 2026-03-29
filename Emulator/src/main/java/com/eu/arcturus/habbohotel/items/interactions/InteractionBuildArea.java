@@ -1,0 +1,253 @@
+package com.eu.arcturus.habbohotel.items.interactions;
+
+import com.eu.arcturus.Emulator;
+import com.eu.arcturus.habbohotel.gameclients.GameClient;
+import com.eu.arcturus.habbohotel.items.Item;
+import com.eu.arcturus.habbohotel.rooms.Room;
+import com.eu.arcturus.habbohotel.rooms.RoomTile;
+import com.eu.arcturus.habbohotel.rooms.RoomTileState;
+import com.eu.arcturus.habbohotel.users.Habbo;
+import com.eu.arcturus.habbohotel.users.HabboInfo;
+import com.eu.arcturus.habbohotel.users.HabboItem;
+import com.eu.arcturus.habbohotel.users.HabboManager;
+import com.eu.arcturus.messages.outgoing.rooms.items.RemoveFloorItemComposer;
+import com.eu.arcturus.messages.outgoing.rooms.items.RoomFloorItemsComposer;
+import java.util.Collections;
+import java.util.Map;
+import java.util.HashSet;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class InteractionBuildArea extends InteractionCustomValues {
+    public static HashMap<String, String> defaultValues = new HashMap<String, String>() {
+        {
+            this.put("tilesLeft", "0");
+        }
+
+        {
+            this.put("tilesRight", "0");
+        }
+
+        {
+            this.put("tilesFront", "0");
+        }
+
+        {
+            this.put("tilesBack", "0");
+        }
+
+        {
+            this.put("builders", "");
+        }
+    };
+
+    private HashSet<RoomTile> tiles;
+
+    public InteractionBuildArea(ResultSet set, Item baseItem) throws SQLException {
+        super(set, baseItem, defaultValues);
+        tiles = new HashSet<>();
+    }
+
+    public InteractionBuildArea(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
+        super(id, userId, item, extradata, limitedStack, limitedSells, defaultValues);
+        tiles = new HashSet<>();
+    }
+
+    @Override
+    public void onPlace(Room room) {
+        super.onPlace(room);
+        this.regenAffectedTiles(room);
+    }
+
+    @Override
+    public void onPickUp(Room room) {
+        super.onPickUp(room);
+
+        ArrayList<String> builderNames = new ArrayList<>(Arrays.asList(this.values.get("builders").split(";")));
+        HashSet<Integer> canBuild = new HashSet<>();
+
+        for (String builderName : builderNames) {
+            Habbo builder = Emulator.getGameEnvironment().getHabboManager().getHabbo(builderName);
+            HabboInfo builderInfo;
+            if (builder != null) {
+                builderInfo = builder.getHabboInfo();
+            } else {
+                builderInfo = HabboManager.getOfflineHabboInfo(builderName);
+            }
+            if (builderInfo != null) {
+                canBuild.add(builderInfo.getId());
+            }
+        }
+
+        if (!canBuild.isEmpty()) {
+            for (RoomTile tile : this.tiles) {
+                HashSet<HabboItem> tileItems = room.getItemsAt(tile);
+                for (HabboItem tileItem : tileItems) {
+                    if (canBuild.contains(tileItem.getUserId()) && tileItem != this) {
+                        room.pickUpItem(tileItem, null);
+                    }
+                }
+            }
+        }
+
+        this.tiles.clear();
+    }
+
+    @Override
+    public void onMove(Room room, RoomTile oldLocation, RoomTile newLocation) {
+        super.onMove(room, oldLocation, newLocation);
+
+        ArrayList<String> builderNames = new ArrayList<>(Arrays.asList(this.values.get("builders").split(";")));
+        HashSet<Integer> canBuild = new HashSet<>();
+
+        for (String builderName : builderNames) {
+            Habbo builder = Emulator.getGameEnvironment().getHabboManager().getHabbo(builderName);
+            HabboInfo builderInfo;
+            if (builder != null) {
+                builderInfo = builder.getHabboInfo();
+            } else {
+                builderInfo = HabboManager.getOfflineHabboInfo(builderName);
+            }
+            if (builderInfo != null) {
+                canBuild.add(builderInfo.getId());
+            }
+        }
+
+        HashSet<RoomTile> oldTiles = this.tiles;
+        HashSet<RoomTile> newTiles = new HashSet<>();
+
+        int minX = Math.max(0, newLocation.x - Integer.parseInt(this.values.get("tilesBack")));
+        int minY = Math.max(0, newLocation.y - Integer.parseInt(this.values.get("tilesRight")));
+        int maxX = Math.min(room.getLayout().getMapSizeX(), newLocation.x + Integer.parseInt(this.values.get("tilesFront")));
+        int maxY = Math.min(room.getLayout().getMapSizeY(), newLocation.y + Integer.parseInt(this.values.get("tilesLeft")));
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                RoomTile tile = room.getLayout().getTile((short) x, (short) y);
+                if (tile != null && tile.state != RoomTileState.INVALID)
+                    newTiles.add(tile);
+            }
+        }
+
+        if (!canBuild.isEmpty()) {
+            for (RoomTile tile : oldTiles) {
+                HashSet<HabboItem> tileItems = room.getItemsAt(tile);
+                if(newTiles.contains(tile)) continue;
+                for (HabboItem tileItem : tileItems) {
+                    if (canBuild.contains(tileItem.getUserId()) && tileItem != this) {
+                        room.pickUpItem(tileItem, null);
+                    }
+                }
+            }
+        }
+        this.regenAffectedTiles(room);
+    }
+
+    public boolean inSquare(RoomTile location) {
+        Room room = Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId());
+
+        if (room != null && this.tiles.size() == 0) {
+            regenAffectedTiles(room);
+        }
+
+        return this.tiles.contains(location);
+
+    }
+
+    private void regenAffectedTiles(Room room) {
+        int minX = Math.max(0, this.getX() - Integer.parseInt(this.values.get("tilesBack")));
+        int minY = Math.max(0, this.getY() - Integer.parseInt(this.values.get("tilesRight")));
+        int maxX = Math.min(room.getLayout().getMapSizeX(), this.getX() + Integer.parseInt(this.values.get("tilesFront")));
+        int maxY = Math.min(room.getLayout().getMapSizeY(), this.getY() + Integer.parseInt(this.values.get("tilesLeft")));
+
+        this.tiles.clear();
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                RoomTile tile = room.getLayout().getTile((short) x, (short) y);
+                if (tile != null && tile.state != RoomTileState.INVALID)
+                    this.tiles.add(tile);
+            }
+        }
+    }
+
+    @Override
+    public void onCustomValuesSaved(Room room, GameClient client, HashMap<String, String> oldValues) {
+        regenAffectedTiles(room);
+        ArrayList<String> builderNames = new ArrayList<>(Arrays.asList(this.values.get("builders").split(";")));
+        HashSet<Integer> canBuild = new HashSet<>();
+
+        for (String builderName : builderNames) {
+            Habbo builder = Emulator.getGameEnvironment().getHabboManager().getHabbo(builderName);
+            HabboInfo builderInfo;
+            if (builder != null) {
+                builderInfo = builder.getHabboInfo();
+            } else {
+                builderInfo = HabboManager.getOfflineHabboInfo(builderName);
+            }
+            if (builderInfo != null) {
+                canBuild.add(builderInfo.getId());
+            }
+        }
+
+        HashSet<RoomTile> oldTiles = new HashSet<>();
+
+        int minX = Math.max(0, this.getX() - Integer.parseInt(oldValues.get("tilesBack")));
+        int minY = Math.max(0, this.getY() - Integer.parseInt(oldValues.get("tilesRight")));
+        int maxX = Math.min(room.getLayout().getMapSizeX(), this.getX() + Integer.parseInt(oldValues.get("tilesFront")));
+        int maxY = Math.min(room.getLayout().getMapSizeY(), this.getY() + Integer.parseInt(oldValues.get("tilesLeft")));
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                RoomTile tile = room.getLayout().getTile((short) x, (short) y);
+                if (tile != null && tile.state != RoomTileState.INVALID && !this.tiles.contains(tile))
+                    oldTiles.add(tile);
+            }
+        }
+        if (!canBuild.isEmpty()) {
+            for (RoomTile tile : oldTiles) {
+                HashSet<HabboItem> tileItems = room.getItemsAt(tile);
+                for (HabboItem tileItem : tileItems) {
+                    if (canBuild.contains(tileItem.getUserId()) && tileItem != this) {
+                        room.pickUpItem(tileItem, null);
+                    }
+                }
+            }
+        }
+
+        // show the effect
+        Item effectItem = Emulator.getGameEnvironment().getItemManager().getItem("mutearea_sign2");
+
+        if(effectItem != null) {
+            Map<Integer, String> ownerNames = new java.util.concurrent.ConcurrentHashMap<>();
+            ownerNames.put(-1, "System");
+            HashSet<HabboItem> items = new HashSet<>();
+
+            int id = 0;
+            for(RoomTile tile : this.tiles) {
+                id--;
+                HabboItem item = new InteractionDefault(id, -1, effectItem, "1", 0, 0);
+                item.setX(tile.x);
+                item.setY(tile.y);
+                item.setZ(tile.relativeHeight());
+                items.add(item);
+            }
+
+            client.sendResponse(new RoomFloorItemsComposer(ownerNames, items));
+            Emulator.getThreading().run(() -> {
+                for(HabboItem item : items) {
+                    client.sendResponse(new RemoveFloorItemComposer(item, true));
+                }
+            }, 3000);
+        }
+    }
+
+    public boolean isBuilder(String Username){
+        return Arrays.asList(this.values.get("builders").split(";")).contains(Username);
+    }
+}

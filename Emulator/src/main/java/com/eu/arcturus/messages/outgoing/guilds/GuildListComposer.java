@@ -1,0 +1,44 @@
+package com.eu.arcturus.messages.outgoing.guilds;
+
+import com.eu.arcturus.Emulator;
+import com.eu.arcturus.habbohotel.guilds.Guild;
+import com.eu.arcturus.habbohotel.users.Habbo;
+import com.eu.arcturus.messages.ServerMessage;
+import com.eu.arcturus.messages.outgoing.MessageComposer;
+import com.eu.arcturus.messages.outgoing.Outgoing;
+import java.util.HashSet;
+
+public class GuildListComposer extends MessageComposer {
+    private final HashSet<Guild> guilds;
+    private final Habbo habbo;
+
+    public GuildListComposer(HashSet<Guild> guilds, Habbo habbo) {
+        this.guilds = guilds;
+        this.habbo = habbo;
+    }
+
+    @Override
+    protected ServerMessage composeInternal() {
+        this.response.init(Outgoing.GuildListComposer);
+        this.response.appendInt(this.guilds.size());
+        for (Guild guild : this.guilds) {
+            this.response.appendInt(guild.getId());
+            this.response.appendString(guild.getName());
+            this.response.appendString(guild.getBadge());
+            this.response.appendString(Emulator.getGameEnvironment().getGuildManager().getSymbolColor(guild.getColorOne()).valueA);
+            this.response.appendString(Emulator.getGameEnvironment().getGuildManager().getBackgroundColor(guild.getColorTwo()).valueA);
+            this.response.appendBoolean(this.habbo.getHabboStats().guild == guild.getId());
+            this.response.appendInt(guild.getOwnerId());
+            this.response.appendBoolean(guild.hasForum());
+        }
+        return this.response;
+    }
+
+    public HashSet<Guild> getGuilds() {
+        return guilds;
+    }
+
+    public Habbo getHabbo() {
+        return habbo;
+    }
+}

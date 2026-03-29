@@ -1,0 +1,38 @@
+package com.eu.arcturus.messages.incoming.rooms;
+
+import com.eu.arcturus.habbohotel.permissions.Permission;
+import com.eu.arcturus.habbohotel.rooms.Room;
+import com.eu.arcturus.habbohotel.rooms.RoomRightLevels;
+import com.eu.arcturus.habbohotel.rooms.RoomUnitStatus;
+import com.eu.arcturus.habbohotel.users.Habbo;
+import com.eu.arcturus.messages.incoming.MessageHandler;
+import com.eu.arcturus.messages.outgoing.rooms.RoomRightsComposer;
+import com.eu.arcturus.messages.outgoing.rooms.users.RoomUserRemoveRightsComposer;
+import java.util.function.IntConsumer;
+
+public class RoomRemoveAllRightsEvent extends MessageHandler {
+    @Override
+    public void handle() throws Exception {
+        final Room room = this.client.getHabbo().getHabboInfo().getCurrentRoom();
+
+        if (room == null || room.getId() != this.packet.readInt())
+            return;
+
+        if (room.getOwnerId() == this.client.getHabbo().getHabboInfo().getId() || this.client.getHabbo().hasPermission(Permission.ACC_ANYROOMOWNER)) {
+            room.getRights().forEach(new IntConsumer() {
+                @Override
+                public void accept(int value) {
+                    Habbo habbo = room.getHabbo(value);
+
+                    if (habbo != null) {
+                        room.sendComposer(new RoomUserRemoveRightsComposer(room, value).compose());
+                        habbo.getRoomUnit().removeStatus(RoomUnitStatus.FLAT_CONTROL);
+                        habbo.getClient().sendResponse(new RoomRightsComposer(RoomRightLevels.NONE));
+                    }
+                }
+            });
+
+            room.removeAllRights();
+        }
+    }
+}

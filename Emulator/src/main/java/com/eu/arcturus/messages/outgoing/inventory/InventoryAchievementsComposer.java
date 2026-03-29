@@ -1,0 +1,36 @@
+package com.eu.arcturus.messages.outgoing.inventory;
+
+import com.eu.arcturus.Emulator;
+import com.eu.arcturus.habbohotel.achievements.Achievement;
+import com.eu.arcturus.habbohotel.achievements.AchievementLevel;
+import com.eu.arcturus.messages.ServerMessage;
+import com.eu.arcturus.messages.outgoing.MessageComposer;
+import com.eu.arcturus.messages.outgoing.Outgoing;
+import java.util.HashMap;
+import java.util.function.Consumer;
+
+public class InventoryAchievementsComposer extends MessageComposer {
+    @Override
+    protected ServerMessage composeInternal() {
+        this.response.init(Outgoing.InventoryAchievementsComposer);
+
+        synchronized (Emulator.getGameEnvironment().getAchievementManager().getAchievements()) {
+            HashMap<String, Achievement> achievements = Emulator.getGameEnvironment().getAchievementManager().getAchievements();
+
+            this.response.appendInt(achievements.size());
+            achievements.values().forEach(new Consumer<Achievement>() {
+                @Override
+                public void accept(Achievement achievement) {
+                    InventoryAchievementsComposer.this.response.appendString((achievement.name.startsWith("ACH_") ? achievement.name.replace("ACH_", "") : achievement.name));
+                    InventoryAchievementsComposer.this.response.appendInt(achievement.levels.size());
+
+                    for (AchievementLevel level : achievement.levels.values()) {
+                        InventoryAchievementsComposer.this.response.appendInt(level.level);
+                        InventoryAchievementsComposer.this.response.appendInt(level.progress);
+                    }
+                }
+            });
+        }
+        return this.response;
+    }
+}

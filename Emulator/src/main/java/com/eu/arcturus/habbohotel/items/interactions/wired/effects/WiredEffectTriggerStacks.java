@@ -1,0 +1,260 @@
+package com.eu.arcturus.habbohotel.items.interactions.wired.effects;
+
+import com.eu.arcturus.Emulator;
+import com.eu.arcturus.habbohotel.gameclients.GameClient;
+import com.eu.arcturus.habbohotel.items.Item;
+import com.eu.arcturus.habbohotel.items.interactions.InteractionWiredEffect;
+import com.eu.arcturus.habbohotel.items.interactions.InteractionWiredTrigger;
+import com.eu.arcturus.habbohotel.items.interactions.wired.WiredSettings;
+import com.eu.arcturus.habbohotel.rooms.Room;
+import com.eu.arcturus.habbohotel.rooms.RoomTile;
+import com.eu.arcturus.habbohotel.rooms.RoomUnit;
+import com.eu.arcturus.habbohotel.wired.core.WiredContext;
+import com.eu.arcturus.habbohotel.users.HabboItem;
+import com.eu.arcturus.habbohotel.wired.WiredEffectType;
+import com.eu.arcturus.habbohotel.wired.core.WiredManager;
+import com.eu.arcturus.habbohotel.wired.core.WiredSourceUtil;
+import com.eu.arcturus.messages.ServerMessage;
+import com.eu.arcturus.messages.incoming.wired.WiredSaveException;
+import java.util.function.Consumer;
+import java.util.HashSet;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class WiredEffectTriggerStacks extends InteractionWiredEffect {
+    public static final WiredEffectType type = WiredEffectType.CALL_STACKS;
+
+    private HashSet<HabboItem> items;
+    private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
+
+    public WiredEffectTriggerStacks(ResultSet set, Item baseItem) throws SQLException {
+        super(set, baseItem);
+        this.items = new HashSet<>();
+    }
+
+    public WiredEffectTriggerStacks(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
+        super(id, userId, item, extradata, limitedStack, limitedSells);
+        this.items = new HashSet<>();
+    }
+
+    @Override
+    public void serializeWiredData(ServerMessage message, Room room) {
+        List<HabboItem> itemsSnapshot = new ArrayList<>(this.items);
+        HashSet<HabboItem> items = new HashSet<>();
+
+        for (HabboItem item : itemsSnapshot) {
+            if (item.getRoomId() != this.getRoomId() || Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId()).getHabboItem(item.getId()) == null)
+                items.add(item);
+        }
+
+        for (HabboItem item : items) {
+            this.items.remove(item);
+        }
+        itemsSnapshot = new ArrayList<>(this.items);
+        message.appendBoolean(false);
+        message.appendInt(WiredManager.MAXIMUM_FURNI_SELECTION);
+        message.appendInt(itemsSnapshot.size());
+        for (HabboItem item : itemsSnapshot) {
+            message.appendInt(item.getId());
+        }
+        message.appendInt(this.getBaseItem().getSpriteId());
+        message.appendInt(this.getId());
+        message.appendString("");
+        message.appendInt(1);
+        message.appendInt(this.furniSource);
+        message.appendInt(0);
+        message.appendInt(this.getType().code);
+        message.appendInt(this.getDelay());
+
+        if (this.requiresTriggeringUser()) {
+            List<Integer> invalidTriggers = new ArrayList<>();
+            room.getRoomSpecialTypes().getTriggers(this.getX(), this.getY()).forEach(new Consumer<InteractionWiredTrigger>() {
+                @Override
+                public boolean execute(InteractionWiredTrigger object) {
+                    if (!object.isTriggeredByRoomUnit()) {
+                        invalidTriggers.add(object.getBaseItem().getSpriteId());
+                    }
+                    return true;
+                }
+            });
+            message.appendInt(invalidTriggers.size());
+            for (Integer i : invalidTriggers) {
+                message.appendInt(i);
+            }
+        } else {
+            message.appendInt(0);
+        }
+    }
+
+    @Override
+    public boolean saveData(WiredSettings settings, GameClient gameClient) throws WiredSaveException {
+        int[] params = settings.getIntParams();
+        this.furniSource = (params.length > 0) ? params[0] : WiredSourceUtil.SOURCE_TRIGGER;
+
+        int itemsCount = settings.getFurniIds().length;
+
+        if(itemsCount > Emulator.getConfig().getInt("hotel.wired.furni.selection.count")) {
+            throw new WiredSaveException("Too many furni selected");
+        }
+
+        List<HabboItem> newItems = new ArrayList<>();
+
+        if (this.furniSource == WiredSourceUtil.SOURCE_SELECTED) {
+            for (int i = 0; i < itemsCount; i++) {
+                int itemId = settings.getFurniIds()[i];
+                HabboItem it = Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId()).getHabboItem(itemId);
+
+                if(it == null)
+                    throw new WiredSaveException(String.format("Item %s not found", itemId));
+
+                newItems.add(it);
+            }
+        }
+
+        int delay = settings.getDelay();
+
+        if(delay > Emulator.getConfig().getInt("hotel.wired.max_delay", 20))
+            throw new WiredSaveException("Delay too long");
+
+        this.items.clear();
+        if (this.furniSource == WiredSourceUtil.SOURCE_SELECTED) {
+            this.items.addAll(newItems);
+        }
+        this.setDelay(delay);
+
+        return true;
+    }
+
+    /**
+     * Maximum recursion depth to prevent infinite loops when trigger stacks call each other.
+     */
+    private static final int MAX_STACK_DEPTH = 10;
+    
+    @Override
+    public void execute(WiredContext ctx) {
+        Room room = ctx.room();
+        RoomUnit roomUnit = ctx.actor().orElse(null);
+        
+        // Get the current call stack depth from the event
+        int currentDepth = ctx.event().getCallStackDepth();
+        
+        // Prevent excessive recursion depth
+        if (currentDepth >= MAX_STACK_DEPTH) {
+            return;
+        }
+
+        List<HabboItem> effectiveItems = WiredSourceUtil.resolveItems(ctx, this.furniSource, this.items);
+
+        HashSet<RoomTile> usedTiles = new HashSet<>();
+
+        for (HabboItem item : effectiveItems) {
+            if (item == null) continue;
+            
+            boolean found = false;
+            for (RoomTile tile : usedTiles) {
+                if (tile.x == item.getX() && tile.y == item.getY()) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                RoomTile tile = room.getLayout().getTile(item.getX(), item.getY());
+                if (tile != null) {
+                    usedTiles.add(tile);
+                }
+            }
+        }
+        
+        // Execute effects at tiles with incremented call stack depth
+        WiredManager.executeEffectsAtTiles(usedTiles, roomUnit, room, currentDepth + 1);
+    }
+
+    @Deprecated
+    @Override
+    public boolean execute(RoomUnit roomUnit, Room room, Object[] stuff) {
+        return false;
+    }
+
+
+    @Override
+    public String getWiredData() {
+        List<HabboItem> itemsSnapshot = new ArrayList<>(this.items);
+        return WiredManager.getGson().toJson(new JsonData(
+                this.getDelay(),
+                itemsSnapshot.stream().map(HabboItem::getId).collect(Collectors.toList()),
+                this.furniSource
+        ));
+    }
+
+    @Override
+    public void loadWiredData(ResultSet set, Room room) throws SQLException {
+        this.items = new HashSet<>();
+        String wiredData = set.getString("wired_data");
+
+        if (wiredData.startsWith("{")) {
+            JsonData data = WiredManager.getGson().fromJson(wiredData, JsonData.class);
+            this.setDelay(data.delay);
+            this.furniSource = data.furniSource;
+            for (Integer id: data.itemIds) {
+                HabboItem item = room.getHabboItem(id);
+                if (item != null) {
+                    this.items.add(item);
+                }
+            }
+            if (this.furniSource == WiredSourceUtil.SOURCE_TRIGGER && !this.items.isEmpty()) {
+                this.furniSource = WiredSourceUtil.SOURCE_SELECTED;
+            }
+        } else {
+            String[] wiredDataOld = wiredData.split("\t");
+
+            if (wiredDataOld.length >= 1) {
+                this.setDelay(Integer.parseInt(wiredDataOld[0]));
+            }
+            if (wiredDataOld.length == 2) {
+                if (wiredDataOld[1].contains(";")) {
+                    for (String s : wiredDataOld[1].split(";")) {
+                        HabboItem item = room.getHabboItem(Integer.parseInt(s));
+
+                        if (item != null)
+                            this.items.add(item);
+                    }
+                }
+            }
+            this.furniSource = this.items.isEmpty() ? WiredSourceUtil.SOURCE_TRIGGER : WiredSourceUtil.SOURCE_SELECTED;
+        }
+    }
+
+    @Override
+    public void onPickUp() {
+        this.items.clear();
+        this.furniSource = WiredSourceUtil.SOURCE_TRIGGER;
+        this.setDelay(0);
+    }
+
+    @Override
+    public WiredEffectType getType() {
+        return type;
+    }
+
+    @Override
+    protected long requiredCooldown() {
+        return COOLDOWN_TRIGGER_STACKS;
+    }
+
+    static class JsonData {
+        int delay;
+        List<Integer> itemIds;
+        int furniSource;
+
+        public JsonData(int delay, List<Integer> itemIds, int furniSource) {
+            this.delay = delay;
+            this.itemIds = itemIds;
+            this.furniSource = furniSource;
+        }
+    }
+}

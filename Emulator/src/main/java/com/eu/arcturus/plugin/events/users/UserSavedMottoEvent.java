@@ -1,0 +1,15 @@
+package com.eu.arcturus.plugin.events.users;
+
+import com.eu.arcturus.habbohotel.users.Habbo;
+
+public class UserSavedMottoEvent extends UserEvent {
+    public final String oldMotto;
+    public String newMotto;
+
+
+    public UserSavedMottoEvent(Habbo habbo, String oldMotto, String newMotto) {
+        super(habbo);
+        this.oldMotto = oldMotto;
+        this.newMotto = newMotto;
+    }
+}
