@@ -100,6 +100,16 @@ public class ConfigTabController {
     }
 
     private void loadConfig() {
+        if (!Emulator.isReady) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning");
+                alert.setContentText("Server is not running. Cannot load configuration.");
+                alert.showAndWait();
+            });
+            return;
+        }
+
         configEntries.clear();
         modifiedEntries.clear();
 
@@ -128,6 +138,7 @@ public class ConfigTabController {
     }
 
     private void saveConfig() {
+        if (!Emulator.isReady) return;
         if (modifiedEntries.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Info");
