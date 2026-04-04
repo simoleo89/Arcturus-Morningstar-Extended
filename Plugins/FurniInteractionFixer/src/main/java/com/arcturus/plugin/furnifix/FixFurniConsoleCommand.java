@@ -5,16 +5,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * Console command: fixinteractions <scan|fix|unregistered>
+ * Console command: fixinteractions <scan|fix|fixunreg|fixall|unregistered|stats>
  */
 public class FixFurniConsoleCommand extends ConsoleCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FixFurniConsoleCommand.class);
 
     public FixFurniConsoleCommand() {
-        super("fixinteractions", "Scan/fix furniture interaction types. Usage: fixinteractions [scan|fix|fixunreg|fixall|unregistered]");
+        super("fixinteractions", "Fix furniture interaction types. Usage: fixinteractions [scan|fix|fixunreg|fixall|unregistered|stats]");
     }
 
     @Override
@@ -35,6 +36,9 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
                     for (InteractionTypeFixer.FixResult fix : summary.fixes) {
                         LOGGER.info("  {}", fix);
                     }
+                    LOGGER.info("--- By Type ---");
+                    summary.fixCountByType.forEach((type, count) ->
+                            LOGGER.info("  {} -> {} items", type, count));
                 }
 
                 if (!summary.warnings.isEmpty()) {
@@ -49,12 +53,12 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
                     }
                 }
 
-                LOGGER.info("Run 'fixinteractions fix' to apply changes.");
+                LOGGER.info("Run 'fixinteractions fix' to apply.");
                 break;
             }
 
             case "fix": {
-                LOGGER.info("=== Applying interaction type fixes ===");
+                LOGGER.info("=== Applying interaction type fixes (empty/default) ===");
                 InteractionTypeFixer.FixSummary summary = InteractionTypeFixer.fix();
 
                 LOGGER.info("Total scanned: {}", summary.totalScanned);
@@ -65,7 +69,9 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
                 }
 
                 if (summary.totalFixed > 0) {
-                    LOGGER.info("Run ':update_items' in-game or restart to reload items.");
+                    summary.fixCountByType.forEach((type, count) ->
+                            LOGGER.info("  {} -> {} items", type, count));
+                    LOGGER.info("Run ':update_items' in-game or restart to reload.");
                 } else {
                     LOGGER.info("No fixes needed.");
                 }
@@ -96,7 +102,9 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
                     for (InteractionTypeFixer.FixResult fix : summary.fixes) {
                         LOGGER.info("  FIXED: {}", fix);
                     }
-                    LOGGER.info("Total fixed: {}. Run ':update_items' in-game or restart to reload.", summary.totalFixed);
+                    summary.fixCountByType.forEach((type, count) ->
+                            LOGGER.info("  {} -> {} items", type, count));
+                    LOGGER.info("Total fixed: {}. Restart or ':update_items' to reload.", summary.totalFixed);
                 } else {
                     LOGGER.info("No unregistered interaction types found.");
                 }
@@ -111,15 +119,33 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
                     for (InteractionTypeFixer.FixResult fix : summary.fixes) {
                         LOGGER.info("  FIXED: {}", fix);
                     }
-                    LOGGER.info("Total fixed: {}. Run ':update_items' in-game or restart to reload.", summary.totalFixed);
+                    LOGGER.info("--- Summary ---");
+                    summary.fixCountByType.forEach((type, count) ->
+                            LOGGER.info("  {} -> {} items", type, count));
+                    LOGGER.info("Total fixed: {}. Restart or ':update_items' to reload.", summary.totalFixed);
                 } else {
                     LOGGER.info("No fixes needed. Everything looks correct.");
                 }
                 break;
             }
 
+            case "stats": {
+                LOGGER.info("=== Interaction Type Statistics ===");
+                Map<String, Integer> stats = InteractionTypeFixer.getTypeStats();
+                int total = stats.values().stream().mapToInt(Integer::intValue).sum();
+
+                LOGGER.info("Total items: {}", total);
+                LOGGER.info("Distinct types: {}", stats.size());
+                LOGGER.info("--- Breakdown ---");
+                stats.forEach((type, count) -> {
+                    String label = type.isEmpty() ? "(empty)" : type;
+                    LOGGER.info("  {:30s} {:>6d} items", label, count);
+                });
+                break;
+            }
+
             default:
-                LOGGER.info("Unknown action '{}'. Use: scan, fix, fixunreg, fixall, unregistered", action);
+                LOGGER.info("Unknown action '{}'. Available: scan, fix, fixunreg, fixall, unregistered, stats", action);
                 break;
         }
     }

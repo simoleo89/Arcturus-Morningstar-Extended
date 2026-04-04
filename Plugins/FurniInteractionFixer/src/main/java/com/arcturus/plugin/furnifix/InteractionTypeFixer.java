@@ -10,8 +10,10 @@ import java.util.regex.Pattern;
 
 /**
  * Core engine that scans items_base for furniture with incorrect or missing
- * interaction_type values and fixes them based on known naming patterns,
- * exact name maps, and configurable rules.
+ * interaction_type values and fixes them using 3 layers:
+ *   1. Exact name map (highest priority)
+ *   2. Regex pattern rules
+ *   3. DB auto-learning from existing valid items (lowest priority)
  */
 public class InteractionTypeFixer {
 
@@ -46,6 +48,7 @@ public class InteractionTypeFixer {
         public final int totalScanned;
         public final int totalFixed;
         public final int totalInvalid;
+        public final Map<String, Integer> fixCountByType;
 
         public FixSummary(List<FixResult> fixes, List<String> warnings, int totalScanned, int totalFixed, int totalInvalid) {
             this.fixes = Collections.unmodifiableList(fixes);
@@ -53,6 +56,13 @@ public class InteractionTypeFixer {
             this.totalScanned = totalScanned;
             this.totalFixed = totalFixed;
             this.totalInvalid = totalInvalid;
+
+            // Build grouped stats
+            Map<String, Integer> counts = new TreeMap<>();
+            for (FixResult f : fixes) {
+                counts.merge(f.newType, 1, Integer::sum);
+            }
+            this.fixCountByType = Collections.unmodifiableMap(counts);
         }
     }
 
@@ -70,16 +80,18 @@ public class InteractionTypeFixer {
         }
     }
 
-    // ── Exact name → interaction_type map (highest priority) ─────────
-    // These come from the official Habbo furnidata and known emulator items.
+    // ── Exact name map (highest priority) ─────────────────────────────
     private static final Map<String, String> EXACT_MAP = new LinkedHashMap<>();
 
-    // ── Regex rules (second priority, first match wins) ──────────────
+    // ── Regex rules (second priority) ─────────────────────────────────
     private static final List<FixRule> RULES = new ArrayList<>();
+
+    // ── DB learned prefixes (third priority, populated at runtime) ─────
+    private static Map<String, String> learnedPrefixes = null;
 
     static {
         // ══════════════════════════════════════════════════════════════
-        //  EXACT NAME MAPPINGS  (furnidata / known items)
+        //  EXACT NAME MAPPINGS
         // ══════════════════════════════════════════════════════════════
 
         // ── Post-it / Sticky ──
@@ -169,7 +181,7 @@ public class InteractionTypeFixer {
         EXACT_MAP.put("freeze_red_score", "freeze_counter_red");
         EXACT_MAP.put("freeze_yellow_score", "freeze_counter_yellow");
 
-        // ── Ice Tag / Bunny Run / Rollerskate ──
+        // ── Tag / Run / Rollerskate ──
         EXACT_MAP.put("icetag_pole", "icetag_pole");
         EXACT_MAP.put("icetag_field", "icetag_field");
         EXACT_MAP.put("bunnyrun_pole", "bunnyrun_pole");
@@ -185,14 +197,18 @@ public class InteractionTypeFixer {
         EXACT_MAP.put("totem_head", "totem_head");
         EXACT_MAP.put("totem_planet", "totem_planet");
 
-        // ── Snowstorm (placeholder) ──
+        // ── Snowstorm ──
         EXACT_MAP.put("snowstorm_tree", "snowstorm_tree");
         EXACT_MAP.put("snowstorm_machine", "snowstorm_machine");
         EXACT_MAP.put("snowstorm_pile", "snowstorm_pile");
 
         // ══════════════════════════════════════════════════════════════
-        //  REGEX RULES  (pattern-based, ordered by priority)
+        //  REGEX RULES  (ordered by priority)
         // ══════════════════════════════════════════════════════════════
+
+        // ── Wired: use the item_name itself as interaction_type ──
+        // Wired items have item_name == interaction_type (e.g., wf_trg_walks_on_furni)
+        // These are handled specially in findCorrectType() via wired self-match
 
         // ── Rollers ──
         RULES.add(new FixRule("^roller_.*", "roller", "roller (prefix)"));
@@ -220,9 +236,7 @@ public class InteractionTypeFixer {
         RULES.add(new FixRule("^trophy_.*", "trophy", "trophy"));
         RULES.add(new FixRule("^prizetrophy_.*", "trophy", "prize trophy"));
         RULES.add(new FixRule(".*_trophy$", "trophy", "trophy (suffix)"));
-        RULES.add(new FixRule("^gold_trophy.*", "trophy", "gold trophy"));
-        RULES.add(new FixRule("^silver_trophy.*", "trophy", "silver trophy"));
-        RULES.add(new FixRule("^bronze_trophy.*", "trophy", "bronze trophy"));
+        RULES.add(new FixRule("^(gold|silver|bronze)_trophy.*", "trophy", "metal trophy"));
 
         // ── Mannequins ──
         RULES.add(new FixRule("^mannequin_.*", "mannequin", "mannequin"));
@@ -255,8 +269,7 @@ public class InteractionTypeFixer {
         RULES.add(new FixRule("^badgedisplay.*", "badge_display", "badge display"));
 
         // ── Love Lock ──
-        RULES.add(new FixRule("^love_lock.*", "love_lock", "love lock"));
-        RULES.add(new FixRule("^lovelock.*", "love_lock", "love lock"));
+        RULES.add(new FixRule("^love_?lock.*", "love_lock", "love lock"));
 
         // ── Guild Furni ──
         RULES.add(new FixRule("^guild_gate$", "guild_gate", "guild gate"));
@@ -268,8 +281,7 @@ public class InteractionTypeFixer {
         RULES.add(new FixRule("^clothing_.*", "clothing", "clothing item"));
 
         // ── Gift ──
-        RULES.add(new FixRule("^present_gen.*", "gift", "gift wrap"));
-        RULES.add(new FixRule("^present_wrap.*", "gift", "gift wrap"));
+        RULES.add(new FixRule("^present_(gen|wrap).*", "gift", "gift wrap"));
         RULES.add(new FixRule("^present_.*", "gift", "gift/present"));
 
         // ── Puzzle Box ──
@@ -285,9 +297,7 @@ public class InteractionTypeFixer {
         // ── Jukebox / Music ──
         RULES.add(new FixRule("^jukebox.*", "jukebox", "jukebox"));
         RULES.add(new FixRule("^sound_machine.*", "jukebox", "sound machine"));
-        RULES.add(new FixRule("^song_disk_.*", "musicdisc", "music disc"));
-        RULES.add(new FixRule("^musicdisc_.*", "musicdisc", "music disc"));
-        RULES.add(new FixRule("^disk_.*", "musicdisc", "music disc"));
+        RULES.add(new FixRule("^(song_disk|musicdisc|disk)_.*", "musicdisc", "music disc"));
 
         // ── YouTube ──
         RULES.add(new FixRule("^youtube_.*", "youtube", "youtube tv"));
@@ -306,37 +316,31 @@ public class InteractionTypeFixer {
         RULES.add(new FixRule(".*_pool$", "water", "pool (suffix)"));
 
         // ── Pet Items ──
-        RULES.add(new FixRule("^nest_.*", "nest", "pet nest"));
-        RULES.add(new FixRule("^petnest_.*", "nest", "pet nest"));
+        RULES.add(new FixRule("^(nest|petnest)_.*", "nest", "pet nest"));
         RULES.add(new FixRule("^petfood\\d+$", "pet_food", "pet food"));
         RULES.add(new FixRule("^pet_food.*", "pet_food", "pet food"));
-        RULES.add(new FixRule("^petdrink.*", "pet_drink", "pet drink"));
-        RULES.add(new FixRule("^pet_waterbowl.*", "pet_drink", "pet water bowl"));
-        RULES.add(new FixRule("^pettoy_.*", "pet_toy", "pet toy"));
-        RULES.add(new FixRule("^pet_toy.*", "pet_toy", "pet toy"));
+        RULES.add(new FixRule("^(petdrink|pet_waterbowl).*", "pet_drink", "pet drink"));
+        RULES.add(new FixRule("^(pettoy|pet_toy).*", "pet_toy", "pet toy"));
         RULES.add(new FixRule("^pet_tree.*", "pet_tree", "pet tree"));
         RULES.add(new FixRule("^pet_trampoline.*", "pet_trampoline", "pet trampoline"));
-        RULES.add(new FixRule("^breeding_.*", "breeding_nest", "breeding nest"));
-        RULES.add(new FixRule("^pet_breeding.*", "breeding_nest", "breeding nest"));
-        RULES.add(new FixRule("^mnstr_seed.*", "monsterplant_seed", "monsterplant seed"));
-        RULES.add(new FixRule("^monsterplant_seed.*", "monsterplant_seed", "monsterplant seed"));
+        RULES.add(new FixRule("^(breeding|pet_breeding)_.*", "breeding_nest", "breeding nest"));
+        RULES.add(new FixRule("^(mnstr_seed|monsterplant_seed).*", "monsterplant_seed", "monsterplant seed"));
 
         // ── Crackable ──
         RULES.add(new FixRule("^crackable_.*", "crackable", "crackable"));
 
         // ── FX Box ──
-        RULES.add(new FixRule("^fxbox_.*", "fx_box", "FX box"));
-        RULES.add(new FixRule("^fx_box_.*", "fx_box", "FX box"));
+        RULES.add(new FixRule("^(fxbox|fx_box)_.*", "fx_box", "FX box"));
 
-        // ── Effect Toggle ──
+        // ── Effect Items ──
         RULES.add(new FixRule("^effect_toggle.*", "effect_toggle", "effect toggle"));
-
-        // ── Effect Tile ──
         RULES.add(new FixRule("^effect_tile.*", "effect_tile", "effect tile"));
+        RULES.add(new FixRule("^effect_gate.*", "effect_gate", "effect gate"));
+        RULES.add(new FixRule("^effect_giver.*", "effect_giver", "effect giver"));
+        RULES.add(new FixRule("^effect_vendingmachine.*", "effect_vendingmachine", "effect vending machine"));
 
         // ── Gym Equipment ──
-        RULES.add(new FixRule(".*_gym_.*", "gym_equipment", "gym equipment"));
-        RULES.add(new FixRule("^gym_.*", "gym_equipment", "gym equipment"));
+        RULES.add(new FixRule("(^|.+_)gym(_|$).*", "gym_equipment", "gym equipment"));
 
         // ── Rentable Space ──
         RULES.add(new FixRule("^rentable_space.*", "rentable_space", "rentable space"));
@@ -352,27 +356,19 @@ public class InteractionTypeFixer {
         RULES.add(new FixRule("^talking_furni.*", "talking_furni", "talking furniture"));
 
         // ── Highscore ──
-        RULES.add(new FixRule("^wf_highscore.*", "wf_highscore", "wired highscore"));
-        RULES.add(new FixRule("^highscore_.*", "wf_highscore", "highscore board"));
+        RULES.add(new FixRule("^(wf_highscore|highscore_).*", "wf_highscore", "wired highscore"));
 
         // ── Football ──
         RULES.add(new FixRule("^footballgate.*", "football_gate", "football gate"));
-        RULES.add(new FixRule("^football_goal_blue.*", "football_goal_blue", "football goal blue"));
-        RULES.add(new FixRule("^football_goal_green.*", "football_goal_green", "football goal green"));
-        RULES.add(new FixRule("^football_goal_red.*", "football_goal_red", "football goal red"));
-        RULES.add(new FixRule("^football_goal_yellow.*", "football_goal_yellow", "football goal yellow"));
-        RULES.add(new FixRule("^football_counter_blue.*", "football_counter_blue", "football counter blue"));
-        RULES.add(new FixRule("^football_counter_green.*", "football_counter_green", "football counter green"));
-        RULES.add(new FixRule("^football_counter_red.*", "football_counter_red", "football counter red"));
-        RULES.add(new FixRule("^football_counter_yellow.*", "football_counter_yellow", "football counter yellow"));
+        RULES.add(new FixRule("^football_goal_(blue|green|red|yellow).*", "football_goal_$1", "football goal"));
+        RULES.add(new FixRule("^football_counter_(blue|green|red|yellow).*", "football_counter_$1", "football counter"));
 
         // ── Hand Items ──
-        RULES.add(new FixRule("^handitem_.*", "handitem", "hand item"));
         RULES.add(new FixRule("^handitem_tile.*", "handitem_tile", "hand item tile"));
+        RULES.add(new FixRule("^handitem_.*", "handitem", "hand item"));
 
         // ── Information Terminal ──
-        RULES.add(new FixRule("^info_terminal.*", "information_terminal", "information terminal"));
-        RULES.add(new FixRule("^information_terminal.*", "information_terminal", "information terminal"));
+        RULES.add(new FixRule("^(info|information)_terminal.*", "information_terminal", "information terminal"));
 
         // ── Obstacle ──
         RULES.add(new FixRule("^obstacle_.*", "obstacle", "pet obstacle"));
@@ -388,40 +384,103 @@ public class InteractionTypeFixer {
         RULES.add(new FixRule("^club_hopper.*", "club_hopper", "habbo club hopper"));
         RULES.add(new FixRule("^club_teleport.*", "club_teleporttile", "habbo club teleport"));
 
-        // ── Effect Gate ──
-        RULES.add(new FixRule("^effect_gate.*", "effect_gate", "effect gate"));
-
-        // ── Viking Cotie ──
+        // ── Misc ──
         RULES.add(new FixRule("^viking_cotie.*", "viking_cotie", "viking cotie"));
-
-        // ── Trap ──
         RULES.add(new FixRule("^trap_.*", "trap", "trap"));
-
-        // ── Black Hole ──
         RULES.add(new FixRule("^blackhole.*", "blackhole", "black hole"));
-
-        // ── Room-o-matic ──
         RULES.add(new FixRule("^room_o_matic.*", "room_o_matic", "room-o-matic"));
+        RULES.add(new FixRule("^color_?plate.*", "colorplate", "color plate"));
+        RULES.add(new FixRule("^tile_fxprovider.*", "tile_fxprovider_nfs", "tile FX provider"));
+        RULES.add(new FixRule("^tile_walkmagic.*", "tile_walkmagic", "tile walk magic"));
+    }
 
-        // ── Wired (catch-all for items that match wired prefixes) ──
-        RULES.add(new FixRule("^wf_trg_.*", "default", "wired trigger (needs specific type)"));
-        RULES.add(new FixRule("^wf_act_.*", "default", "wired effect (needs specific type)"));
-        RULES.add(new FixRule("^wf_cnd_.*", "default", "wired condition (needs specific type)"));
-        RULES.add(new FixRule("^wf_xtra_.*", "default", "wired extra (needs specific type)"));
-        RULES.add(new FixRule("^wf_slc_.*", "default", "wired selector (needs specific type)"));
+    // ══════════════════════════════════════════════════════════════════
+    //  DB AUTO-LEARNING
+    // ══════════════════════════════════════════════════════════════════
 
-        // ── Effect Giver / Vending (effect-based) ──
-        RULES.add(new FixRule("^effect_giver.*", "effect_giver", "effect giver"));
-        RULES.add(new FixRule("^effect_vendingmachine.*", "effect_vendingmachine", "effect vending machine"));
+    /**
+     * Learn item_name prefixes from items that already have valid interaction types.
+     * E.g., if "roller_blue"=roller, "roller_red"=roller exist, learns "roller_" -> roller.
+     */
+    public static Map<String, String> learnFromDatabase() {
+        Set<String> validTypes = getValidInteractionTypes();
+        // prefix -> type counts
+        Map<String, Map<String, Integer>> prefixVotes = new HashMap<>();
+
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet set = stmt.executeQuery(
+                     "SELECT item_name, interaction_type FROM items_base " +
+                     "WHERE interaction_type != '' AND interaction_type != 'default' " +
+                     "ORDER BY item_name")) {
+
+            while (set.next()) {
+                String name = set.getString("item_name").toLowerCase().trim();
+                String type = set.getString("interaction_type").toLowerCase().trim();
+
+                if (!validTypes.contains(type)) continue;
+
+                // Extract prefix (everything before last _ or digits)
+                String prefix = extractPrefix(name);
+                if (prefix != null && prefix.length() >= 3) {
+                    prefixVotes.computeIfAbsent(prefix, k -> new HashMap<>())
+                              .merge(type, 1, Integer::sum);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("[FurniInteractionFixer] Error learning from database", e);
+        }
+
+        // Build prefix map: only keep prefixes where one type has >= 2 votes and > 80% majority
+        Map<String, String> learned = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<String, Integer>> entry : prefixVotes.entrySet()) {
+            Map<String, Integer> votes = entry.getValue();
+            int total = votes.values().stream().mapToInt(Integer::intValue).sum();
+
+            if (total < 2) continue;
+
+            votes.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .ifPresent(best -> {
+                        double ratio = (double) best.getValue() / total;
+                        if (ratio >= 0.8 && !best.getKey().equals("default")) {
+                            learned.put(entry.getKey(), best.getKey());
+                        }
+                    });
+        }
+
+        LOGGER.info("[FurniInteractionFixer] Learned {} prefixes from database.", learned.size());
+        return learned;
+    }
+
+    /**
+     * Extract the meaningful prefix from an item name.
+     * "roller_blue" -> "roller_", "edice_hc2" -> "edice_"
+     */
+    private static String extractPrefix(String name) {
+        int lastUnderscore = name.lastIndexOf('_');
+        if (lastUnderscore > 0) {
+            return name.substring(0, lastUnderscore + 1);
+        }
+        // Try stripping trailing digits: "petfood10" -> "petfood"
+        String stripped = name.replaceAll("\\d+$", "");
+        if (!stripped.equals(name) && stripped.length() >= 3) {
+            return stripped;
+        }
+        return null;
+    }
+
+    /**
+     * Refresh learned prefixes from DB.
+     */
+    public static void refreshLearning() {
+        learnedPrefixes = learnFromDatabase();
     }
 
     // ══════════════════════════════════════════════════════════════════
     //  PUBLIC API
     // ══════════════════════════════════════════════════════════════════
 
-    /**
-     * Get all valid interaction type names from ItemManager.
-     */
     public static Set<String> getValidInteractionTypes() {
         Set<String> valid = new HashSet<>();
         for (String name : Emulator.getGameEnvironment().getItemManager().getInteractionList()) {
@@ -434,6 +493,7 @@ public class InteractionTypeFixer {
      * Scan items_base for incorrect interaction types. Does NOT modify the DB.
      */
     public static FixSummary scan() {
+        ensureLearned();
         Set<String> validTypes = getValidInteractionTypes();
         List<FixResult> fixes = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -450,19 +510,14 @@ public class InteractionTypeFixer {
                 String itemName = set.getString("item_name");
                 String currentType = set.getString("interaction_type").toLowerCase().trim();
 
-                // Skip items that already have a valid non-default type
                 if (!currentType.isEmpty() && !currentType.equals("default") && validTypes.contains(currentType)) {
                     continue;
                 }
 
-                String suggestedType = findCorrectType(itemName);
+                String[] result = findCorrectTypeWithRule(itemName, validTypes);
 
-                if (suggestedType != null && !suggestedType.equals(currentType)) {
-                    if (validTypes.contains(suggestedType)) {
-                        fixes.add(new FixResult(id, itemName, currentType, suggestedType, getMatchedRule(itemName)));
-                    } else {
-                        warnings.add(String.format("[%d] %s: suggested '%s' but not registered in emulator", id, itemName, suggestedType));
-                    }
+                if (result != null && !result[0].equals(currentType)) {
+                    fixes.add(new FixResult(id, itemName, currentType, result[0], result[1]));
                 } else if (currentType.isEmpty()) {
                     totalInvalid++;
                     warnings.add(String.format("[%d] %s: empty interaction_type, no rule match", id, itemName));
@@ -476,7 +531,7 @@ public class InteractionTypeFixer {
     }
 
     /**
-     * Scan and apply all fixes to the database.
+     * Scan and apply fixes to the database.
      */
     public static FixSummary fix() {
         FixSummary scanResult = scan();
@@ -486,30 +541,10 @@ public class InteractionTypeFixer {
             return scanResult;
         }
 
-        int applied = 0;
-        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "UPDATE items_base SET interaction_type = ? WHERE id = ?")) {
-
-            for (FixResult fix : scanResult.fixes) {
-                stmt.setString(1, fix.newType);
-                stmt.setInt(2, fix.itemId);
-                stmt.addBatch();
-                applied++;
-            }
-
-            stmt.executeBatch();
-            LOGGER.info("[FurniInteractionFixer] Applied {} fixes.", applied);
-        } catch (SQLException e) {
-            LOGGER.error("[FurniInteractionFixer] Error applying fixes", e);
-        }
-
+        int applied = applyFixes(scanResult.fixes);
         return new FixSummary(scanResult.fixes, scanResult.warnings, scanResult.totalScanned, applied, scanResult.totalInvalid);
     }
 
-    /**
-     * Fix a single item by ID with a specific interaction type.
-     */
     public static boolean fixSingle(int itemId, String newType) {
         Set<String> validTypes = getValidInteractionTypes();
         if (!validTypes.contains(newType.toLowerCase())) {
@@ -533,10 +568,8 @@ public class InteractionTypeFixer {
         return false;
     }
 
-    /**
-     * Find items whose interaction_type in the DB is not registered in the emulator.
-     */
     public static List<FixResult> findUnregisteredTypes() {
+        ensureLearned();
         Set<String> validTypes = getValidInteractionTypes();
         List<FixResult> results = new ArrayList<>();
 
@@ -549,13 +582,14 @@ public class InteractionTypeFixer {
             while (set.next()) {
                 String currentType = set.getString("interaction_type").toLowerCase().trim();
                 if (!validTypes.contains(currentType)) {
-                    String suggested = findCorrectType(set.getString("item_name"));
+                    String itemName = set.getString("item_name");
+                    String[] result = findCorrectTypeWithRule(itemName, validTypes);
                     results.add(new FixResult(
                             set.getInt("id"),
-                            set.getString("item_name"),
+                            itemName,
                             currentType,
-                            suggested != null ? suggested : "default",
-                            suggested != null ? getMatchedRule(set.getString("item_name")) : "no rule"
+                            result != null ? result[0] : "default",
+                            result != null ? result[1] : "no rule"
                     ));
                 }
             }
@@ -566,12 +600,6 @@ public class InteractionTypeFixer {
         return results;
     }
 
-    /**
-     * Fix all items that have unregistered interaction types.
-     * Items with a matching rule get the suggested type; items without a rule get "default".
-     *
-     * @return summary with all changes applied
-     */
     public static FixSummary fixUnregistered() {
         List<FixResult> unregistered = findUnregisteredTypes();
 
@@ -581,101 +609,135 @@ public class InteractionTypeFixer {
         }
 
         Set<String> validTypes = getValidInteractionTypes();
-        List<FixResult> applied = new ArrayList<>();
-        List<String> warnings = new ArrayList<>();
+        List<FixResult> toApply = new ArrayList<>();
 
-        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "UPDATE items_base SET interaction_type = ? WHERE id = ?")) {
-
-            for (FixResult item : unregistered) {
-                String targetType = item.newType;
-
-                // Verify the target type is valid (it should be, but double-check)
-                if (!validTypes.contains(targetType.toLowerCase())) {
-                    targetType = "default";
-                }
-
-                stmt.setString(1, targetType);
-                stmt.setInt(2, item.itemId);
-                stmt.addBatch();
-                applied.add(new FixResult(item.itemId, item.itemName, item.oldType, targetType, item.rule));
-            }
-
-            stmt.executeBatch();
-            LOGGER.info("[FurniInteractionFixer] Fixed {} items with unregistered types.", applied.size());
-        } catch (SQLException e) {
-            LOGGER.error("[FurniInteractionFixer] Error fixing unregistered types", e);
+        for (FixResult item : unregistered) {
+            String targetType = validTypes.contains(item.newType.toLowerCase()) ? item.newType : "default";
+            toApply.add(new FixResult(item.itemId, item.itemName, item.oldType, targetType, item.rule));
         }
 
-        return new FixSummary(applied, warnings, unregistered.size(), applied.size(), 0);
+        int applied = applyFixes(toApply);
+        return new FixSummary(toApply, Collections.emptyList(), unregistered.size(), applied, 0);
     }
 
-    /**
-     * Fix ALL issues: both default/empty items AND unregistered types.
-     *
-     * @return combined summary
-     */
     public static FixSummary fixAll() {
-        // 1. Fix default/empty items
         FixSummary defaultFixes = fix();
-
-        // 2. Fix unregistered types
         FixSummary unregFixes = fixUnregistered();
 
-        // Combine results
         List<FixResult> allFixes = new ArrayList<>(defaultFixes.fixes);
         allFixes.addAll(unregFixes.fixes);
 
         List<String> allWarnings = new ArrayList<>(defaultFixes.warnings);
         allWarnings.addAll(unregFixes.warnings);
 
-        return new FixSummary(
-                allFixes,
-                allWarnings,
+        return new FixSummary(allFixes, allWarnings,
                 defaultFixes.totalScanned,
                 defaultFixes.totalFixed + unregFixes.totalFixed,
-                defaultFixes.totalInvalid
-        );
+                defaultFixes.totalInvalid);
+    }
+
+    /**
+     * Get stats: count of items per interaction_type in the DB.
+     */
+    public static Map<String, Integer> getTypeStats() {
+        Map<String, Integer> stats = new TreeMap<>();
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet set = stmt.executeQuery(
+                     "SELECT interaction_type, COUNT(*) as cnt FROM items_base " +
+                     "GROUP BY interaction_type ORDER BY cnt DESC")) {
+            while (set.next()) {
+                stats.put(set.getString("interaction_type"), set.getInt("cnt"));
+            }
+        } catch (SQLException e) {
+            LOGGER.error("[FurniInteractionFixer] Error getting type stats", e);
+        }
+        return stats;
     }
 
     // ══════════════════════════════════════════════════════════════════
-    //  INTERNAL MATCHING
+    //  INTERNAL
     // ══════════════════════════════════════════════════════════════════
 
+    private static void ensureLearned() {
+        if (learnedPrefixes == null) {
+            refreshLearning();
+        }
+    }
+
     /**
-     * Find the correct interaction type for an item name.
-     * Priority: exact map > regex rules.
+     * Find correct type with 4 layers:
+     *   1. Exact name map
+     *   2. Wired self-match (item_name IS a registered interaction type)
+     *   3. Regex rules
+     *   4. DB learned prefixes
+     *
+     * @return [type, ruleDescription] or null
      */
-    static String findCorrectType(String itemName) {
+    private static String[] findCorrectTypeWithRule(String itemName, Set<String> validTypes) {
         String lower = itemName.toLowerCase().trim();
 
-        // 1. Exact match (highest priority)
+        // 1. Exact map
         String exact = EXACT_MAP.get(lower);
-        if (exact != null) return exact;
+        if (exact != null && validTypes.contains(exact)) {
+            return new String[]{exact, "exact map"};
+        }
 
-        // 2. Regex rules (first match wins)
+        // 2. Wired self-match: if the item_name itself is a valid registered type, use it
+        //    This handles all wf_trg_*, wf_act_*, wf_cnd_*, wf_xtra_*, wf_slc_* items
+        if (validTypes.contains(lower)) {
+            return new String[]{lower, "self-match (name = registered type)"};
+        }
+
+        // 3. Regex rules
         for (FixRule rule : RULES) {
             if (rule.namePattern.matcher(lower).matches()) {
-                return rule.correctType;
+                if (validTypes.contains(rule.correctType)) {
+                    return new String[]{rule.correctType, rule.description};
+                }
+            }
+        }
+
+        // 4. DB learned prefixes
+        if (learnedPrefixes != null) {
+            String prefix = extractPrefix(lower);
+            if (prefix != null) {
+                String learned = learnedPrefixes.get(prefix);
+                if (learned != null && validTypes.contains(learned)) {
+                    return new String[]{learned, "DB learned (" + prefix + "* -> " + learned + ")"};
+                }
             }
         }
 
         return null;
     }
 
-    private static String getMatchedRule(String itemName) {
-        String lower = itemName.toLowerCase().trim();
+    // Keep legacy method for backward compatibility
+    static String findCorrectType(String itemName) {
+        String[] result = findCorrectTypeWithRule(itemName, getValidInteractionTypes());
+        return result != null ? result[0] : null;
+    }
 
-        if (EXACT_MAP.containsKey(lower)) {
-            return "exact map";
-        }
+    private static int applyFixes(List<FixResult> fixes) {
+        if (fixes.isEmpty()) return 0;
 
-        for (FixRule rule : RULES) {
-            if (rule.namePattern.matcher(lower).matches()) {
-                return rule.description;
+        int applied = 0;
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "UPDATE items_base SET interaction_type = ? WHERE id = ?")) {
+
+            for (FixResult fix : fixes) {
+                stmt.setString(1, fix.newType);
+                stmt.setInt(2, fix.itemId);
+                stmt.addBatch();
+                applied++;
             }
+
+            stmt.executeBatch();
+            LOGGER.info("[FurniInteractionFixer] Applied {} fixes.", applied);
+        } catch (SQLException e) {
+            LOGGER.error("[FurniInteractionFixer] Error applying fixes", e);
         }
-        return "unknown";
+        return applied;
     }
 }

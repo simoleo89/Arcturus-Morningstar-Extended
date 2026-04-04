@@ -6,6 +6,7 @@ import com.eu.habbo.habbohotel.gameclients.GameClient;
 import com.eu.habbo.habbohotel.rooms.RoomChatMessageBubbles;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * In-game command: :fixfurni <scan|fix|unregistered|fixid>
@@ -34,12 +35,13 @@ public class FixFurniCommand extends Command {
     public boolean handle(GameClient gameClient, String[] params) throws Exception {
         if (params.length < 2) {
             gameClient.getHabbo().whisper(
-                    "Usage: :fixfurni <scan|fix|fixunreg|fixall|unregistered|fixid>\r" +
+                    "Usage: :fixfurni <scan|fix|fixunreg|fixall|unregistered|stats|fixid>\r" +
                     "  scan         - Preview changes without applying\r" +
                     "  fix          - Fix items with empty/default types\r" +
                     "  unregistered - Show items with unregistered types\r" +
-                    "  fixunreg     - Fix all unregistered types (rule match or -> default)\r" +
+                    "  fixunreg     - Fix all unregistered types\r" +
                     "  fixall       - Fix everything (empty + default + unregistered)\r" +
+                    "  stats        - Show interaction type statistics\r" +
                     "  fixid <id> <type> - Fix a single item by ID",
                     RoomChatMessageBubbles.ALERT
             );
@@ -69,12 +71,16 @@ public class FixFurniCommand extends Command {
                 handleFixAll(gameClient);
                 break;
 
+            case "stats":
+                handleStats(gameClient);
+                break;
+
             case "fixid":
                 handleFixId(gameClient, params);
                 break;
 
             default:
-                gameClient.getHabbo().whisper("Unknown action '" + action + "'. Use: scan, fix, fixunreg, fixall, unregistered, fixid", RoomChatMessageBubbles.ALERT);
+                gameClient.getHabbo().whisper("Unknown action '" + action + "'. Use: scan, fix, fixunreg, fixall, unregistered, stats, fixid", RoomChatMessageBubbles.ALERT);
                 break;
         }
 
@@ -222,6 +228,23 @@ public class FixFurniCommand extends Command {
         } else {
             gameClient.getHabbo().whisper("No fixes needed. Everything looks correct!", RoomChatMessageBubbles.ALERT);
         }
+    }
+
+    private void handleStats(GameClient gameClient) {
+        Map<String, Integer> stats = InteractionTypeFixer.getTypeStats();
+        int total = stats.values().stream().mapToInt(Integer::intValue).sum();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Interaction Type Statistics ===\r");
+        sb.append("Total items: ").append(total).append("\r");
+        sb.append("Distinct types: ").append(stats.size()).append("\r\r");
+
+        for (Map.Entry<String, Integer> e : stats.entrySet()) {
+            String label = e.getKey().isEmpty() ? "(empty)" : e.getKey();
+            sb.append(String.format("%-30s %6d\r", label, e.getValue()));
+        }
+
+        gameClient.getHabbo().alert(sb.toString());
     }
 
     private void handleFixId(GameClient gameClient, String[] params) {

@@ -22,23 +22,43 @@ public class FurniInteractionFixerPlugin extends HabboPlugin implements EventLis
 
     @EventHandler
     public void onEmulatorLoaded(EmulatorLoadedEvent event) {
-        // Register the in-game command
+        // Register commands
         CommandHandler.addCommand(new FixFurniCommand());
-
-        // Register the console command
         com.eu.habbo.core.consolecommands.ConsoleCommand.addCommand(new FixFurniConsoleCommand());
 
         // Insert default texts if missing
         insertDefaultTexts();
 
+        // Learn prefixes from DB
+        InteractionTypeFixer.refreshLearning();
+
+        // Auto-fix on startup if configured
+        boolean autoFix = false;
+        try {
+            String val = Emulator.getConfig().getValue("furnifix.autofix.enabled", "false");
+            autoFix = val.equalsIgnoreCase("true") || val.equals("1");
+        } catch (Exception ignored) {}
+
+        if (autoFix) {
+            LOGGER.info("[FurniInteractionFixer] Auto-fix enabled, running fixAll...");
+            InteractionTypeFixer.FixSummary summary = InteractionTypeFixer.fixAll();
+            if (summary.totalFixed > 0) {
+                LOGGER.info("[FurniInteractionFixer] Auto-fix applied {} fixes.", summary.totalFixed);
+                summary.fixCountByType.forEach((type, count) ->
+                        LOGGER.info("[FurniInteractionFixer]   {} -> {} items", type, count));
+                Emulator.getGameEnvironment().getItemManager().loadItems();
+            } else {
+                LOGGER.info("[FurniInteractionFixer] Auto-fix: no fixes needed.");
+            }
+        }
+
         LOGGER.info("[FurniInteractionFixer] Loaded successfully!");
-        LOGGER.info("[FurniInteractionFixer] In-game command: :fixfurni <scan|fix|fixunreg|fixall|unregistered|fixid>");
-        LOGGER.info("[FurniInteractionFixer] Console command: fixinteractions <scan|fix|fixunreg|fixall|unregistered>");
+        LOGGER.info("[FurniInteractionFixer] In-game:  :fixfurni <scan|fix|fixunreg|fixall|unregistered|stats|fixid>");
+        LOGGER.info("[FurniInteractionFixer] Console:  fixinteractions <scan|fix|fixunreg|fixall|unregistered|stats>");
     }
 
     private void insertDefaultTexts() {
         try {
-            // Ensure the command key text exists
             String existing = Emulator.getTexts().getValue("commands.keys.cmd_fix_furni_interactions");
             if (existing == null || existing.isEmpty()) {
                 Emulator.getTexts().register("commands.keys.cmd_fix_furni_interactions", "fixfurni");
@@ -55,7 +75,6 @@ public class FurniInteractionFixerPlugin extends HabboPlugin implements EventLis
 
     @Override
     public boolean hasPermission(Habbo habbo, String key) {
-        // Delegate to default permission system
         return false;
     }
 }
