@@ -1,0 +1,5 @@
+{
+  "name": "FurniInteractionFixer",
+  "author": "Arcturus Community",
+  "main": "com.arcturus.plugin.furnifix.FurniInteractionFixerPlugin"
+}

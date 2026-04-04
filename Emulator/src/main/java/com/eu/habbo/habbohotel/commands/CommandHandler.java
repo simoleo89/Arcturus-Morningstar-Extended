@@ -202,7 +202,6 @@ public class CommandHandler {
         addCommand(new FacelessCommand());
         addCommand(new FastwalkCommand());
         addCommand(new FilterWordCommand());
-        addCommand(new FixFurniInteractionsCommand());
         addCommand(new FreezeBotsCommand());
         addCommand(new FreezeCommand());
         addCommand(new GiftCommand());

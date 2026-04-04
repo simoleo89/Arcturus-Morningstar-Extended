@@ -23,7 +23,6 @@ public abstract class ConsoleCommand {
         addCommand(new ShowInteractionsCommand());
         addCommand(new ShowRCONCommands());
         addCommand(new ThankyouArcturusCommand());
-        addCommand(new FixInteractionsConsoleCommand());
     }
 
     public static void addCommand(ConsoleCommand command) {

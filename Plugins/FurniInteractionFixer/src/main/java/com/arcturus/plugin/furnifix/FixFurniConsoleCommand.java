@@ -1,15 +1,20 @@
-package com.eu.habbo.core.consolecommands;
+package com.arcturus.plugin.furnifix;
 
-import com.eu.habbo.habbohotel.items.InteractionTypeFixer;
+import com.eu.habbo.core.consolecommands.ConsoleCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FixInteractionsConsoleCommand extends ConsoleCommand {
+import java.util.List;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FixInteractionsConsoleCommand.class);
+/**
+ * Console command: fixinteractions <scan|fix|unregistered>
+ */
+public class FixFurniConsoleCommand extends ConsoleCommand {
 
-    public FixInteractionsConsoleCommand() {
-        super("fixinteractions", "Scan and fix furniture interaction types. Usage: fixinteractions [scan|fix|unregistered]");
+    private static final Logger LOGGER = LoggerFactory.getLogger(FixFurniConsoleCommand.class);
+
+    public FixFurniConsoleCommand() {
+        super("fixinteractions", "Scan/fix furniture interaction types. Usage: fixinteractions [scan|fix|unregistered]");
     }
 
     @Override
@@ -35,17 +40,16 @@ public class FixInteractionsConsoleCommand extends ConsoleCommand {
                 if (!summary.warnings.isEmpty()) {
                     LOGGER.info("--- Warnings ({}) ---", summary.warnings.size());
                     int shown = 0;
-                    for (String warning : summary.warnings) {
-                        LOGGER.warn("  {}", warning);
-                        shown++;
-                        if (shown >= 50) {
-                            LOGGER.warn("  ... and {} more warnings.", summary.warnings.size() - 50);
+                    for (String w : summary.warnings) {
+                        LOGGER.warn("  {}", w);
+                        if (++shown >= 50) {
+                            LOGGER.warn("  ... and {} more.", summary.warnings.size() - 50);
                             break;
                         }
                     }
                 }
 
-                LOGGER.info("Use 'fixinteractions fix' to apply the changes.");
+                LOGGER.info("Run 'fixinteractions fix' to apply changes.");
                 break;
             }
 
@@ -61,7 +65,7 @@ public class FixInteractionsConsoleCommand extends ConsoleCommand {
                 }
 
                 if (summary.totalFixed > 0) {
-                    LOGGER.info("Run ':update_items' in-game or restart to reload items into memory.");
+                    LOGGER.info("Run ':update_items' in-game or restart to reload items.");
                 } else {
                     LOGGER.info("No fixes needed.");
                 }
@@ -70,7 +74,7 @@ public class FixInteractionsConsoleCommand extends ConsoleCommand {
 
             case "unregistered": {
                 LOGGER.info("=== Items with unregistered interaction types ===");
-                var results = InteractionTypeFixer.findUnregisteredTypes();
+                List<InteractionTypeFixer.FixResult> results = InteractionTypeFixer.findUnregisteredTypes();
 
                 if (results.isEmpty()) {
                     LOGGER.info("All items have valid registered interaction types.");
@@ -78,15 +82,14 @@ public class FixInteractionsConsoleCommand extends ConsoleCommand {
                 }
 
                 LOGGER.info("Found {} items with unregistered types:", results.size());
-                for (InteractionTypeFixer.FixResult result : results) {
-                    LOGGER.info("  [{}] {}: type='{}' -> suggested='{}'",
-                            result.itemId, result.itemName, result.oldInteractionType, result.newInteractionType);
+                for (InteractionTypeFixer.FixResult r : results) {
+                    LOGGER.info("  [{}] {}: type='{}' -> suggested='{}'", r.itemId, r.itemName, r.oldType, r.newType);
                 }
                 break;
             }
 
             default:
-                LOGGER.info("Unknown action '{}'. Use: scan, fix, or unregistered", action);
+                LOGGER.info("Unknown action '{}'. Use: scan, fix, unregistered", action);
                 break;
         }
     }
