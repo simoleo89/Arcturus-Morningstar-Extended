@@ -32,8 +32,8 @@ public class FurniInteractionFixerPlugin extends HabboPlugin implements EventLis
         insertDefaultTexts();
 
         LOGGER.info("[FurniInteractionFixer] Loaded successfully!");
-        LOGGER.info("[FurniInteractionFixer] In-game command: :fixfurni <scan|fix|unregistered|fixid>");
-        LOGGER.info("[FurniInteractionFixer] Console command: fixinteractions <scan|fix|unregistered>");
+        LOGGER.info("[FurniInteractionFixer] In-game command: :fixfurni <scan|fix|fixunreg|fixall|unregistered|fixid>");
+        LOGGER.info("[FurniInteractionFixer] Console command: fixinteractions <scan|fix|fixunreg|fixall|unregistered>");
     }
 
     private void insertDefaultTexts() {
