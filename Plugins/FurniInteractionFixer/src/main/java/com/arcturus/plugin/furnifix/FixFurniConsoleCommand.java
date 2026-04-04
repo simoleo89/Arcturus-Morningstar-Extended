@@ -14,7 +14,7 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(FixFurniConsoleCommand.class);
 
     public FixFurniConsoleCommand() {
-        super("fixinteractions", "Scan/fix furniture interaction types. Usage: fixinteractions [scan|fix|unregistered]");
+        super("fixinteractions", "Scan/fix furniture interaction types. Usage: fixinteractions [scan|fix|fixunreg|fixall|unregistered]");
     }
 
     @Override
@@ -88,8 +88,38 @@ public class FixFurniConsoleCommand extends ConsoleCommand {
                 break;
             }
 
+            case "fixunreg": {
+                LOGGER.info("=== Fixing unregistered interaction types ===");
+                InteractionTypeFixer.FixSummary summary = InteractionTypeFixer.fixUnregistered();
+
+                if (summary.totalFixed > 0) {
+                    for (InteractionTypeFixer.FixResult fix : summary.fixes) {
+                        LOGGER.info("  FIXED: {}", fix);
+                    }
+                    LOGGER.info("Total fixed: {}. Run ':update_items' in-game or restart to reload.", summary.totalFixed);
+                } else {
+                    LOGGER.info("No unregistered interaction types found.");
+                }
+                break;
+            }
+
+            case "fixall": {
+                LOGGER.info("=== Fixing ALL interaction type issues ===");
+                InteractionTypeFixer.FixSummary summary = InteractionTypeFixer.fixAll();
+
+                if (summary.totalFixed > 0) {
+                    for (InteractionTypeFixer.FixResult fix : summary.fixes) {
+                        LOGGER.info("  FIXED: {}", fix);
+                    }
+                    LOGGER.info("Total fixed: {}. Run ':update_items' in-game or restart to reload.", summary.totalFixed);
+                } else {
+                    LOGGER.info("No fixes needed. Everything looks correct.");
+                }
+                break;
+            }
+
             default:
-                LOGGER.info("Unknown action '{}'. Use: scan, fix, unregistered", action);
+                LOGGER.info("Unknown action '{}'. Use: scan, fix, fixunreg, fixall, unregistered", action);
                 break;
         }
     }
