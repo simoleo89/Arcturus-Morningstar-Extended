@@ -566,6 +566,79 @@ public class InteractionTypeFixer {
         return results;
     }
 
+    /**
+     * Fix all items that have unregistered interaction types.
+     * Items with a matching rule get the suggested type; items without a rule get "default".
+     *
+     * @return summary with all changes applied
+     */
+    public static FixSummary fixUnregistered() {
+        List<FixResult> unregistered = findUnregisteredTypes();
+
+        if (unregistered.isEmpty()) {
+            LOGGER.info("[FurniInteractionFixer] No unregistered interaction types found.");
+            return new FixSummary(unregistered, Collections.emptyList(), 0, 0, 0);
+        }
+
+        Set<String> validTypes = getValidInteractionTypes();
+        List<FixResult> applied = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             PreparedStatement stmt = connection.prepareStatement(
+                     "UPDATE items_base SET interaction_type = ? WHERE id = ?")) {
+
+            for (FixResult item : unregistered) {
+                String targetType = item.newType;
+
+                // Verify the target type is valid (it should be, but double-check)
+                if (!validTypes.contains(targetType.toLowerCase())) {
+                    targetType = "default";
+                }
+
+                stmt.setString(1, targetType);
+                stmt.setInt(2, item.itemId);
+                stmt.addBatch();
+                applied.add(new FixResult(item.itemId, item.itemName, item.oldType, targetType, item.rule));
+            }
+
+            stmt.executeBatch();
+            LOGGER.info("[FurniInteractionFixer] Fixed {} items with unregistered types.", applied.size());
+        } catch (SQLException e) {
+            LOGGER.error("[FurniInteractionFixer] Error fixing unregistered types", e);
+        }
+
+        return new FixSummary(applied, warnings, unregistered.size(), applied.size(), 0);
+    }
+
+    /**
+     * Fix ALL issues: both default/empty items AND unregistered types.
+     *
+     * @return combined summary
+     */
+    public static FixSummary fixAll() {
+        // 1. Fix default/empty items
+        FixSummary defaultFixes = fix();
+
+        // 2. Fix unregistered types
+        FixSummary unregFixes = fixUnregistered();
+
+        // Combine results
+        List<FixResult> allFixes = new ArrayList<>(defaultFixes.fixes);
+        allFixes.addAll(unregFixes.fixes);
+
+        List<String> allWarnings = new ArrayList<>(defaultFixes.warnings);
+        allWarnings.addAll(unregFixes.warnings);
+
+        return new FixSummary(
+                allFixes,
+                allWarnings,
+                defaultFixes.totalScanned,
+                defaultFixes.totalFixed + unregFixes.totalFixed,
+                defaultFixes.totalInvalid
+        );
+    }
+
     // ══════════════════════════════════════════════════════════════════
     //  INTERNAL MATCHING
     // ══════════════════════════════════════════════════════════════════

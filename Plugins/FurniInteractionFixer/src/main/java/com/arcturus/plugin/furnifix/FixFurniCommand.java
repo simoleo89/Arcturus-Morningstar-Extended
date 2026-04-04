@@ -34,10 +34,12 @@ public class FixFurniCommand extends Command {
     public boolean handle(GameClient gameClient, String[] params) throws Exception {
         if (params.length < 2) {
             gameClient.getHabbo().whisper(
-                    "Usage: :fixfurni <scan|fix|unregistered|fixid>\r" +
-                    "  scan        - Preview changes without applying\r" +
-                    "  fix         - Apply all interaction type fixes to DB\r" +
+                    "Usage: :fixfurni <scan|fix|fixunreg|fixall|unregistered|fixid>\r" +
+                    "  scan         - Preview changes without applying\r" +
+                    "  fix          - Fix items with empty/default types\r" +
                     "  unregistered - Show items with unregistered types\r" +
+                    "  fixunreg     - Fix all unregistered types (rule match or -> default)\r" +
+                    "  fixall       - Fix everything (empty + default + unregistered)\r" +
                     "  fixid <id> <type> - Fix a single item by ID",
                     RoomChatMessageBubbles.ALERT
             );
@@ -59,12 +61,20 @@ public class FixFurniCommand extends Command {
                 handleUnregistered(gameClient);
                 break;
 
+            case "fixunreg":
+                handleFixUnregistered(gameClient);
+                break;
+
+            case "fixall":
+                handleFixAll(gameClient);
+                break;
+
             case "fixid":
                 handleFixId(gameClient, params);
                 break;
 
             default:
-                gameClient.getHabbo().whisper("Unknown action '" + action + "'. Use: scan, fix, unregistered, fixid", RoomChatMessageBubbles.ALERT);
+                gameClient.getHabbo().whisper("Unknown action '" + action + "'. Use: scan, fix, fixunreg, fixall, unregistered, fixid", RoomChatMessageBubbles.ALERT);
                 break;
         }
 
@@ -153,6 +163,65 @@ public class FixFurniCommand extends Command {
         }
 
         gameClient.getHabbo().alert(sb.toString());
+    }
+
+    private void handleFixUnregistered(GameClient gameClient) {
+        gameClient.getHabbo().whisper("Fixing unregistered interaction types...", RoomChatMessageBubbles.ALERT);
+
+        InteractionTypeFixer.FixSummary summary = InteractionTypeFixer.fixUnregistered();
+
+        if (summary.totalFixed > 0) {
+            Emulator.getGameEnvironment().getItemManager().loadItems();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Unregistered Types Fixed ===\r");
+            sb.append("Total fixed: ").append(summary.totalFixed).append("\r\r");
+
+            int shown = 0;
+            for (InteractionTypeFixer.FixResult fix : summary.fixes) {
+                sb.append(String.format("[%d] %s: '%s' -> '%s' (%s)\r",
+                        fix.itemId, fix.itemName, fix.oldType, fix.newType, fix.rule));
+                if (++shown >= 50) {
+                    sb.append("... and ").append(summary.fixes.size() - 50).append(" more.\r");
+                    break;
+                }
+            }
+            sb.append("\rItems reloaded into memory.");
+
+            gameClient.getHabbo().alert(sb.toString());
+        } else {
+            gameClient.getHabbo().whisper("No unregistered interaction types found!", RoomChatMessageBubbles.ALERT);
+        }
+    }
+
+    private void handleFixAll(GameClient gameClient) {
+        gameClient.getHabbo().whisper("Fixing ALL interaction type issues...", RoomChatMessageBubbles.ALERT);
+
+        InteractionTypeFixer.FixSummary summary = InteractionTypeFixer.fixAll();
+
+        if (summary.totalFixed > 0) {
+            Emulator.getGameEnvironment().getItemManager().loadItems();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Complete Fix Summary ===\r");
+            sb.append("Total scanned: ").append(summary.totalScanned).append("\r");
+            sb.append("Total fixed: ").append(summary.totalFixed).append("\r\r");
+
+            int shown = 0;
+            for (InteractionTypeFixer.FixResult fix : summary.fixes) {
+                sb.append(String.format("[%d] %s: '%s' -> '%s'\r",
+                        fix.itemId, fix.itemName, fix.oldType, fix.newType));
+                if (++shown >= 50) {
+                    sb.append("... and ").append(summary.fixes.size() - 50).append(" more.\r");
+                    break;
+                }
+            }
+            sb.append("\rItems reloaded into memory.");
+
+            gameClient.getHabbo().alert(sb.toString());
+        } else {
+            gameClient.getHabbo().whisper("No fixes needed. Everything looks correct!", RoomChatMessageBubbles.ALERT);
+        }
     }
 
     private void handleFixId(GameClient gameClient, String[] params) {
