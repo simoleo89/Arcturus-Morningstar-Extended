@@ -1,0 +1,36 @@
+name: Sync All Branches - Arcturus-Morningstar-Extended
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Ogni giorno a mezzanotte UTC
+  workflow_dispatch: # Avvio manuale
+
+jobs:
+  sync-all:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync and Force Push All Branches
+        run: |
+          git remote add upstream https://github.com/duckietm/Arcturus-Morningstar-Extended.git
+          git fetch upstream
+          
+          for branch in $(git branch -r | grep 'upstream/' | grep -v 'HEAD'); do
+              local_branch=${branch#upstream/}
+              echo "Sincronizzando branch: $local_branch"
+              
+              git checkout -B $local_branch $branch
+              git push origin $local_branch --force
+          done
