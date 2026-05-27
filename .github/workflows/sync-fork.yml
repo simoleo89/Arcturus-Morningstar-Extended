@@ -2,8 +2,8 @@ name: Sync All Branches - Arcturus-Morningstar-Extended
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Ogni giorno a mezzanotte UTC
-  workflow_dispatch: # Avvio manuale
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   sync-all:
@@ -26,11 +26,9 @@ jobs:
         run: |
           git remote add upstream https://github.com/duckietm/Arcturus-Morningstar-Extended.git
           git fetch upstream
-          
           for branch in $(git branch -r | grep 'upstream/' | grep -v 'HEAD'); do
               local_branch=${branch#upstream/}
               echo "Sincronizzando branch: $local_branch"
-              
               git checkout -B $local_branch $branch
               git push origin $local_branch --force
           done
