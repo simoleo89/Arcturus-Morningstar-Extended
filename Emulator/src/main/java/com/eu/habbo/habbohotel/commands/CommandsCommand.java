@@ -17,7 +17,22 @@ public class CommandsCommand extends Command {
         message.append("(").append(commands.size()).append("):\r\n");
 
         for (Command c : commands) {
-            message.append(Emulator.getTexts().getValue("commands.description." + c.permission, "commands.description." + c.permission)).append("\r");
+            String textKey = "commands.description." + c.permission;
+            String commandText = Emulator.getTexts().getValue(textKey, "");
+            String commandLine = ":" + c.keys[0];
+            String description = "";
+
+            if (commandText.startsWith(":")) {
+                commandLine = commandText;
+            } else if (!commandText.isEmpty() && !commandText.equals(textKey)) {
+                description = commandText;
+            }
+
+            message.append(commandLine).append("\r");
+
+            if (!description.isEmpty()) {
+                message.append(description).append("\r");
+            }
         }
 
         gameClient.getHabbo().alert(new String[]{message.toString()});
