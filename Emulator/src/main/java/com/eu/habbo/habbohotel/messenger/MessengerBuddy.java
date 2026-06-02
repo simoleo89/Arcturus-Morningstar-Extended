@@ -140,6 +140,25 @@ public class MessengerBuddy implements Runnable, ISerialize {
 
     public int getCategoryId() { return this.categoryId; }
 
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+
+        final int cat = categoryId;
+        final int owner = this.userOne;
+        final int friend = this.id;
+
+        Emulator.getThreading().run(() -> {
+            try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("UPDATE messenger_friendships SET category = ? WHERE user_one_id = ? AND user_two_id = ?")) {
+                statement.setInt(1, cat);
+                statement.setInt(2, owner);
+                statement.setInt(3, friend);
+                statement.execute();
+            } catch (SQLException e) {
+                LOGGER.error("Caught SQL exception", e);
+            }
+        });
+    }
+
     public boolean inRoom() {
         return this.inRoom;
     }

@@ -237,6 +237,21 @@ public class HabboInfo implements Runnable {
         }
     }
 
+    public void renameMessengerCategory(int categoryId, String name) {
+        for (MessengerCategory category : this.messengerCategories) {
+            if (category.getId() == categoryId) {
+                category.setName(name);
+                break;
+            }
+        }
+
+        try {
+            SqlQueries.update("UPDATE messenger_categories SET name = ? WHERE id = ? AND user_id = ?", name, categoryId, this.id);
+        } catch (SqlQueries.DataAccessException e) {
+            LOGGER.error("Caught SQL exception", e);
+        }
+    }
+
     public int getCurrencyAmount(int type) {
         return this.currencies.get(type);
     }
