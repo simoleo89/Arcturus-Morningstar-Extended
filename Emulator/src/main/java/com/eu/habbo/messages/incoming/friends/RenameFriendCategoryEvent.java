@@ -21,7 +21,8 @@ public class RenameFriendCategoryEvent extends MessageHandler {
         for (MessengerCategory category : habbo.getHabboInfo().getMessengerCategories()) {
             if (category.getId() == categoryId) {
                 found = true;
-                break;
+            } else if (category.getName().equalsIgnoreCase(name)) {
+                return; // another category already uses this name
             }
         }
         if (!found) return;

@@ -7,6 +7,9 @@ import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.friends.MessengerInitComposer;
 import com.eu.habbo.messages.outgoing.friends.UpdateFriendComposer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RemoveFriendCategoryEvent extends MessageHandler {
     @Override
     public void handle() throws Exception {
@@ -26,11 +29,16 @@ public class RemoveFriendCategoryEvent extends MessageHandler {
 
         habbo.getHabboInfo().deleteMessengerCategory(target);
 
+        List<MessengerBuddy> affected = new ArrayList<>();
         for (MessengerBuddy buddy : habbo.getMessenger().getFriends().values()) {
             if (buddy.getCategoryId() == categoryId) {
                 buddy.setCategoryId(0);
-                this.client.sendResponse(new UpdateFriendComposer(habbo, buddy, 0));
+                affected.add(buddy);
             }
+        }
+
+        if (!affected.isEmpty()) {
+            this.client.sendResponse(new UpdateFriendComposer(habbo, affected, 0));
         }
 
         this.client.sendResponse(new MessengerInitComposer(habbo));
