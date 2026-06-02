@@ -11,6 +11,7 @@ public class FriendChatMessageComposer extends MessageComposer {
     private final Message message;
     private final int toId;
     private final int fromId;
+    private String extraData = null;
 
     public FriendChatMessageComposer(Message message) {
         this.message = message;
@@ -22,6 +23,13 @@ public class FriendChatMessageComposer extends MessageComposer {
         this.message = message;
         this.toId = toId;
         this.fromId = fromId;
+    }
+
+    public FriendChatMessageComposer(Message message, int toId, int fromId, String extraData) {
+        this.message = message;
+        this.toId = toId;
+        this.fromId = fromId;
+        this.extraData = extraData;
     }
 
     @Override
@@ -46,6 +54,9 @@ public class FriendChatMessageComposer extends MessageComposer {
                 }
             }
             this.response.appendString(name + "/" + look + "/" + this.fromId);
+        }
+        else if (this.extraData != null) {
+            this.response.appendString(this.extraData);
         }
 
         return this.response;
