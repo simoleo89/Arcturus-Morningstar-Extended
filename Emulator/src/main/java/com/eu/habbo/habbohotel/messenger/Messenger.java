@@ -3,9 +3,11 @@ package com.eu.habbo.habbohotel.messenger;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.achievements.Achievement;
 import com.eu.habbo.habbohotel.achievements.AchievementManager;
+import com.eu.habbo.habbohotel.gameclients.GameClient;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboInfo;
 import com.eu.habbo.habbohotel.users.HabboManager;
+import com.eu.habbo.messages.outgoing.friends.FriendChatMessageComposer;
 import com.eu.habbo.messages.outgoing.friends.UpdateFriendComposer;
 import com.eu.habbo.plugin.events.users.friends.UserAcceptFriendRequestEvent;
 import gnu.trove.map.hash.THashMap;
@@ -18,6 +20,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +33,7 @@ public class Messenger {
     public static boolean SAVE_PRIVATE_CHATS = false;
     public static int MAXIMUM_FRIENDS = 200;
     public static int MAXIMUM_FRIENDS_HC = 500;
+    public static final int MAXIMUM_OFFLINE_MESSAGES = 200;
 
     private final ConcurrentHashMap<Integer, MessengerBuddy> friends;
     private final THashSet<FriendRequest> friendRequests;
@@ -44,6 +49,65 @@ public class Messenger {
             statement.setInt(2, userTwo);
             statement.setInt(3, userTwo);
             statement.setInt(4, userOne);
+            statement.execute();
+        } catch (SQLException e) {
+            LOGGER.error("Caught SQL exception", e);
+        }
+    }
+
+    public static void addOfflineMessage(int fromId, int toId, String message) {
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection()) {
+            try (PreparedStatement count = connection.prepareStatement("SELECT COUNT(*) FROM messenger_offline WHERE user_id = ?")) {
+                count.setInt(1, toId);
+                try (ResultSet set = count.executeQuery()) {
+                    if (set.next() && set.getInt(1) >= MAXIMUM_OFFLINE_MESSAGES) {
+                        try (PreparedStatement delete = connection.prepareStatement("DELETE FROM messenger_offline WHERE user_id = ? ORDER BY id ASC LIMIT 1")) {
+                            delete.setInt(1, toId);
+                            delete.execute();
+                        }
+                    }
+                }
+            }
+
+            try (PreparedStatement insert = connection.prepareStatement("INSERT INTO messenger_offline (user_id, user_from_id, message, sended_on) VALUES (?, ?, ?, ?)")) {
+                insert.setInt(1, toId);
+                insert.setInt(2, fromId);
+                insert.setString(3, message);
+                insert.setInt(4, Emulator.getIntUnixTimestamp());
+                insert.execute();
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Caught SQL exception", e);
+        }
+    }
+
+    public static void deliverOfflineMessages(GameClient client) {
+        if (client == null || client.getHabbo() == null) return;
+
+        int userId = client.getHabbo().getHabboInfo().getId();
+        List<Message> messages = new ArrayList<>();
+
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT user_from_id, message, sended_on FROM messenger_offline WHERE user_id = ? ORDER BY sended_on ASC, id ASC")) {
+            statement.setInt(1, userId);
+            try (ResultSet set = statement.executeQuery()) {
+                while (set.next()) {
+                    messages.add(new Message(set.getInt("user_from_id"), userId, set.getString("message"), set.getInt("sended_on")));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Caught SQL exception", e);
+        }
+
+        if (messages.isEmpty()) return;
+
+        for (Message message : messages) {
+            client.sendResponse(new FriendChatMessageComposer(message, message.getFromId(), message.getFromId(), "offline"));
+        }
+
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement("DELETE FROM messenger_offline WHERE user_id = ?")) {
+            statement.setInt(1, userId);
             statement.execute();
         } catch (SQLException e) {
             LOGGER.error("Caught SQL exception", e);
