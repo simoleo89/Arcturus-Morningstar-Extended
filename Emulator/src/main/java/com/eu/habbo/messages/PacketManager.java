@@ -332,6 +332,7 @@ public class PacketManager {
         this.registerHandler(Incoming.RenameFriendCategoryEvent, RenameFriendCategoryEvent.class);
         this.registerHandler(Incoming.RemoveFriendCategoryEvent, RemoveFriendCategoryEvent.class);
         this.registerHandler(Incoming.MoveFriendToCategoryEvent, MoveFriendToCategoryEvent.class);
+        this.registerHandler(Incoming.MarkConsoleReadEvent, MarkConsoleReadEvent.class);
     }
 
     private void registerUsers() throws Exception {

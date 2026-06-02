@@ -172,6 +172,7 @@ public class Outgoing {
     public final static int UserWardrobeComposer = 3315; // PRODUCTION-201611291003-338511768
     public final static int RoomPetExperienceComposer = 2156; // PRODUCTION-201611291003-338511768
     public final static int FriendChatMessageComposer = 1587; // PRODUCTION-201611291003-338511768
+    public final static int ConsoleReadReceiptComposer = 4086;
     public final static int PetInformationComposer = 2901; // PRODUCTION-201611291003-338511768
     public final static int RoomThicknessComposer = 3547; // PRODUCTION-201611291003-338511768
     public final static int AddPetComposer = 2101; // PRODUCTION-201611291003-338511768
