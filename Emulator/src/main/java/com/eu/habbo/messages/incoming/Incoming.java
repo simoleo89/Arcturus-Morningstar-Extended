@@ -242,6 +242,10 @@ public class Incoming {
     public static final int PingEvent = 295;
     public static final int FindNewFriendsEvent = 516;
     public static final int InviteFriendsEvent = 1276;
+    public static final int AddFriendCategoryEvent = 4081;
+    public static final int RenameFriendCategoryEvent = 4082;
+    public static final int RemoveFriendCategoryEvent = 4083;
+    public static final int MoveFriendToCategoryEvent = 4084;
     public static final int GuildRemoveFavoriteEvent = 1820;
     public static final int GuildDeleteEvent = 1134;
     public static final int SetHomeRoomEvent = 1740;
