@@ -247,6 +247,7 @@ public class Incoming {
     public static final int RemoveFriendCategoryEvent = 4083;
     public static final int MoveFriendToCategoryEvent = 4084;
     public static final int MarkConsoleReadEvent = 4085;
+    public static final int ConsoleTypingEvent = 4087;
     public static final int GuildRemoveFavoriteEvent = 1820;
     public static final int GuildDeleteEvent = 1134;
     public static final int SetHomeRoomEvent = 1740;
