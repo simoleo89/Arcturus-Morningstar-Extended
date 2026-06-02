@@ -134,7 +134,18 @@ public class RoomChatMessageBubbles {
     }
 
     public static RoomChatMessageBubbles getBubble(int id) {
-        return BUBBLES.getOrDefault(id, NORMAL);
+        RoomChatMessageBubbles bubble = BUBBLES.get(id);
+        if (bubble != null) return bubble;
+
+        // Custom chat bubbles (client-side only, e.g. ids 253+) are not registered
+        // above. Instead of falling back to NORMAL (which made them render as the
+        // default bubble), pass the id through so the server relays it as-is and
+        // the client renders its own .bubble-<id> style. Capped to avoid abuse.
+        if (id > 0 && id <= 1000) {
+            return new RoomChatMessageBubbles(id, "CUSTOM_" + id, "", true, false);
+        }
+
+        return NORMAL;
     }
 
     private static void registerBubble(RoomChatMessageBubbles bubble) {

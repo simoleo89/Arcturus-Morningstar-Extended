@@ -1,5 +1,6 @@
 package com.eu.habbo.messages.incoming.handshake;
 
+import com.eu.habbo.Emulator;
 import com.eu.habbo.messages.NoAuthMessage;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import org.slf4j.Logger;
@@ -23,6 +24,15 @@ public class MachineIDEvent extends MessageHandler {
         }
 
         this.client.setMachineId(storedMachineId);
+
+        // Persist the machine fingerprint onto the user so machine/super bans can
+        // target it (createOfflineUserBan copies users.machine_id). The Nitro client
+        // sends this UniqueID packet right after the SSO ticket, so the Habbo is
+        // normally already loaded by the time we get here.
+        if (!storedMachineId.isEmpty() && this.client.getHabbo() != null && this.client.getHabbo().getHabboInfo() != null) {
+            this.client.getHabbo().getHabboInfo().setMachineID(storedMachineId);
+            Emulator.getThreading().run(this.client.getHabbo());
+        }
 
         LOGGER.debug("Setting client MachineId to {}", storedMachineId);
     }

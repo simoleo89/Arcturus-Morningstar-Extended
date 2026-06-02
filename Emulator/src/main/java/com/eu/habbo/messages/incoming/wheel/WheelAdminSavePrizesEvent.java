@@ -6,6 +6,9 @@ import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.wheel.WheelAdminPrizesComposer;
 import com.eu.habbo.messages.outgoing.wheel.WheelDataComposer;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class WheelAdminSavePrizesEvent extends MessageHandler {
     public static final String PERMISSION_KEY = "acc_wheeladmin";
 
@@ -25,6 +28,12 @@ public class WheelAdminSavePrizesEvent extends MessageHandler {
         int count = this.packet.readInt();
         if (count <= 0 || count > WheelManager.MAX_PRIZES_PER_SAVE) return;
 
+        // The client sends the full authoritative list of prizes in display
+        // order. id <= 0 means "insert a new prize"; any existing prize whose
+        // id is absent from this list was removed in the editor and gets
+        // soft-disabled below.
+        Set<Integer> keptIds = new HashSet<>();
+
         for (int i = 0; i < count; i++) {
             int id = this.packet.readInt();
             String type = this.packet.readString();
@@ -33,9 +42,11 @@ public class WheelAdminSavePrizesEvent extends MessageHandler {
             int pointsType = this.packet.readInt();
             int weight = this.packet.readInt();
             String label = this.packet.readString();
-            wheel.savePrize(id, type, value, amount, pointsType, weight, label);
+            int savedId = wheel.savePrize(id, type, value, amount, pointsType, weight, label, i);
+            if (savedId > 0) keptIds.add(savedId);
         }
 
+        wheel.disablePrizesNotIn(keptIds);
         wheel.reload();
 
         this.client.sendResponse(new WheelAdminPrizesComposer(wheel.getPrizes()));

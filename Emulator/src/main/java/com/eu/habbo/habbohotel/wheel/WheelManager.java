@@ -12,9 +12,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -330,26 +332,88 @@ public class WheelManager {
         return true;
     }
 
-    public void savePrize(int id, String type, String value, int amount, int pointsType, int weight, String label) {
+    /**
+     * Persists a single prize. An {@code id <= 0} inserts a brand-new prize and
+     * returns its generated id; a positive id updates the existing row (and
+     * re-enables it, so a previously soft-deleted prize can be brought back).
+     * {@code sortOrder} reflects the prize's position in the editor so the
+     * wheel layout matches what the admin sees. Returns the effective row id,
+     * or {@code 0} if the write failed.
+     */
+    public int savePrize(int id, String type, String value, int amount, int pointsType, int weight, String label, int sortOrder) {
         String safeType = (type != null && VALID_PRIZE_TYPES.contains(type)) ? type : "nothing";
         String safeValue = truncate(value, MAX_STRING_LEN);
         String safeLabel = truncate(label, MAX_STRING_LEN);
         int safeAmount = clamp(amount, 0, MAX_PRIZE_AMOUNT);
         int safeWeight = clamp(weight, 0, MAX_WEIGHT);
+        int safeSort = clamp(sortOrder, 0, MAX_PRIZES_PER_SAVE);
+
+        if (id > 0) {
+            try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+                 PreparedStatement statement = connection.prepareStatement(
+                         "UPDATE wheel_prizes SET type = ?, value = ?, amount = ?, points_type = ?, weight = ?, label = ?, sort_order = ?, enabled = 1 WHERE id = ?")) {
+                statement.setString(1, safeType);
+                statement.setString(2, safeValue);
+                statement.setInt(3, safeAmount);
+                statement.setInt(4, pointsType);
+                statement.setInt(5, safeWeight);
+                statement.setString(6, safeLabel);
+                statement.setInt(7, safeSort);
+                statement.setInt(8, id);
+                statement.executeUpdate();
+                return id;
+            } catch (SQLException e) {
+                LOGGER.error("Failed to save wheel prize {}", id, e);
+                return 0;
+            }
+        }
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE wheel_prizes SET type = ?, value = ?, amount = ?, points_type = ?, weight = ?, label = ? WHERE id = ?")) {
+                     "INSERT INTO wheel_prizes (type, value, amount, points_type, weight, label, enabled, sort_order) VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
+                     Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, safeType);
             statement.setString(2, safeValue);
             statement.setInt(3, safeAmount);
             statement.setInt(4, pointsType);
             statement.setInt(5, safeWeight);
             statement.setString(6, safeLabel);
-            statement.setInt(7, id);
+            statement.setInt(7, safeSort);
+            statement.executeUpdate();
+
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                if (keys.next()) return keys.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Failed to insert wheel prize", e);
+        }
+        return 0;
+    }
+
+    /**
+     * Soft-deletes every enabled prize whose id is not in {@code keptIds} by
+     * setting {@code enabled = 0}. This is intentionally non-destructive: rows
+     * stay in the table (so historical references and re-enabling remain
+     * possible) but {@link #loadPrizes()} only ever loads {@code enabled = 1}.
+     * An empty set disables all prizes.
+     */
+    public void disablePrizesNotIn(Set<Integer> keptIds) {
+        if (keptIds == null) return;
+
+        StringBuilder sql = new StringBuilder("UPDATE wheel_prizes SET enabled = 0 WHERE enabled = 1");
+        if (!keptIds.isEmpty()) {
+            StringJoiner ids = new StringJoiner(",", " AND id NOT IN (", ")");
+            for (Integer keptId : keptIds) {
+                ids.add(Integer.toString(keptId));
+            }
+            sql.append(ids);
+        }
+
+        try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql.toString())) {
             statement.executeUpdate();
         } catch (SQLException e) {
-            LOGGER.error("Failed to save wheel prize {}", id, e);
+            LOGGER.error("Failed to disable removed wheel prizes", e);
         }
     }
 

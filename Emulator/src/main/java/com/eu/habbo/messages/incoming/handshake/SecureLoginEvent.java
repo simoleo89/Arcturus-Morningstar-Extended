@@ -161,6 +161,12 @@ public class SecureLoginEvent extends MessageHandler {
                             throw new NullPointerException(habbo.getHabboInfo().getUsername() + " has a NON EXISTING RANK!");
                         }
 
+                        // If the machine fingerprint already arrived (UniqueID before login),
+                        // persist it so machine/super bans can target this user.
+                        if (this.client.getMachineId() != null && !this.client.getMachineId().isEmpty()) {
+                            this.client.getHabbo().getHabboInfo().setMachineID(this.client.getMachineId());
+                        }
+
                         Emulator.getThreading().run(habbo);
                         Emulator.getGameEnvironment().getHabboManager().addHabbo(habbo);
                     } catch (Exception e) {
