@@ -1,7 +1,9 @@
 package com.eu.habbo.messages.incoming.friends;
 
 import com.eu.habbo.Emulator;
+import com.eu.habbo.habbohotel.messenger.Messenger;
 import com.eu.habbo.habbohotel.messenger.MessengerBuddy;
+import com.eu.habbo.habbohotel.modtool.WordFilter;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.plugin.events.users.friends.UserFriendChatEvent;
 
@@ -31,6 +33,14 @@ public class FriendPrivateMessageEvent extends MessageHandler {
         if (Emulator.getPluginManager().fireEvent(event).isCancelled())
             return;
 
-        buddy.onMessageReceived(this.client.getHabbo(), message);
+        if (Emulator.getGameServer().getGameClientManager().getHabbo(userId) != null) {
+            buddy.onMessageReceived(this.client.getHabbo(), message);
+        } else {
+            String stored = message;
+            if (WordFilter.ENABLED_FRIENDCHAT) {
+                stored = Emulator.getGameEnvironment().getWordFilter().filter(message, this.client.getHabbo());
+            }
+            Messenger.addOfflineMessage(this.client.getHabbo().getHabboInfo().getId(), userId, stored);
+        }
     }
 }

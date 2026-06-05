@@ -23,6 +23,13 @@ public class Message implements Runnable, DatabaseLoggable {
         this.timestamp = Emulator.getIntUnixTimestamp();
     }
 
+    public Message(int fromId, int toId, String message, int timestamp) {
+        this.fromId = fromId;
+        this.toId = toId;
+        this.message = message;
+        this.timestamp = timestamp;
+    }
+
     @Override
     public void run() {
         if (Messenger.SAVE_PRIVATE_CHATS) {
