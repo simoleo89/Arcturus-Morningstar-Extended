@@ -167,6 +167,20 @@ public class Item implements ISerialize {
         return this.fullName;
     }
 
+    /**
+     * Display name for user-facing/log output, sourced from furnidata (by classname).
+     * Falls back to the DB public_name when furnidata has no entry or names are disabled.
+     * Never returns null.
+     */
+    public String getDisplayName() {
+        FurnitureTextProvider provider = (Emulator.getGameEnvironment() != null)
+                ? Emulator.getGameEnvironment().getFurnitureTextProvider()
+                : null;
+        String name = (provider != null) ? provider.getName(this.name) : null;
+        if (name != null && !name.isBlank()) return name;
+        return (this.fullName != null) ? this.fullName : "";
+    }
+
     public FurnitureType getType() {
         return this.type;
     }
