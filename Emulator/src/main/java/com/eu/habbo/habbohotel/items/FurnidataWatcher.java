@@ -116,26 +116,31 @@ public class FurnidataWatcher {
     }
 
     private void onChange() {
-        Path source = this.provider.getSource();
-        if (source == null) return;
+        FurnidataLock.LOCK.lock();
+        try {
+            Path source = this.provider.getSource();
+            if (source == null) return;
 
-        List<FurnidataEntry> delta = this.provider.reindex(new FurnidataReader(source, this.maxBytes).read());
-        if (delta.isEmpty()) return;
+            List<FurnidataEntry> delta = this.provider.reindex(new FurnidataReader(source, this.maxBytes).read());
+            if (delta.isEmpty()) return;
 
-        long now = System.currentTimeMillis();
-        if (now - this.lastBroadcast < this.minIntervalMs) {
-            LOGGER.info("FurnidataWatcher: {} changes indexed but broadcast skipped (min interval) — clients update on next change or reconnect", delta.size());
-            return;
+            long now = System.currentTimeMillis();
+            if (now - this.lastBroadcast < this.minIntervalMs) {
+                LOGGER.info("FurnidataWatcher: {} changes indexed but broadcast skipped (min interval) — clients update on next change or reconnect", delta.size());
+                return;
+            }
+            this.lastBroadcast = now;
+
+            FurnitureDataReloadComposer composer = (delta.size() > this.deltaCap)
+                ? new FurnitureDataReloadComposer(FurnitureDataReloadComposer.MODE_RELOAD_HINT, List.of())
+                : new FurnitureDataReloadComposer(FurnitureDataReloadComposer.MODE_DELTA, delta);
+
+            broadcast(composer);
+            LOGGER.info("FurnidataWatcher: broadcast {} ({} entries)",
+                delta.size() > this.deltaCap ? "reload-hint" : "delta", delta.size());
+        } finally {
+            FurnidataLock.LOCK.unlock();
         }
-        this.lastBroadcast = now;
-
-        FurnitureDataReloadComposer composer = (delta.size() > this.deltaCap)
-            ? new FurnitureDataReloadComposer(FurnitureDataReloadComposer.MODE_RELOAD_HINT, List.of())
-            : new FurnitureDataReloadComposer(FurnitureDataReloadComposer.MODE_DELTA, delta);
-
-        broadcast(composer);
-        LOGGER.info("FurnidataWatcher: broadcast {} ({} entries)",
-            delta.size() > this.deltaCap ? "reload-hint" : "delta", delta.size());
     }
 
     private void broadcast(FurnitureDataReloadComposer composer) {
