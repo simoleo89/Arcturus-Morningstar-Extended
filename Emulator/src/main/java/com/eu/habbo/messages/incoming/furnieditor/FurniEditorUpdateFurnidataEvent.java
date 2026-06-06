@@ -139,6 +139,24 @@ public class FurniEditorUpdateFurnidataEvent extends MessageHandler {
             FurnidataLock.LOCK.unlock();
         }
 
+        // 5b. Auto-mirror the new display name into items_base.public_name (DB) so the
+        //     server-side fallback (Item.getFullName) and the editor's read-only
+        //     "Public Name" field stay in sync with the furnidata edit. Only when a
+        //     name was actually supplied (description-only edits must not blank it).
+        //     Kept outside FurnidataLock (independent DB write, like the audit log).
+        if (name != null) {
+            try (Connection c = Emulator.getDatabase().getDataSource().getConnection();
+                 PreparedStatement st = c.prepareStatement("UPDATE items_base SET public_name = ? WHERE id = ?")) {
+                st.setString(1, FurnitureTextProvider.sanitize(safeName));
+                st.setInt(2, itemId);
+                st.executeUpdate();
+                // Refresh the in-memory Item cache (Item.fullName) in place — no restart needed.
+                Emulator.getGameEnvironment().getItemManager().loadItems();
+            } catch (Exception e) {
+                LOGGER.warn("Failed to mirror furnidata name into items_base.public_name for item {}", itemId, e);
+            }
+        }
+
         // 6. Audit log (outside lock — DB write, not latency-sensitive)
         FurnidataAuditLog.record(
             adminId,
