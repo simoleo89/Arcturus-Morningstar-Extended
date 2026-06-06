@@ -82,7 +82,7 @@ public class FurniEditorHelper {
      * Prevents SQL injection via arbitrary column names.
      */
     public static final java.util.Set<String> ALLOWED_UPDATE_FIELDS = java.util.Set.of(
-        "item_name", "public_name", "sprite_id", "type", "width", "length",
+        "public_name", "sprite_id", "type", "width", "length",
         "stack_height", "allow_stack", "allow_walk", "allow_sit", "allow_lay",
         "allow_gift", "allow_trade", "allow_recycle", "allow_marketplace_sell",
         "allow_inventory_stack", "interaction_type", "interaction_modes_count",
