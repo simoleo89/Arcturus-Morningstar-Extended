@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `furnidata_edit_log` (
   PRIMARY KEY (`id`),
   INDEX `idx_classname` (`classname`),
   INDEX `idx_user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO `emulator_settings` (`key`,`value`) VALUES
 ('items.furnidata.edit.backup.keep','10'),
