@@ -3,6 +3,8 @@ package com.eu.habbo.habbohotel.items;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -14,6 +16,13 @@ import java.util.regex.Pattern;
  * the classname). Edit-only: refuses classnames absent from the furnidata.
  */
 public class FurnidataWriter {
+
+    /** Default tier names in override order (later = higher priority, wins on conflict). */
+    private static final List<String> DEFAULT_TIERS = Arrays.asList("core", "custom", "seasonal");
+
+    /** Manifest filenames tried in order (json5 first, plain json second). */
+    private static final List<String> MANIFEST_NAMES = Arrays.asList("manifest.json5", "manifest.json");
+
     private final Path source;        // file (single) or base dir (split-tier)
     private final boolean directory;  // true => split-tier
     private final long maxBytes;
@@ -135,11 +144,77 @@ public class FurnidataWriter {
         return b.toString();
     }
 
+    /**
+     * Enumerate every data file reachable from the split-tier base directory, in
+     * override order (core → custom → seasonal, or the order declared in the top-level
+     * {@code manifest.json(5)}).  Within each tier the per-tier manifest's {@code files}
+     * array determines the file order.
+     *
+     * <p>All resolved paths are checked against the normalised base directory via
+     * {@link #safeResolve}: any entry that would escape the base is silently skipped.
+     *
+     * @return ordered list of existing, in-bounds data files (earliest tier first).
+     */
     private List<Path> splitTierFilesInOrder() throws IOException {
-        // Mirrors FurnidataReader split-tier resolution at a coarse level: the manifest order.
-        // For the plan we reuse the reader's defaults; the concrete enumeration is implemented
-        // in Task 4 alongside the split-tier test. Single-file path does not call this.
-        throw new UnsupportedOperationException("implemented in Task 4");
+        Path base = source.toAbsolutePath().normalize();
+        List<String> tiers = manifestList(base, "tiers", DEFAULT_TIERS);
+        List<Path> result = new ArrayList<>();
+
+        for (String tier : tiers) {
+            Path tierDir = safeResolve(base, tier);
+            if (tierDir == null || !Files.isDirectory(tierDir)) continue;
+
+            for (String fileName : manifestList(tierDir, "files", List.of())) {
+                Path file = safeResolve(base, tierDir.resolve(fileName).toString());
+                if (file == null || !Files.isRegularFile(file)) continue;
+                result.add(file);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Resolve {@code entry} relative to {@code base} and verify the result stays
+     * inside {@code base} (path-traversal guard).
+     *
+     * @param base  the normalised absolute base directory.
+     * @param entry a path string (may be relative or absolute, may contain {@code ..}).
+     * @return the normalised absolute path if it is inside {@code base}; {@code null} otherwise.
+     */
+    private static Path safeResolve(Path base, String entry) {
+        try {
+            Path resolved = base.resolve(entry).toAbsolutePath().normalize();
+            return resolved.startsWith(base) ? resolved : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Read the {@code key} string-array from the first manifest file found in {@code dir}
+     * ({@code manifest.json5} then {@code manifest.json}).  Falls back to {@code fallback}
+     * if no manifest exists or the key is absent/empty.
+     */
+    private List<String> manifestList(Path dir, String key, List<String> fallback) {
+        for (String name : MANIFEST_NAMES) {
+            Path m = dir.resolve(name);
+            if (!Files.exists(m)) continue;
+            try {
+                String stripped = FurnidataReader.stripJson5(
+                    Files.readString(m, StandardCharsets.UTF_8));
+                com.google.gson.JsonObject obj =
+                    com.google.gson.JsonParser.parseString(stripped).getAsJsonObject();
+                if (obj.has(key) && obj.get(key).isJsonArray()) {
+                    List<String> list = new ArrayList<>();
+                    for (com.google.gson.JsonElement el : obj.getAsJsonArray(key))
+                        list.add(el.getAsString());
+                    if (!list.isEmpty()) return list;
+                }
+            } catch (Exception ignored) {
+                // bad manifest → fall through to next candidate / fallback
+            }
+        }
+        return fallback;
     }
 
     private void backup(Path target) throws IOException {
