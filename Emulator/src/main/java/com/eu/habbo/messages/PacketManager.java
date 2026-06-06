@@ -285,6 +285,7 @@ public class PacketManager {
         this.registerHandler(Incoming.FurniEditorInteractionsEvent, FurniEditorInteractionsEvent.class);
         this.registerHandler(Incoming.FurniEditorUpdateEvent, FurniEditorUpdateEvent.class);
         this.registerHandler(Incoming.FurniEditorDeleteEvent, FurniEditorDeleteEvent.class);
+        this.registerHandler(Incoming.FurniEditorUpdateFurnidataEvent, FurniEditorUpdateFurnidataEvent.class);
 
         // Catalog Admin
         this.registerHandler(Incoming.CatalogAdminSavePageEvent, CatalogAdminSavePageEvent.class);
