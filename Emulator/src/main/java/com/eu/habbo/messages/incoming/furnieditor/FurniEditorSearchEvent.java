@@ -64,6 +64,34 @@ public class FurniEditorSearchEvent extends MessageHandler {
             params.add(type);
         }
 
+        // Extend search with furnidata display-name matches (server-authoritative names in JSON).
+        // Appends: OR (LOWER(item_name) IN (?,?,...) [AND type=?])
+        // Both branches carry their own type filter, so type scoping is preserved.
+        // Params: [existing LIKE params] [existing type?] [furniCns...] [type again?]
+        if (!query.isEmpty()) {
+            java.util.List<String> furniCns = Emulator.getGameEnvironment()
+                    .getFurnitureTextProvider()
+                    .findClassnamesByName(query);
+            if (!furniCns.isEmpty()) {
+                // Build: OR (LOWER(item_name) IN (?,?,...) [AND type = ?])
+                StringBuilder orBranch = new StringBuilder(" OR (LOWER(item_name) IN (");
+                for (int i = 0; i < furniCns.size(); i++) {
+                    if (i > 0) orBranch.append(", ");
+                    orBranch.append('?');
+                }
+                orBranch.append(')');
+                if (type != null && !type.isEmpty()) {
+                    orBranch.append(" AND type = ?");
+                }
+                orBranch.append(')');
+                whereClause.append(orBranch);
+                params.addAll(furniCns);
+                if (type != null && !type.isEmpty()) {
+                    params.add(type);
+                }
+            }
+        }
+
         // Count total
         int total = 0;
         String countSql = "SELECT COUNT(*) FROM items_base " + whereClause;

@@ -167,5 +167,26 @@ public class FurnitureTextProvider {
         return sb.toString();
     }
 
+    /**
+     * Returns all lowercased base classnames whose furnidata display name contains
+     * {@code query} (case-insensitive, substring). Results are capped at 200 to
+     * bound SQL IN-clause size. Returns an empty list when query is null/blank.
+     */
+    public java.util.List<String> findClassnamesByName(String query) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (query == null) return out;
+        String q = query.trim().toLowerCase(Locale.ROOT);
+        if (q.isEmpty()) return out;
+        Map<String, FurniText> idx = this.index; // local ref (volatile)
+        for (Map.Entry<String, FurniText> e : idx.entrySet()) {
+            FurniText t = e.getValue();
+            if (t != null && t.name() != null && t.name().toLowerCase(Locale.ROOT).contains(q)) {
+                out.add(e.getKey()); // key is the lowercased base classname
+                if (out.size() >= 200) break; // bound IN-clause size
+            }
+        }
+        return out;
+    }
+
     private record FurniText(int id, FurnitureType type, String name, String description) {}
 }
