@@ -439,6 +439,7 @@ public class Incoming {
     public static final int FurniEditorDeleteEvent = 10045;
     public static final int FurniEditorUpdateFurnidataEvent = 10046;
     public static final int FurniEditorRevertFurnidataEvent = 10048;
+    public static final int FurniEditorImportTextEvent = 10049;
 
     // Catalog Admin
     public static final int CatalogAdminSavePageEvent = 10050;
