@@ -95,7 +95,7 @@ public class FurniEditorRevertFurnidataEvent extends MessageHandler {
         FurnidataAuditLog.record(
             adminId,
             classnameForLog,
-            "REVERT_FURNIDATA",
+            "revert",
             "", // previous state unknown at this point
             "",
             "",

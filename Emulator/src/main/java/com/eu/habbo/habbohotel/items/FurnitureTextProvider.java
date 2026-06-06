@@ -71,7 +71,7 @@ public class FurnitureTextProvider {
 
     /** Returns the byte cap used when reading furnidata files. */
     public long getMaxBytes() {
-        return DEFAULT_MAX_BYTES;
+        return Long.parseLong(com.eu.habbo.Emulator.getConfig().getValue("items.furnidata.max.bytes", String.valueOf(DEFAULT_MAX_BYTES)));
     }
 
     /**
@@ -155,7 +155,7 @@ public class FurnitureTextProvider {
      * furni names (controlled, predominantly ASCII source). Lone/astral surrogates are not
      * specially handled.
      */
-    static String sanitize(String value) {
+    public static String sanitize(String value) {
         if (value == null) return "";
         StringBuilder sb = new StringBuilder(Math.min(value.length(), MAX_LEN));
         for (int i = 0; i < value.length() && sb.length() < MAX_LEN; i++) {

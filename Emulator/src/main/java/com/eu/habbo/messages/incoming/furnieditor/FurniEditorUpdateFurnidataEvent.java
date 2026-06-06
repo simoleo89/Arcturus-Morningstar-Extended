@@ -143,11 +143,11 @@ public class FurniEditorUpdateFurnidataEvent extends MessageHandler {
         FurnidataAuditLog.record(
             adminId,
             classname,
-            "UPDATE_FURNIDATA",
+            "edit",
             oldName != null ? oldName : "",
-            safeName,
+            FurnitureTextProvider.sanitize(safeName),
             oldDesc,
-            safeDesc
+            FurnitureTextProvider.sanitize(safeDesc)
         );
 
         // 7. Respond success
