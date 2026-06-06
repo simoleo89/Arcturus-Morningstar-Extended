@@ -64,6 +64,31 @@ public class FurnitureTextProvider {
         return this.source;
     }
 
+    /** Returns {@code true} when the resolved source is a directory (split-tier layout). */
+    public boolean isSourceDirectory() {
+        return this.source != null && Files.isDirectory(this.source);
+    }
+
+    /** Returns the byte cap used when reading furnidata files. */
+    public long getMaxBytes() {
+        return DEFAULT_MAX_BYTES;
+    }
+
+    /**
+     * Re-reads the furnidata from the current source and reindexes atomically.
+     * Returns the delta list (new/changed entries) from {@link #reindex(List)}.
+     * Never throws — returns an empty list when the source is unavailable.
+     */
+    public java.util.List<FurnidataEntry> reindexFromSource() {
+        try {
+            if (this.source == null) return java.util.List.of();
+            return reindex(new FurnidataReader(this.source, DEFAULT_MAX_BYTES).read());
+        } catch (Exception e) {
+            LOGGER.warn("FurnitureTextProvider.reindexFromSource failed", e);
+            return java.util.List.of();
+        }
+    }
+
     private static Path resolveSource() {
         String override = Emulator.getConfig().getValue("items.furnidata.path", "");
         if (!override.isEmpty()) {
