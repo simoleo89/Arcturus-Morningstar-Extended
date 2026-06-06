@@ -27,6 +27,8 @@ public class FurniEditorSearchEvent extends MessageHandler {
         String query = this.packet.readString();
         String type = this.packet.readString();
         int page = this.packet.readInt();
+        String sortField = this.packet.readString();
+        String sortDir = this.packet.readString();
 
         // Input validation
         if (query.length() > 100) {
@@ -92,10 +94,25 @@ public class FurniEditorSearchEvent extends MessageHandler {
             }
         }
 
+        // Resolve a SAFE ORDER BY from the whitelisted sort field/direction
+        // (column names are never taken from raw user input — injection-proof).
+        String orderColumn;
+        switch (sortField == null ? "" : sortField) {
+            case "spriteId":        orderColumn = "sprite_id"; break;
+            case "itemName":        orderColumn = "item_name"; break;
+            case "publicName":      orderColumn = "public_name"; break;
+            case "type":            orderColumn = "type"; break;
+            case "interactionType": orderColumn = "interaction_type"; break;
+            case "id":
+            default:                orderColumn = "id"; break;
+        }
+        String orderDir = "desc".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
+
         // Count total
         int total = 0;
         String countSql = "SELECT COUNT(*) FROM items_base " + whereClause;
-        String dataSql = "SELECT * FROM items_base " + whereClause + " ORDER BY id ASC LIMIT ? OFFSET ?";
+        String dataSql = "SELECT * FROM items_base " + whereClause
+                + " ORDER BY " + orderColumn + " " + orderDir + ", id ASC LIMIT ? OFFSET ?";
 
         List<Map<String, Object>> items = new ArrayList<>();
 
