@@ -40,7 +40,7 @@ public class FriendsComposer extends MessageComposer {
                 this.response.appendInt(row.getGender().equals(HabboGender.M) ? 0 : 1);
                 this.response.appendBoolean(row.getOnline() == 1);
                 this.response.appendBoolean(row.inRoom()); //IN ROOM
-                this.response.appendString(row.getOnline() == 1 ? row.getLook() : "");
+                this.response.appendString(row.getLook()); // send look for offline friends too (loaded from DB)
                 this.response.appendInt(row.getCategoryId()); //Friends category
                 this.response.appendString(row.getMotto());
                 this.response.appendString(""); //Last seen as DATETIMESTRING
