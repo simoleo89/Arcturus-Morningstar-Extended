@@ -300,32 +300,37 @@ public class RoomCycleManager {
             return;
         }
 
-        TIntObjectIterator<Bot> botIterator = currentBots.iterator();
-        for (int i = currentBots.size(); i-- > 0; ) {
-            try {
-                final Bot bot;
+        // currentBots is a TCollections.synchronizedMap; the iterator is not
+        // safe against concurrent put/remove from IO threads (bot place/pickup),
+        // so we must hold the map's monitor for the whole traversal.
+        synchronized (currentBots) {
+            TIntObjectIterator<Bot> botIterator = currentBots.iterator();
+            for (int i = currentBots.size(); i-- > 0; ) {
                 try {
-                    botIterator.advance();
-                    bot = botIterator.value();
-                } catch (Exception e) {
+                    final Bot bot;
+                    try {
+                        botIterator.advance();
+                        bot = botIterator.value();
+                    } catch (Exception e) {
+                        break;
+                    }
+
+                    if (!this.room.isAllowBotsWalk() && bot.getRoomUnit().isWalking()) {
+                        bot.getRoomUnit().stopWalking();
+                        updatedUnit.add(bot.getRoomUnit());
+                        continue;
+                    }
+
+                    bot.cycle(this.room.isAllowBotsWalk());
+
+                    if (this.cycleRoomUnit(bot.getRoomUnit(), RoomUnitType.BOT)) {
+                        updatedUnit.add(bot.getRoomUnit());
+                    }
+
+                } catch (NoSuchElementException e) {
+                    LOGGER.error("Caught exception", e);
                     break;
                 }
-
-                if (!this.room.isAllowBotsWalk() && bot.getRoomUnit().isWalking()) {
-                    bot.getRoomUnit().stopWalking();
-                    updatedUnit.add(bot.getRoomUnit());
-                    continue;
-                }
-
-                bot.cycle(this.room.isAllowBotsWalk());
-
-                if (this.cycleRoomUnit(bot.getRoomUnit(), RoomUnitType.BOT)) {
-                    updatedUnit.add(bot.getRoomUnit());
-                }
-
-            } catch (NoSuchElementException e) {
-                LOGGER.error("Caught exception", e);
-                break;
             }
         }
     }
@@ -339,31 +344,35 @@ public class RoomCycleManager {
             return;
         }
 
-        TIntObjectIterator<Pet> petIterator = currentPets.iterator();
-        for (int i = currentPets.size(); i-- > 0; ) {
-            try {
-                petIterator.advance();
-            } catch (NoSuchElementException e) {
-                LOGGER.error("Caught exception", e);
-                break;
-            }
+        // currentPets is a TCollections.synchronizedMap; hold its monitor for the
+        // whole traversal to stay safe against concurrent pet place/pickup.
+        synchronized (currentPets) {
+            TIntObjectIterator<Pet> petIterator = currentPets.iterator();
+            for (int i = currentPets.size(); i-- > 0; ) {
+                try {
+                    petIterator.advance();
+                } catch (NoSuchElementException e) {
+                    LOGGER.error("Caught exception", e);
+                    break;
+                }
 
-            Pet pet = petIterator.value();
-            if (this.cycleRoomUnit(pet.getRoomUnit(), RoomUnitType.PET)) {
-                updatedUnit.add(pet.getRoomUnit());
-            }
+                Pet pet = petIterator.value();
+                if (this.cycleRoomUnit(pet.getRoomUnit(), RoomUnitType.PET)) {
+                    updatedUnit.add(pet.getRoomUnit());
+                }
 
-            pet.cycle();
+                pet.cycle();
 
-            if (pet.packetUpdate) {
-                updatedUnit.add(pet.getRoomUnit());
-                pet.packetUpdate = false;
-            }
+                if (pet.packetUpdate) {
+                    updatedUnit.add(pet.getRoomUnit());
+                    pet.packetUpdate = false;
+                }
 
-            if (pet.getRoomUnit().isWalking() && pet.getRoomUnit().getPath().size() == 1
-                    && pet.getRoomUnit().hasStatus(RoomUnitStatus.GESTURE)) {
-                pet.getRoomUnit().removeStatus(RoomUnitStatus.GESTURE);
-                updatedUnit.add(pet.getRoomUnit());
+                if (pet.getRoomUnit().isWalking() && pet.getRoomUnit().getPath().size() == 1
+                        && pet.getRoomUnit().hasStatus(RoomUnitStatus.GESTURE)) {
+                    pet.getRoomUnit().removeStatus(RoomUnitStatus.GESTURE);
+                    updatedUnit.add(pet.getRoomUnit());
+                }
             }
         }
     }

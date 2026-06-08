@@ -423,7 +423,7 @@ public class GuildManager {
             statement.setInt(1, guild.getId());
             statement.setString(2, "%" + query + "%");
             statement.setInt(3, page * 14);
-            statement.setInt(4, (page * 14) + 14);
+            statement.setInt(4, 14);
 
             try (ResultSet set = statement.executeQuery()) {
                 while (set.next()) {

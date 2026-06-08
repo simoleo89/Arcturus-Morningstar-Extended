@@ -264,6 +264,10 @@ public class RoomTrade {
     protected void clearAccepted() {
         for (RoomTradeUser user : this.users) {
             user.setAccepted(false);
+            // Any change to the offered items invalidates a prior confirmation;
+            // without this a stale confirmed=true lets a user strip their side
+            // and still complete the trade once the partner re-confirms.
+            user.setConfirmed(false);
         }
     }
 
