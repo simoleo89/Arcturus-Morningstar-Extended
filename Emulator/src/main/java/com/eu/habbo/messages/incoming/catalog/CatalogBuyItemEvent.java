@@ -53,6 +53,15 @@ public class CatalogBuyItemEvent extends MessageHandler {
             String extraData = this.packet.readString();
             int count = this.packet.readInt();
 
+            // Clamp the client-supplied quantity. Without this the club-offer
+            // branch accumulates cost in plain ints and a huge count overflows
+            // to a negative total, bypassing the affordability checks and
+            // CREDITING the buyer (free currency/subscription exploit).
+            if (count < 1 || count > 100) {
+                this.client.sendResponse(new AlertPurchaseFailedComposer(AlertPurchaseFailedComposer.SERVER_ERROR).compose());
+                return;
+            }
+
             try {
                 if (this.client.getHabbo().getInventory().getItemsComponent().itemCount() > HabboInventory.MAXIMUM_ITEMS) {
                     this.client.sendResponse(new AlertPurchaseFailedComposer(AlertPurchaseFailedComposer.SERVER_ERROR).compose());
