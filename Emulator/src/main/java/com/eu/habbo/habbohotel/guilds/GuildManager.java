@@ -421,9 +421,9 @@ public class GuildManager {
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT users.username, users.look, guilds_members.* FROM guilds_members INNER JOIN users ON guilds_members.user_id = users.id WHERE guilds_members.guild_id = ?  " + (rankQuery(levelId)) + " AND users.username LIKE ? ORDER BY level_id, member_since ASC LIMIT ?, ?")) {
             statement.setInt(1, guild.getId());
-            statement.setString(2, "%" + query + "%");
+            statement.setString(2, "%" + com.eu.habbo.util.SqlLikeEscaper.escape(query) + "%");
             statement.setInt(3, page * 14);
-            statement.setInt(4, (page * 14) + 14);
+            statement.setInt(4, 14);
 
             try (ResultSet set = statement.executeQuery()) {
                 while (set.next()) {

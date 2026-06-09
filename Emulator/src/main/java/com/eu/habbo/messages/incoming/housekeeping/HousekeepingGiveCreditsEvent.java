@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 public class HousekeepingGiveCreditsEvent extends MessageHandler {
     private static final String ACTION_KEY = "user.give_credits";
+    private static final int MAX_GRANT = 1_000_000_000;
 
     @Override
     public int getRatelimit() {
@@ -27,7 +28,7 @@ public class HousekeepingGiveCreditsEvent extends MessageHandler {
         int userId = this.packet.readInt();
         int amount = this.packet.readInt();
 
-        if (userId <= 0 || amount == 0) {
+        if (userId <= 0 || amount == 0 || amount < -MAX_GRANT || amount > MAX_GRANT) {
             this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, false, 0, "housekeeping.error.invalid_input"));
             return;
         }
@@ -38,6 +39,7 @@ public class HousekeepingGiveCreditsEvent extends MessageHandler {
             // giveCredits already pushes UserCreditsComposer and persists via the
             // standard HabboInfo write path; nothing extra needed for the online branch.
             online.giveCredits(amount);
+            this.audit(userId, amount);
             this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, true, userId, ""));
             return;
         }
@@ -57,6 +59,15 @@ public class HousekeepingGiveCreditsEvent extends MessageHandler {
             return;
         }
 
+        this.audit(userId, amount);
         this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, true, userId, ""));
+    }
+
+    private void audit(int userId, int amount) {
+        com.eu.habbo.habbohotel.modtool.HousekeepingAuditLog.log(
+                this.client.getHabbo().getHabboInfo().getId(),
+                this.client.getHabbo().getHabboInfo().getUsername(),
+                ACTION_KEY, userId, "amount=" + amount,
+                this.client.getHabbo().getHabboInfo().getIpLogin());
     }
 }

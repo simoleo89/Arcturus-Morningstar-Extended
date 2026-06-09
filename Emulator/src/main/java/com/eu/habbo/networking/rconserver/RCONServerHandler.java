@@ -16,6 +16,10 @@ public class RCONServerHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RCONServerHandler.class);
 
+    // Gson is thread-safe and immutable once built — share one instance instead
+    // of allocating a parser per RCON request.
+    private static final Gson GSON = new Gson();
+
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         String adress = ctx.channel().remoteAddress().toString().split(":")[0].replace("/", "");
@@ -37,8 +41,8 @@ public class RCONServerHandler extends ChannelInboundHandlerAdapter {
 
         byte[] d = new byte[data.readableBytes()];
         data.getBytes(0, d);
-        String message = new String(d);
-        Gson gson = new Gson();
+        String message = new String(d, java.nio.charset.StandardCharsets.UTF_8);
+        Gson gson = GSON;
         String response = "ERROR";
         String key = "";
         try {
@@ -52,7 +56,7 @@ public class RCONServerHandler extends ChannelInboundHandlerAdapter {
             e.printStackTrace();
         }
 
-        ChannelFuture f = ctx.channel().write(Unpooled.copiedBuffer(response.getBytes()), ctx.channel().voidPromise());
+        ChannelFuture f = ctx.channel().write(Unpooled.copiedBuffer(response.getBytes(java.nio.charset.StandardCharsets.UTF_8)), ctx.channel().voidPromise());
         ctx.channel().flush();
         ctx.flush();
         f.channel().close();

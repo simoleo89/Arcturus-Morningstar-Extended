@@ -18,6 +18,7 @@ import java.sql.SQLException;
  */
 public class HousekeepingGiveCurrencyEvent extends MessageHandler {
     private static final int CURRENCY_DUCKETS = 0;
+    private static final int MAX_GRANT = 1_000_000_000;
 
     @Override
     public int getRatelimit() {
@@ -36,7 +37,7 @@ public class HousekeepingGiveCurrencyEvent extends MessageHandler {
 
         String actionKey = "user.give_currency_" + currencyType;
 
-        if (userId <= 0 || amount == 0) {
+        if (userId <= 0 || amount == 0 || amount < -MAX_GRANT || amount > MAX_GRANT) {
             this.client.sendResponse(new HousekeepingActionResultComposer(actionKey, false, 0, "housekeeping.error.invalid_input"));
             return;
         }
@@ -52,6 +53,7 @@ public class HousekeepingGiveCurrencyEvent extends MessageHandler {
                 online.givePoints(currencyType, amount);
             }
 
+            this.audit(actionKey, userId, currencyType, amount);
             this.client.sendResponse(new HousekeepingActionResultComposer(actionKey, true, userId, ""));
             return;
         }
@@ -69,6 +71,15 @@ public class HousekeepingGiveCurrencyEvent extends MessageHandler {
             return;
         }
 
+        this.audit(actionKey, userId, currencyType, amount);
         this.client.sendResponse(new HousekeepingActionResultComposer(actionKey, true, userId, ""));
+    }
+
+    private void audit(String actionKey, int userId, int currencyType, int amount) {
+        com.eu.habbo.habbohotel.modtool.HousekeepingAuditLog.log(
+                this.client.getHabbo().getHabboInfo().getId(),
+                this.client.getHabbo().getHabboInfo().getUsername(),
+                actionKey, userId, "type=" + currencyType + " amount=" + amount,
+                this.client.getHabbo().getHabboInfo().getIpLogin());
     }
 }

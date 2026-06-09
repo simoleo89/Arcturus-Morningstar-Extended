@@ -158,10 +158,12 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
   private String tags;
   private boolean publicRoom;
   private boolean staffPromotedRoom;
-  private boolean allowPets;
-  private boolean allowPetsEat;
+  // Read every room cycle (processBots/processPets) but written from settings/
+  // admin packet handlers on another thread — volatile for cross-thread visibility.
+  private volatile boolean allowPets;
+  private volatile boolean allowPetsEat;
   private boolean allowWalkthrough;
-  private boolean allowBotsWalk;
+  private volatile boolean allowBotsWalk;
   private boolean allowEffects;
   private boolean hideWall;
   private int chatMode;
@@ -1025,6 +1027,10 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
             com.eu.habbo.habbohotel.wired.core.WiredManager.getEngine().clearRoomBan(this.id);
             com.eu.habbo.habbohotel.wired.core.WiredManager.getEngine().clearRoomDiagnostics(this.id);
           }
+
+          // Drop this room's shared wired-variable assignment caches (otherwise
+          // they accrue per (room, item, user) for the JVM lifetime).
+          com.eu.habbo.habbohotel.items.interactions.wired.extra.WiredVariableReferenceSupport.invalidateRoom(this.id);
 
           this.itemManager.clear();
 
