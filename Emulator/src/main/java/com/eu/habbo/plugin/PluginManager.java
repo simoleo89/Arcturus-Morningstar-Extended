@@ -67,6 +67,10 @@ public class PluginManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginManager.class);
 
+    // Gson is thread-safe and immutable once built — reuse one instance instead
+    // of building a parser per plugin-config load.
+    private static final Gson PLUGIN_GSON = new GsonBuilder().create();
+
     private final THashSet<HabboPlugin> plugins = new THashSet<>();
     private final THashSet<Method> methods = new THashSet<>();
 
@@ -275,8 +279,7 @@ public class PluginManager {
                 if (stream.read(content) > 0) {
                     String body = new String(content);
 
-                    Gson gson = new GsonBuilder().create();
-                    HabboPluginConfiguration pluginConfigurtion = gson.fromJson(body, HabboPluginConfiguration.class);
+                    HabboPluginConfiguration pluginConfigurtion = PLUGIN_GSON.fromJson(body, HabboPluginConfiguration.class);
 
                     try {
                         Class<?> clazz = urlClassLoader.loadClass(pluginConfigurtion.main);

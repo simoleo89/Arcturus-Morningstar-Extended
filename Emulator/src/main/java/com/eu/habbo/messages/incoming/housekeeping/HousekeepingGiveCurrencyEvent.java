@@ -53,6 +53,7 @@ public class HousekeepingGiveCurrencyEvent extends MessageHandler {
                 online.givePoints(currencyType, amount);
             }
 
+            this.audit(actionKey, userId, currencyType, amount);
             this.client.sendResponse(new HousekeepingActionResultComposer(actionKey, true, userId, ""));
             return;
         }
@@ -70,6 +71,15 @@ public class HousekeepingGiveCurrencyEvent extends MessageHandler {
             return;
         }
 
+        this.audit(actionKey, userId, currencyType, amount);
         this.client.sendResponse(new HousekeepingActionResultComposer(actionKey, true, userId, ""));
+    }
+
+    private void audit(String actionKey, int userId, int currencyType, int amount) {
+        com.eu.habbo.habbohotel.modtool.HousekeepingAuditLog.log(
+                this.client.getHabbo().getHabboInfo().getId(),
+                this.client.getHabbo().getHabboInfo().getUsername(),
+                actionKey, userId, "type=" + currencyType + " amount=" + amount,
+                this.client.getHabbo().getHabboInfo().getIpLogin());
     }
 }

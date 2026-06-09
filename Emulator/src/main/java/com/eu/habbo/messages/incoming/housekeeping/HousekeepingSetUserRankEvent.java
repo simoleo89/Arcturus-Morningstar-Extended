@@ -102,6 +102,12 @@ public class HousekeepingSetUserRankEvent extends MessageHandler {
             online.getClient().sendResponse(new UserPermissionsComposer(online));
         }
 
+        com.eu.habbo.habbohotel.modtool.HousekeepingAuditLog.log(
+                this.client.getHabbo().getHabboInfo().getId(),
+                this.client.getHabbo().getHabboInfo().getUsername(),
+                ACTION_KEY, userId, "rankId=" + rankId,
+                this.client.getHabbo().getHabboInfo().getIpLogin());
+
         this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, true, userId, ""));
     }
 }

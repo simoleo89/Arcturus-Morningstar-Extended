@@ -39,6 +39,7 @@ public class HousekeepingGiveCreditsEvent extends MessageHandler {
             // giveCredits already pushes UserCreditsComposer and persists via the
             // standard HabboInfo write path; nothing extra needed for the online branch.
             online.giveCredits(amount);
+            this.audit(userId, amount);
             this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, true, userId, ""));
             return;
         }
@@ -58,6 +59,15 @@ public class HousekeepingGiveCreditsEvent extends MessageHandler {
             return;
         }
 
+        this.audit(userId, amount);
         this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, true, userId, ""));
+    }
+
+    private void audit(int userId, int amount) {
+        com.eu.habbo.habbohotel.modtool.HousekeepingAuditLog.log(
+                this.client.getHabbo().getHabboInfo().getId(),
+                this.client.getHabbo().getHabboInfo().getUsername(),
+                ACTION_KEY, userId, "amount=" + amount,
+                this.client.getHabbo().getHabboInfo().getIpLogin());
     }
 }
