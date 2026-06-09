@@ -56,7 +56,7 @@ public class HousekeepingSearchRoomsEvent extends MessageHandler {
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, exactMatch ? query : query + "%");
+            statement.setString(1, exactMatch ? query : com.eu.habbo.util.SqlLikeEscaper.escape(query) + "%");
             statement.setInt(2, limit);
 
             try (ResultSet set = statement.executeQuery()) {

@@ -171,8 +171,9 @@ public class MarketPlace {
                 statement.setInt(paramIndex++, maxPrice);
             }
             if (!search.isEmpty()) {
-                statement.setString(paramIndex++, "%" + search + "%");
-                statement.setString(paramIndex++, "%" + search + "%");
+                String likeSearch = "%" + com.eu.habbo.util.SqlLikeEscaper.escape(search) + "%";
+                statement.setString(paramIndex++, likeSearch);
+                statement.setString(paramIndex++, likeSearch);
             }
 
             try (ResultSet set = statement.executeQuery()) {
