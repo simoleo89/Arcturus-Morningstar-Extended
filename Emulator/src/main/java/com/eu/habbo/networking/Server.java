@@ -9,7 +9,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
@@ -59,8 +60,10 @@ public abstract class Server {
 
         String threadName = name.replace("Server", "").replace(" ", "");
 
-        this.bossGroup = new NioEventLoopGroup(bossGroupThreads, new DefaultThreadFactory(threadName + "Boss"));
-        this.workerGroup = new NioEventLoopGroup(workerGroupThreads, new DefaultThreadFactory(threadName + "Worker"));
+        // Netty 4.2: NioEventLoopGroup is deprecated in favour of the generic
+        // MultiThreadIoEventLoopGroup driven by an IoHandlerFactory (NIO here).
+        this.bossGroup = new MultiThreadIoEventLoopGroup(bossGroupThreads, new DefaultThreadFactory(threadName + "Boss"), NioIoHandler.newFactory());
+        this.workerGroup = new MultiThreadIoEventLoopGroup(workerGroupThreads, new DefaultThreadFactory(threadName + "Worker"), NioIoHandler.newFactory());
         this.serverBootstrap = new ServerBootstrap();
     }
 
