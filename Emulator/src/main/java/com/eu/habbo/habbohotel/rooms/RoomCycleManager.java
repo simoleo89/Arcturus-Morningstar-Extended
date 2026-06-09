@@ -300,37 +300,35 @@ public class RoomCycleManager {
             return;
         }
 
-        // currentBots is a TCollections.synchronizedMap; the iterator is not
-        // safe against concurrent put/remove from IO threads (bot place/pickup),
-        // so we must hold the map's monitor for the whole traversal.
+        // Snapshot under the map monitor (currentBots is a synchronizedMap whose
+        // iterator isn't concurrency-safe), then cycle OFF-lock. Holding the
+        // monitor across the whole tick would block bot place/pickup and room
+        // dispose for the tick duration AND invert the lock order vs
+        // roomUnitLock -> currentBots taken by RoomUnitManager.addBot/clear.
+        final ArrayList<Bot> bots;
         synchronized (currentBots) {
-            TIntObjectIterator<Bot> botIterator = currentBots.iterator();
-            for (int i = currentBots.size(); i-- > 0; ) {
-                try {
-                    final Bot bot;
-                    try {
-                        botIterator.advance();
-                        bot = botIterator.value();
-                    } catch (Exception e) {
-                        break;
-                    }
+            bots = new ArrayList<>(currentBots.valueCollection());
+        }
 
-                    if (!this.room.isAllowBotsWalk() && bot.getRoomUnit().isWalking()) {
-                        bot.getRoomUnit().stopWalking();
-                        updatedUnit.add(bot.getRoomUnit());
-                        continue;
-                    }
-
-                    bot.cycle(this.room.isAllowBotsWalk());
-
-                    if (this.cycleRoomUnit(bot.getRoomUnit(), RoomUnitType.BOT)) {
-                        updatedUnit.add(bot.getRoomUnit());
-                    }
-
-                } catch (NoSuchElementException e) {
-                    LOGGER.error("Caught exception", e);
-                    break;
+        for (Bot bot : bots) {
+            try {
+                if (bot == null || bot.getRoomUnit() == null) {
+                    continue;
                 }
+
+                if (!this.room.isAllowBotsWalk() && bot.getRoomUnit().isWalking()) {
+                    bot.getRoomUnit().stopWalking();
+                    updatedUnit.add(bot.getRoomUnit());
+                    continue;
+                }
+
+                bot.cycle(this.room.isAllowBotsWalk());
+
+                if (this.cycleRoomUnit(bot.getRoomUnit(), RoomUnitType.BOT)) {
+                    updatedUnit.add(bot.getRoomUnit());
+                }
+            } catch (Exception e) {
+                LOGGER.error("Caught exception", e);
             }
         }
     }
@@ -344,19 +342,19 @@ public class RoomCycleManager {
             return;
         }
 
-        // currentPets is a TCollections.synchronizedMap; hold its monitor for the
-        // whole traversal to stay safe against concurrent pet place/pickup.
+        // Snapshot under the monitor, then cycle off-lock (see processBots): avoids
+        // holding currentPets for the whole tick and the roomUnitLock inversion.
+        final ArrayList<Pet> pets;
         synchronized (currentPets) {
-            TIntObjectIterator<Pet> petIterator = currentPets.iterator();
-            for (int i = currentPets.size(); i-- > 0; ) {
-                try {
-                    petIterator.advance();
-                } catch (NoSuchElementException e) {
-                    LOGGER.error("Caught exception", e);
-                    break;
+            pets = new ArrayList<>(currentPets.valueCollection());
+        }
+
+        for (Pet pet : pets) {
+            try {
+                if (pet == null || pet.getRoomUnit() == null) {
+                    continue;
                 }
 
-                Pet pet = petIterator.value();
                 if (this.cycleRoomUnit(pet.getRoomUnit(), RoomUnitType.PET)) {
                     updatedUnit.add(pet.getRoomUnit());
                 }
@@ -373,6 +371,8 @@ public class RoomCycleManager {
                     pet.getRoomUnit().removeStatus(RoomUnitStatus.GESTURE);
                     updatedUnit.add(pet.getRoomUnit());
                 }
+            } catch (Exception e) {
+                LOGGER.error("Caught exception", e);
             }
         }
     }

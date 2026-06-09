@@ -269,7 +269,11 @@ public class HabboInfo implements Runnable {
     }
 
     public TIntIntHashMap getCurrencies() {
-        return this.currencies;
+        // Return a snapshot under the lock: callers iterate this map, which would
+        // otherwise corrupt during a concurrent adjustOrPutValue rehash.
+        synchronized (this.currencyLock) {
+            return new TIntIntHashMap(this.currencies);
+        }
     }
 
     public void addCurrencyAmount(int type, int amount) {
@@ -411,7 +415,7 @@ public class HabboInfo implements Runnable {
     }
 
     public boolean canBuy(CatalogItem item) {
-        return this.credits >= item.getCredits() && this.getCurrencies().get(item.getPointsType()) >= item.getPoints();
+        return this.getCredits() >= item.getCredits() && this.getCurrencyAmount(item.getPointsType()) >= item.getPoints();
     }
 
     public int getCredits() {
@@ -637,6 +641,13 @@ public class HabboInfo implements Runnable {
     public void run() {
         this.saveCurrencies();
 
+        // Read credits under the lock so the persisted value is consistent with
+        // concurrent addCredits/setCredits (matches the currencyLock invariant).
+        final int creditsForSave;
+        synchronized (this.currencyLock) {
+            creditsForSave = this.credits;
+        }
+
         try {
             SqlQueries.update(
                     "UPDATE users SET motto = ?, online = ?, look = ?, gender = ?, credits = ?, last_login = ?, last_online = ?, home_room = ?, ip_current = ?, `rank` = ?, machine_id = ?, username = ?, background_id = ?, background_stand_id = ?, background_overlay_id = ?, background_card_id = ?, background_border_id = ? WHERE id = ?",
@@ -644,7 +655,7 @@ public class HabboInfo implements Runnable {
                     this.online ? "1" : "0",
                     this.look,
                     this.gender.name(),
-                    this.credits,
+                    creditsForSave,
                     Emulator.getIntUnixTimestamp(),
                     this.lastOnline,
                     this.homeRoom,

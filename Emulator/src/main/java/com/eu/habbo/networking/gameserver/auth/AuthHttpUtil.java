@@ -169,8 +169,13 @@ public final class AuthHttpUtil {
                 : "";
         if (trusted.isEmpty()) return false;
         for (String entry : trusted.split(",")) {
-            String prefix = entry.trim();
-            if (!prefix.isEmpty() && (peerIp.equals(prefix) || peerIp.startsWith(prefix))) {
+            String t = entry.trim();
+            if (t.isEmpty()) continue;
+            // Exact IP match, or a dotted/colon prefix range (e.g. "10.0.0." or
+            // "2001:db8:") — never a bare-IP prefix, so "10.0.0.1" can't also
+            // trust "10.0.0.12".
+            boolean isRange = t.endsWith(".") || t.endsWith(":");
+            if (peerIp.equals(t) || (isRange && peerIp.startsWith(t))) {
                 return true;
             }
         }

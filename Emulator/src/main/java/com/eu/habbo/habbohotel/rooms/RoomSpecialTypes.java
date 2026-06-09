@@ -152,7 +152,9 @@ public class RoomSpecialTypes {
 
 
     public InteractionNest getNest(int itemId) {
-        return this.nests.get(itemId);
+        synchronized (this.nests) {
+            return this.nests.get(itemId);
+        }
     }
 
     public void addNest(InteractionNest item) {
@@ -180,7 +182,9 @@ public class RoomSpecialTypes {
 
 
     public InteractionPetDrink getPetDrink(int itemId) {
-        return this.petDrinks.get(itemId);
+        synchronized (this.petDrinks) {
+            return this.petDrinks.get(itemId);
+        }
     }
 
     public void addPetDrink(InteractionPetDrink item) {
@@ -208,7 +212,9 @@ public class RoomSpecialTypes {
 
 
     public InteractionPetFood getPetFood(int itemId) {
-        return this.petFoods.get(itemId);
+        synchronized (this.petFoods) {
+            return this.petFoods.get(itemId);
+        }
     }
 
     public void addPetFood(InteractionPetFood item) {
@@ -236,7 +242,9 @@ public class RoomSpecialTypes {
 
 
     public InteractionPetToy getPetToy(int itemId) {
-        return this.petToys.get(itemId);
+        synchronized (this.petToys) {
+            return this.petToys.get(itemId);
+        }
     }
 
     public void addPetToy(InteractionPetToy item) {
@@ -264,7 +272,9 @@ public class RoomSpecialTypes {
 
 
     public InteractionPetTree getPetTree(int itemId) {
-        return this.petTrees.get(itemId);
+        synchronized (this.petTrees) {
+            return this.petTrees.get(itemId);
+        }
     }
 
     public void addPetTree(InteractionPetTree item) {
