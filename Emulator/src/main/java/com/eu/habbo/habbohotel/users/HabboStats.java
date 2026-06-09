@@ -460,6 +460,16 @@ public class HabboStats implements Runnable {
         }
     }
 
+    /** Atomic read-add-write so concurrent progress sources don't lose updates. Returns the new total. */
+    public int incrementProgress(Achievement achievement, int amount) {
+        synchronized (this.achievementProgress) {
+            Integer current = this.achievementProgress.get(achievement);
+            int next = (current != null ? current : 0) + amount;
+            this.achievementProgress.put(achievement, next);
+            return next;
+        }
+    }
+
     public int getRentedTimeEnd() {
         return this.rentedTimeEnd;
     }

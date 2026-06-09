@@ -26,6 +26,7 @@ public class RoomTrade {
 
     private final List<RoomTradeUser> users;
     private final Room room;
+    private boolean completed = false;
 
     public RoomTrade(Habbo userOne, Habbo userTwo, Room room) {
         this.users = new ArrayList<>();
@@ -54,7 +55,7 @@ public class RoomTrade {
         this.sendMessageToUsers(new TradeStartComposer(this));
     }
 
-    public void offerItem(Habbo habbo, HabboItem item) {
+    public synchronized void offerItem(Habbo habbo, HabboItem item) {
         RoomTradeUser user = this.getRoomTradeUserForHabbo(habbo);
 
         if (user.getItems().contains(item))
@@ -67,7 +68,7 @@ public class RoomTrade {
         this.updateWindow();
     }
 
-    public void offerMultipleItems(Habbo habbo, THashSet<HabboItem> items) {
+    public synchronized void offerMultipleItems(Habbo habbo, THashSet<HabboItem> items) {
         RoomTradeUser user = this.getRoomTradeUserForHabbo(habbo);
 
         for (HabboItem item : items) {
@@ -81,7 +82,7 @@ public class RoomTrade {
         this.updateWindow();
     }
 
-    public void removeItem(Habbo habbo, HabboItem item) {
+    public synchronized void removeItem(Habbo habbo, HabboItem item) {
         RoomTradeUser user = this.getRoomTradeUserForHabbo(habbo);
 
         if (!user.getItems().contains(item))
@@ -94,7 +95,7 @@ public class RoomTrade {
         this.updateWindow();
     }
 
-    public void accept(Habbo habbo, boolean value) {
+    public synchronized void accept(Habbo habbo, boolean value) {
         RoomTradeUser user = this.getRoomTradeUserForHabbo(habbo);
 
         user.setAccepted(value);
@@ -110,7 +111,13 @@ public class RoomTrade {
         }
     }
 
-    public void confirm(Habbo habbo) {
+    public synchronized void confirm(Habbo habbo) {
+        // Re-entry guard: both participants confirm on their own EventLoop
+        // threads. Without this (and the method-level lock) two concurrent
+        // confirms could each observe "all confirmed" and run tradeItems()
+        // twice → item/credit duplication.
+        if (this.completed) return;
+
         RoomTradeUser user = this.getRoomTradeUserForHabbo(habbo);
 
         user.confirm();
@@ -122,6 +129,8 @@ public class RoomTrade {
                 accepted = false;
         }
         if (accepted) {
+            this.completed = true;
+
             if (this.tradeItems()) {
                 this.closeWindow();
                 this.sendMessageToUsers(new TradeCompleteComposer());

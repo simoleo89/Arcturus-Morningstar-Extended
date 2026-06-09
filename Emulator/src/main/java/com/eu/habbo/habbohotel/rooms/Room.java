@@ -158,10 +158,12 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
   private String tags;
   private boolean publicRoom;
   private boolean staffPromotedRoom;
-  private boolean allowPets;
-  private boolean allowPetsEat;
+  // Read every room cycle (processBots/processPets) but written from settings/
+  // admin packet handlers on another thread — volatile for cross-thread visibility.
+  private volatile boolean allowPets;
+  private volatile boolean allowPetsEat;
   private boolean allowWalkthrough;
-  private boolean allowBotsWalk;
+  private volatile boolean allowBotsWalk;
   private boolean allowEffects;
   private boolean hideWall;
   private int chatMode;

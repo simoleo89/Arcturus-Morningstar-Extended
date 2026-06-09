@@ -55,6 +55,11 @@ public class HabboInfo implements Runnable {
     private RideablePet riding;
     private Class<? extends Game> currentGame;
     private TIntIntHashMap currencies;
+    // Serializes credits + currencies read-modify-write and the saveCurrencies
+    // snapshot so the credit-roller thread and purchase/trade handler threads
+    // can't lose updates or rehash the Trove map mid-iteration. Never held
+    // across run()'s DB I/O.
+    private final Object currencyLock = new Object();
     private GamePlayer gamePlayer;
     private int photoRoomId;
     private int photoTimestamp;
@@ -123,11 +128,16 @@ public class HabboInfo implements Runnable {
     }
 
     private void saveCurrencies() {
-        List<int[]> entries = new ArrayList<>(this.currencies.size());
-        this.currencies.forEachEntry((type, amount) -> {
-            entries.add(new int[]{type, amount});
-            return true;
-        });
+        // Snapshot under the lock so a concurrent adjustOrPutValue/put can't
+        // rehash the Trove map while we iterate; do the DB batch off-lock.
+        List<int[]> entries;
+        synchronized (this.currencyLock) {
+            entries = new ArrayList<>(this.currencies.size());
+            this.currencies.forEachEntry((type, amount) -> {
+                entries.add(new int[]{type, amount});
+                return true;
+            });
+        }
 
         try {
             SqlQueries.batchUpdate(
@@ -253,7 +263,9 @@ public class HabboInfo implements Runnable {
     }
 
     public int getCurrencyAmount(int type) {
-        return this.currencies.get(type);
+        synchronized (this.currencyLock) {
+            return this.currencies.get(type);
+        }
     }
 
     public TIntIntHashMap getCurrencies() {
@@ -261,12 +273,16 @@ public class HabboInfo implements Runnable {
     }
 
     public void addCurrencyAmount(int type, int amount) {
-        this.currencies.adjustOrPutValue(type, amount, amount);
+        synchronized (this.currencyLock) {
+            this.currencies.adjustOrPutValue(type, amount, amount);
+        }
         this.run();
     }
 
     public void setCurrencyAmount(int type, int amount) {
-        this.currencies.put(type, amount);
+        synchronized (this.currencyLock) {
+            this.currencies.put(type, amount);
+        }
         this.run();
     }
 
@@ -399,16 +415,22 @@ public class HabboInfo implements Runnable {
     }
 
     public int getCredits() {
-        return this.credits;
+        synchronized (this.currencyLock) {
+            return this.credits;
+        }
     }
 
     public void setCredits(int credits) {
-        this.credits = credits;
+        synchronized (this.currencyLock) {
+            this.credits = credits;
+        }
         this.run();
     }
 
     public void addCredits(int credits) {
-        this.credits += credits;
+        synchronized (this.currencyLock) {
+            this.credits += credits;
+        }
         this.run();
     }
 
