@@ -34,8 +34,9 @@ public class AuthHttpHandler extends ChannelInboundHandlerAdapter {
     // BCrypt, JDBC, the Turnstile HTTPS round-trip and SMTP — running that on the
     // Netty event loop stalls every client on the same worker. A SEPARATE pool
     // (not the shared game ThreadPooling) also keeps it from starving room cycles.
+    private static final int AUTH_POOL_MAX = authPoolMax();
     private static final ThreadPoolExecutor AUTH_EXECUTOR = new ThreadPoolExecutor(
-            4, 16, 60L, TimeUnit.SECONDS,
+            Math.min(4, AUTH_POOL_MAX), AUTH_POOL_MAX, 60L, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(512),
             new java.util.concurrent.ThreadFactory() {
                 private final AtomicInteger counter = new AtomicInteger(1);
@@ -46,6 +47,17 @@ public class AuthHttpHandler extends ChannelInboundHandlerAdapter {
                     return t;
                 }
             });
+
+    // Max threads for the auth pool. Defaults to 16; set the optional
+    // `auth.http.pool.size` config key to override.
+    private static int authPoolMax() {
+        int fallback = 16;
+        if (com.eu.habbo.Emulator.getConfig() == null) {
+            return fallback;
+        }
+        int configured = com.eu.habbo.Emulator.getConfig().getInt("auth.http.pool.size", fallback);
+        return configured > 0 ? configured : fallback;
+    }
 
     static final String LOGIN_PATH           = "/api/auth/login";
     static final String REGISTER_PATH        = "/api/auth/register";

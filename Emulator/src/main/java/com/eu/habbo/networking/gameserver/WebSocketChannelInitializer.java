@@ -43,8 +43,19 @@ public class WebSocketChannelInitializer extends ChannelInitializer<SocketChanne
     // cross-client concurrency degree is the same the multi-threaded I/O group
     // already had. Daemon threads so they don't block JVM shutdown.
     private static final EventExecutorGroup PACKET_HANDLER_GROUP = new DefaultEventExecutorGroup(
-            Math.max(16, Runtime.getRuntime().availableProcessors() * 2),
+            packetHandlerThreads(),
             new DefaultThreadFactory("GamePacketHandler", true));
+
+    // Size of the packet-handler pool. Defaults to max(16, 2x CPU cores); set
+    // the optional `io.packet.handler.threads` config key to override.
+    private static int packetHandlerThreads() {
+        int fallback = Math.max(16, Runtime.getRuntime().availableProcessors() * 2);
+        if (Emulator.getConfig() == null) {
+            return fallback;
+        }
+        int configured = Emulator.getConfig().getInt("io.packet.handler.threads", fallback);
+        return configured > 0 ? configured : fallback;
+    }
 
     private final SslContext sslContext;
     private final boolean sslEnabled;

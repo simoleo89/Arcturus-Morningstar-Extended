@@ -1,6 +1,9 @@
 package com.eu.habbo.networking;
 
+import com.eu.habbo.Emulator;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -17,6 +20,30 @@ import java.util.concurrent.TimeUnit;
 public abstract class Server {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+
+    private static volatile ByteBufAllocator sharedAllocator;
+
+    /**
+     * Shared channel allocator. Defaults to unpooled-heap (the long-standing
+     * behaviour); set {@code io.netty.allocator.pooled=true} to switch to a
+     * pooled HEAP allocator (preferDirect=false, so the array-backed crypto
+     * paths keep working) which removes the per-packet alloc/GC churn. Opt-in
+     * until validated under load with the Netty leak detector, since pooled
+     * buffers that aren't released accumulate instead of being GC-reclaimed.
+     */
+    protected static ByteBufAllocator allocator() {
+        if (sharedAllocator == null) {
+            synchronized (Server.class) {
+                if (sharedAllocator == null) {
+                    boolean pooled = Emulator.getConfig() != null
+                            && "true".equalsIgnoreCase(Emulator.getConfig().getValue("io.netty.allocator.pooled", "false"));
+                    sharedAllocator = pooled ? new PooledByteBufAllocator(false) : new UnpooledByteBufAllocator(false);
+                    LOGGER.info("Netty ByteBuf allocator: {}", pooled ? "pooled-heap" : "unpooled-heap");
+                }
+            }
+        }
+        return sharedAllocator;
+    }
 
     protected final ServerBootstrap serverBootstrap;
     protected final EventLoopGroup bossGroup;
@@ -45,7 +72,7 @@ public abstract class Server {
         this.serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
         this.serverBootstrap.childOption(ChannelOption.SO_RCVBUF, 4096);
         this.serverBootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(4096));
-        this.serverBootstrap.childOption(ChannelOption.ALLOCATOR, new UnpooledByteBufAllocator(false));
+        this.serverBootstrap.childOption(ChannelOption.ALLOCATOR, allocator());
     }
 
     public void connect() {
