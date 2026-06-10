@@ -306,7 +306,7 @@ public class SecureLoginEvent extends MessageHandler {
                     Emulator.getPluginManager().fireEvent(userLoginEvent);
 
                     if(userLoginEvent.isCancelled()) {
-                        Emulator.getGameServer().getGameClientManager().disposeClient(this.client);
+                        Emulator.getGameServer().getGameClientManager().forceDisposeClient(this.client);
                         return;
                     }
 

@@ -5,6 +5,13 @@ import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.navigator.NewNavigatorSavedSearchesComposer;
 
 public class AddSavedSearchEvent extends MessageHandler {
+    private static final int MAX_SAVED_SEARCHES = 50;
+
+    @Override
+    public int getRatelimit() {
+        return 1000;
+    }
+
     @Override
     public void handle() throws Exception {
         String searchCode = this.packet.readString();
@@ -12,6 +19,11 @@ public class AddSavedSearchEvent extends MessageHandler {
 
         if (searchCode.length() > 255) searchCode = searchCode.substring(0, 255);
         if (filter.length() > 255) filter = filter.substring(0, 255);
+
+        if (this.client.getHabbo().getHabboInfo().getSavedSearches().size() >= MAX_SAVED_SEARCHES) {
+            this.client.sendResponse(new NewNavigatorSavedSearchesComposer(this.client.getHabbo().getHabboInfo().getSavedSearches()));
+            return;
+        }
 
         this.client.getHabbo().getHabboInfo().addSavedSearch(new NavigatorSavedSearch(searchCode, filter));
 

@@ -378,7 +378,9 @@ public class ModToolManager {
             statement.setString(6, reason);
             statement.setString(7, type.getType());
 
-            try (ResultSet set = statement.executeQuery()) {
+            statement.executeUpdate();
+
+            try (ResultSet set = statement.getGeneratedKeys()) {
                 if (set.next()) {
                     try (PreparedStatement selectBanStatement = connection.prepareStatement("SELECT * FROM bans WHERE id = ? LIMIT 1")) {
                         selectBanStatement.setInt(1, set.getInt(1));
@@ -434,6 +436,10 @@ public class ModToolManager {
         Habbo target = Emulator.getGameEnvironment().getHabboManager().getHabbo(targetUserId);
         HabboInfo offlineInfo = target != null ? target.getHabboInfo() : HabboManager.getOfflineHabboInfo(targetUserId);
 
+        if (offlineInfo == null) {
+            return bans;
+        }
+
         if (moderator.getHabboInfo().getRank().getId() < offlineInfo.getRank().getId()) {
             return bans;
         }
@@ -454,7 +460,7 @@ public class ModToolManager {
         bans.add(ban);
 
         if (target != null) {
-            Emulator.getGameServer().getGameClientManager().disposeClient(target.getClient());
+            Emulator.getGameServer().getGameClientManager().forceDisposeClient(target.getClient());
         }
 
         if ((type == ModToolBanType.IP || type == ModToolBanType.SUPER) && target != null && !ban.ip.equals("offline")) {
@@ -465,7 +471,7 @@ public class ModToolManager {
                 Emulator.getPluginManager().fireEvent(new SupportUserBannedEvent(moderator, h, ban));
                 Emulator.getThreading().run(ban);
                 bans.add(ban);
-                Emulator.getGameServer().getGameClientManager().disposeClient(h.getClient());
+                Emulator.getGameServer().getGameClientManager().forceDisposeClient(h.getClient());
             }
         }
 
@@ -477,7 +483,7 @@ public class ModToolManager {
                 Emulator.getPluginManager().fireEvent(new SupportUserBannedEvent(moderator, h, ban));
                 Emulator.getThreading().run(ban);
                 bans.add(ban);
-                Emulator.getGameServer().getGameClientManager().disposeClient(h.getClient());
+                Emulator.getGameServer().getGameClientManager().forceDisposeClient(h.getClient());
             }
         }
 

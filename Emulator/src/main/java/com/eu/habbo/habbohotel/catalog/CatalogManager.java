@@ -1247,6 +1247,11 @@ public class CatalogManager {
                                     Guild guild = Emulator.getGameEnvironment().getGuildManager().getGuild(guildId);
 
                                     if (guild != null && Emulator.getGameEnvironment().getGuildManager().getGuildMember(guild, habbo) != null) {
+                                        if (baseItem.getName().equals("guild_forum") && guild.getOwnerId() != habbo.getHabboInfo().getId()) {
+                                            habbo.getClient().sendResponse(new AlertPurchaseFailedComposer(AlertPurchaseFailedComposer.SERVER_ERROR));
+                                            return;
+                                        }
+
                                         InteractionGuildFurni habboItem = (InteractionGuildFurni) Emulator.getGameEnvironment().getItemManager().createItem(habbo.getClient().getHabbo().getHabboInfo().getId(), baseItem, limitedStack, limitedNumber, extradata);
                                         habboItem.setExtradata("");
                                         habboItem.needsUpdate(true);

@@ -123,7 +123,7 @@ public class Item implements ISerialize {
 
         if (!set.getString("vending_ids").isEmpty()) {
             this.vendingItems = new TIntArrayList();
-            String[] vendingIds = set.getString("vending_ids").replace(";", ",").split(",");
+            String[] vendingIds = set.getString("vending_ids").replace(";", ",").replace(".", ",").split(",");
             for (String s : vendingIds) {
                 this.vendingItems.add(Integer.parseInt(s.replace(" ", "")));
             }

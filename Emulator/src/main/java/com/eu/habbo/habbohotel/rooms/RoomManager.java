@@ -731,10 +731,10 @@ public class RoomManager {
 
         habbo.getClient().sendResponse(new RoomModelComposer(room));
 
-        if (!room.getWallPaint().equals("0.0"))
+        if (room.getWallPaint() != null && !room.getWallPaint().equals("0.0"))
             habbo.getClient().sendResponse(new RoomPaintComposer("wallpaper", room.getWallPaint()));
 
-        if (!room.getFloorPaint().equals("0.0"))
+        if (room.getFloorPaint() != null && !room.getFloorPaint().equals("0.0"))
             habbo.getClient().sendResponse(new RoomPaintComposer("floor", room.getFloorPaint()));
 
         habbo.getClient().sendResponse(new RoomPaintComposer("landscape", room.getBackgroundPaint()));

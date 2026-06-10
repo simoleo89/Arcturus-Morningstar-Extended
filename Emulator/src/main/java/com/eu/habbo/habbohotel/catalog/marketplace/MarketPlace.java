@@ -279,8 +279,9 @@ public class MarketPlace {
                                             return;
                                         }
 
+                                        int soldTimestamp = Emulator.getIntUnixTimestamp();
                                         try (PreparedStatement updateOffer = connection.prepareStatement("UPDATE marketplace_items SET state = 2, sold_timestamp = ? WHERE id = ? AND state = 1")) {
-                                            updateOffer.setInt(1, Emulator.getIntUnixTimestamp());
+                                            updateOffer.setInt(1, soldTimestamp);
                                             updateOffer.setInt(2, offerId);
                                             int updated = updateOffer.executeUpdate();
                                             if (updated == 0) {
@@ -307,7 +308,11 @@ public class MarketPlace {
                                         client.sendResponse(new MarketplaceBuyErrorComposer(MarketplaceBuyErrorComposer.REFRESH, 0, offerId, price));
 
                                         if (habbo != null) {
-                                            habbo.getInventory().getOffer(offerId).setState(MarketPlaceState.SOLD);
+                                            MarketPlaceOffer offer = habbo.getInventory().getOffer(offerId);
+                                            if (offer != null) {
+                                                offer.setState(MarketPlaceState.SOLD);
+                                                offer.setSoldTimestamp(soldTimestamp);
+                                            }
                                         }
                                     }
                                 }
@@ -369,6 +374,11 @@ public class MarketPlace {
         event.item.setFromGift(false);
 
         MarketPlaceOffer offer = new MarketPlaceOffer(event.item, event.price, client.getHabbo());
+        if (!offer.isPersisted()) {
+            LOGGER.warn("Marketplace offer insert failed for user {} item {}", client.getHabbo().getHabboInfo().getId(), event.item.getId());
+            return false;
+        }
+
         client.getHabbo().getInventory().addMarketplaceOffer(offer);
         client.getHabbo().getInventory().getItemsComponent().removeHabboItem(event.item);
         item.setUserId(-1);
