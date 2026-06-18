@@ -4,7 +4,7 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.permissions.Permission;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.housekeeping.HousekeepingActionResultComposer;
-import org.mindrot.jbcrypt.BCrypt;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 
 import java.security.SecureRandom;
 import java.sql.Connection;
@@ -50,7 +50,7 @@ public class HousekeepingResetUserPasswordEvent extends MessageHandler {
         String hash;
 
         try {
-            hash = BCrypt.hashpw(plain, BCrypt.gensalt(BCRYPT_COST));
+            hash = BCrypt.withDefaults().hashToString(BCRYPT_COST, plain.toCharArray());
         } catch (IllegalArgumentException e) {
             this.client.sendResponse(new HousekeepingActionResultComposer(ACTION_KEY, false, 0, "housekeeping.error.hash_failed"));
             return;

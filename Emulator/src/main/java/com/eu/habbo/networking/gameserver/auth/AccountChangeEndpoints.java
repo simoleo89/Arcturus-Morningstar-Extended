@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.mindrot.jbcrypt.BCrypt;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +95,7 @@ final class AccountChangeEndpoints {
                 return;
             }
 
-            String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+            String hashed = BCrypt.withDefaults().hashToString(12, newPassword.toCharArray());
             try (PreparedStatement upd = conn.prepareStatement(
                     "UPDATE users SET password = ? WHERE id = ? LIMIT 1")) {
                 upd.setString(1, hashed);
