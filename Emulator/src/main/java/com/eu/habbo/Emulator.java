@@ -233,7 +233,7 @@ public final class Emulator {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Caught exception", e);
         }
     }
 

@@ -135,7 +135,7 @@ public class YoutubeManager {
             try {
                 youtubeDataLoaderPool.awaitTermination(60, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOGGER.error("Caught exception", e);
             }
 
             LOGGER.info("YouTube Manager -> Loaded! ({} MS)", System.currentTimeMillis() - millis);

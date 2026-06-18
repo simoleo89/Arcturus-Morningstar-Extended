@@ -53,7 +53,7 @@ public class RCONServerHandler extends ChannelInboundHandlerAdapter {
             LOGGER.error("Unknown RCON Message: {}", key);
         } catch (Exception e) {
             LOGGER.error("Invalid RCON Message: {}", message);
-            e.printStackTrace();
+            LOGGER.error("Caught exception", e);
         }
 
         ChannelFuture f = ctx.channel().write(Unpooled.copiedBuffer(response.getBytes(java.nio.charset.StandardCharsets.UTF_8)), ctx.channel().voidPromise());
