@@ -193,33 +193,24 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
   private volatile boolean wiredSettingsLoaded;
   private int wiredInspectMask = WIRED_ACCESS_DEFAULT_INSPECT_MASK;
   private int wiredModifyMask = WIRED_ACCESS_DEFAULT_MODIFY_MASK;
-  private boolean youtubeEnabled = false;
   private boolean soundboardEnabled = false;
-  private String youtubeCurrentVideo = "";
-  private String youtubeSenderName = "";
-  private final java.util.List<String> youtubePlaylist = new java.util.concurrent.CopyOnWriteArrayList<>();
-  private final java.util.Set<Integer> youtubeWatchers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+  private final RoomYoutubeState youtube = new RoomYoutubeState();
 
-  public boolean isYoutubeEnabled() { return this.youtubeEnabled; }
-  public void setYoutubeEnabled(boolean enabled) { this.youtubeEnabled = enabled; }
+  public boolean isYoutubeEnabled() { return this.youtube.isEnabled(); }
+  public void setYoutubeEnabled(boolean enabled) { this.youtube.setEnabled(enabled); }
   public boolean isSoundboardEnabled() { return this.soundboardEnabled; }
   public void setSoundboardEnabled(boolean enabled) { this.soundboardEnabled = enabled; }
-  public String getYoutubeCurrentVideo() { return this.youtubeCurrentVideo; }
-  public String getYoutubeSenderName() { return this.youtubeSenderName; }
-  public java.util.List<String> getYoutubePlaylist() { return this.youtubePlaylist; }
-  public java.util.Set<Integer> getYoutubeWatchers() { return this.youtubeWatchers; }
+  public String getYoutubeCurrentVideo() { return this.youtube.getCurrentVideo(); }
+  public String getYoutubeSenderName() { return this.youtube.getSenderName(); }
+  public java.util.List<String> getYoutubePlaylist() { return this.youtube.getPlaylist(); }
+  public java.util.Set<Integer> getYoutubeWatchers() { return this.youtube.getWatchers(); }
 
   public void setYoutubeVideo(String videoId, String senderName, java.util.List<String> playlist) {
-    this.youtubeCurrentVideo = videoId;
-    this.youtubeSenderName = senderName;
-    this.youtubePlaylist.clear();
-    if (playlist != null) this.youtubePlaylist.addAll(playlist);
+    this.youtube.setVideo(videoId, senderName, playlist);
   }
 
   public void clearYoutubeVideo() {
-    this.youtubeCurrentVideo = "";
-    this.youtubeSenderName = "";
-    this.youtubePlaylist.clear();
+    this.youtube.clearVideo();
   }
 
   public final HashMap<String, Object> cache;
@@ -249,7 +240,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.allowPetsEat = set.getBoolean("allow_other_pets_eat");
     this.allowWalkthrough = set.getBoolean("allow_walkthrough");
     this.hideWall = set.getBoolean("allow_hidewall");
-    try { this.youtubeEnabled = set.getBoolean("youtube_enabled"); } catch (Exception e) { this.youtubeEnabled = false; }
+    try { this.youtube.setEnabled(set.getBoolean("youtube_enabled")); } catch (Exception e) { this.youtube.setEnabled(false); }
     try { this.soundboardEnabled = set.getBoolean("soundboard_enabled"); } catch (Exception e) { this.soundboardEnabled = false; }
     this.chatMode = set.getInt("chat_mode");
     this.chatWeight = set.getInt("chat_weight");
@@ -1226,7 +1217,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
         statement.setString(38, this.jukeboxActive ? "1" : "0");
         statement.setString(39, this.hideWired ? "1" : "0");
         statement.setString(40, this.allowUnderpass ? "1" : "0");
-        statement.setString(41, this.youtubeEnabled ? "1" : "0");
+        statement.setString(41, this.youtube.isEnabled() ? "1" : "0");
         statement.setString(42, this.buildersClubTrialLocked ? "1" : "0");
         statement.setString(43, (this.buildersClubOriginalState != null ? this.buildersClubOriginalState : RoomState.OPEN).name().toLowerCase());
         statement.setInt(44, this.id);
@@ -1905,14 +1896,14 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     int userId = habbo.getHabboInfo().getId();
 
     // If the broadcast sender leaves, stop the broadcast for everyone
-    if (!this.youtubeCurrentVideo.isEmpty()
-            && habbo.getHabboInfo().getUsername().equals(this.youtubeSenderName)) {
+    if (!this.youtube.getCurrentVideo().isEmpty()
+            && habbo.getHabboInfo().getUsername().equals(this.youtube.getSenderName())) {
       this.clearYoutubeVideo();
       this.sendComposer(new com.eu.habbo.messages.outgoing.rooms.youtube.YouTubeRoomBroadcastComposer("", "", java.util.Collections.emptyList()).compose());
     }
 
-    if (this.youtubeWatchers.remove(userId)) {
-      this.sendComposer(new com.eu.habbo.messages.outgoing.rooms.youtube.YouTubeRoomWatchersComposer(this.youtubeWatchers).compose());
+    if (this.youtube.removeWatcher(userId)) {
+      this.sendComposer(new com.eu.habbo.messages.outgoing.rooms.youtube.YouTubeRoomWatchersComposer(this.youtube.getWatchers()).compose());
     }
   }
 
