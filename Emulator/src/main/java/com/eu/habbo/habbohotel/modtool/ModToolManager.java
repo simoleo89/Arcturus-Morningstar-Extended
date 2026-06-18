@@ -14,12 +14,11 @@ import com.eu.habbo.messages.outgoing.modtool.ModToolIssueInfoComposer;
 import com.eu.habbo.messages.outgoing.modtool.ModToolUserInfoComposer;
 import com.eu.habbo.plugin.events.support.*;
 import com.eu.habbo.threading.runnables.InsertModToolIssue;
-import gnu.trove.TCollections;
-import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TObjectProcedure;
 import gnu.trove.set.hash.THashSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,17 +32,17 @@ import java.util.Map;
 public class ModToolManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModToolManager.class);
 
-    private final TIntObjectMap<ModToolCategory> category;
+    private final Int2ObjectMap<ModToolCategory> category;
     private final THashMap<String, THashSet<String>> presets;
     private final THashMap<Integer, ModToolIssue> tickets;
-    private final TIntObjectMap<CfhCategory> cfhCategories;
+    private final Int2ObjectMap<CfhCategory> cfhCategories;
 
     public ModToolManager() {
         long millis = System.currentTimeMillis();
-        this.category = TCollections.synchronizedMap(new TIntObjectHashMap<>());
+        this.category = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
         this.presets = new THashMap<>();
         this.tickets = new THashMap<>();
-        this.cfhCategories = new TIntObjectHashMap<>();
+        this.cfhCategories = new Int2ObjectOpenHashMap<>();
         this.loadModTool();
         LOGGER.info("ModTool Manager -> Loaded! ({} MS)", System.currentTimeMillis() - millis);
     }
@@ -167,8 +166,8 @@ public class ModToolManager {
     }
 
     public CfhTopic getCfhTopic(int topicId) {
-        for (CfhCategory category : this.getCfhCategories().valueCollection()) {
-            for (CfhTopic topic : category.getTopics().valueCollection()) {
+        for (CfhCategory category : this.getCfhCategories().values()) {
+            for (CfhTopic topic : category.getTopics().values()) {
                 if (topic.id == topicId) {
                     return topic;
                 }
@@ -182,16 +181,14 @@ public class ModToolManager {
         if (id == 0)
             return null;
 
-        final ModToolPreset[] preset = {null};
-        this.category.forEachValue(new TObjectProcedure<ModToolCategory>() {
-            @Override
-            public boolean execute(ModToolCategory object) {
-                preset[0] = object.getPresets().get(id);
-                return preset[0] == null;
+        for (ModToolCategory object : this.category.values()) {
+            ModToolPreset preset = object.getPresets().get(id);
+            if (preset != null) {
+                return preset;
             }
-        });
+        }
 
-        return preset[0];
+        return null;
     }
 
     public void quickTicket(Habbo reported, String reason, String message) {
@@ -706,7 +703,7 @@ public class ModToolManager {
         return total;
     }
 
-    public TIntObjectMap<ModToolCategory> getCategory() {
+    public Int2ObjectMap<ModToolCategory> getCategory() {
         return this.category;
     }
 
@@ -726,23 +723,18 @@ public class ModToolManager {
         return this.tickets.get(ticketId);
     }
 
-    public TIntObjectMap<CfhCategory> getCfhCategories() {
+    public Int2ObjectMap<CfhCategory> getCfhCategories() {
         return this.cfhCategories;
     }
 
     public List<ModToolIssue> openTicketsForHabbo(Habbo habbo) {
         List<ModToolIssue> issues = new ArrayList<>();
         synchronized (this.tickets) {
-            this.tickets.forEachValue(new TObjectProcedure<ModToolIssue>() {
-                @Override
-                public boolean execute(ModToolIssue object) {
-                    if (object.senderId == habbo.getHabboInfo().getId() && object.state == ModToolTicketState.OPEN) {
-                        issues.add(object);
-                    }
-
-                    return true;
+            for (ModToolIssue object : this.tickets.values()) {
+                if (object.senderId == habbo.getHabboInfo().getId() && object.state == ModToolTicketState.OPEN) {
+                    issues.add(object);
                 }
-            });
+            }
         }
 
         return issues;

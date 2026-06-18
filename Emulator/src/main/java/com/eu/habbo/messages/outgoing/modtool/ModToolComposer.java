@@ -10,12 +10,11 @@ import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TObjectProcedure;
 import gnu.trove.set.hash.THashSet;
 
 import java.util.Iterator;
 
-public class ModToolComposer extends MessageComposer implements TObjectProcedure<ModToolCategory> {
+public class ModToolComposer extends MessageComposer {
     private final Habbo habbo;
 
     public ModToolComposer(Habbo habbo) {
@@ -62,7 +61,9 @@ public class ModToolComposer extends MessageComposer implements TObjectProcedure
 
         this.response.appendInt(Emulator.getGameEnvironment().getModToolManager().getCategory().size());
 
-        Emulator.getGameEnvironment().getModToolManager().getCategory().forEachValue(this);
+        for (ModToolCategory category : Emulator.getGameEnvironment().getModToolManager().getCategory().values()) {
+            this.response.appendString(category.getName());
+        }
 
         this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_TICKET_Q)); //ticketQueueueuhuehuehuehue
         this.response.appendBoolean(this.habbo.hasPermission(Permission.ACC_MODTOOL_USER_LOGS)); //user chatlogs
@@ -80,19 +81,6 @@ public class ModToolComposer extends MessageComposer implements TObjectProcedure
         }
 
         return this.response;
-    }
-
-    @Override
-    public boolean execute(ModToolCategory category) {
-        this.response.appendString(category.getName());
-
-
-//
-
-//
-
-
-        return true;
     }
 
     public Habbo getHabbo() {
