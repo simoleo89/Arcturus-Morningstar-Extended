@@ -13,11 +13,10 @@ import com.eu.habbo.habbohotel.wired.core.WiredEvent;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.habbohotel.wired.core.WiredTriggerSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class WiredTriggerFurniStateToggled extends InteractionWiredTrigger {
@@ -25,18 +24,18 @@ public class WiredTriggerFurniStateToggled extends InteractionWiredTrigger {
     private static final int MODE_ALL_STATES = 0;
     private static final int MODE_SAVED_STATE = 1;
 
-    private THashSet<StateSnapshot> snapshots;
+    private HashSet<StateSnapshot> snapshots;
     private int triggerMode = MODE_ALL_STATES;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredTriggerFurniStateToggled(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.snapshots = new THashSet<>();
+        this.snapshots = new HashSet<>();
     }
 
     public WiredTriggerFurniStateToggled(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.snapshots = new THashSet<>();
+        this.snapshots = new HashSet<>();
     }
 
     @Override
@@ -82,7 +81,7 @@ public class WiredTriggerFurniStateToggled extends InteractionWiredTrigger {
 
     @Override
     public void loadWiredData(ResultSet set, Room room) throws SQLException {
-        this.snapshots = new THashSet<>();
+        this.snapshots = new HashSet<>();
         this.triggerMode = MODE_ALL_STATES;
         this.furniSource = WiredSourceUtil.SOURCE_TRIGGER;
         String wiredData = set.getString("wired_data");
@@ -150,7 +149,7 @@ public class WiredTriggerFurniStateToggled extends InteractionWiredTrigger {
 
     @Override
     public void serializeWiredData(ServerMessage message, Room room) {
-        THashSet<StateSnapshot> snapshotsToRemove = new THashSet<>();
+        HashSet<StateSnapshot> snapshotsToRemove = new HashSet<>();
 
         for (StateSnapshot snapshot : this.snapshots) {
             HabboItem item = room.getHabboItem(snapshot.itemId);

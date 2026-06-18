@@ -3,10 +3,10 @@ package com.eu.habbo.habbohotel.wired.core;
 import com.eu.habbo.habbohotel.items.interactions.InteractionWiredExtra;
 import com.eu.habbo.habbohotel.items.interactions.wired.extra.WiredExtraVariableTextConnector;
 import com.eu.habbo.habbohotel.rooms.Room;
-import gnu.trove.set.hash.THashSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +48,7 @@ public final class WiredVariableTextConnectorSupport {
             return Collections.emptyList();
         }
 
-        THashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(definition.getX(), definition.getY());
+        HashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(definition.getX(), definition.getY());
         if (extras == null || extras.isEmpty()) {
             return Collections.emptyList();
         }

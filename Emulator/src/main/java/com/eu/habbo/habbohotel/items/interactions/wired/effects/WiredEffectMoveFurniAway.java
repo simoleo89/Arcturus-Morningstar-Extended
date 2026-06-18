@@ -15,7 +15,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredSimulation;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class WiredEffectMoveFurniAway extends InteractionWiredEffect {
     public static final WiredEffectType type = WiredEffectType.FLEE;
 
-    private THashSet<HabboItem> items = new THashSet<>();
+    private HashSet<HabboItem> items = new HashSet<>();
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredEffectMoveFurniAway(ResultSet set, Item baseItem) throws SQLException {
@@ -46,7 +46,7 @@ public class WiredEffectMoveFurniAway extends InteractionWiredEffect {
 
         List<HabboItem> effectiveItems = WiredSourceUtil.resolveItems(ctx, this.furniSource, this.items);
         if (this.furniSource == WiredSourceUtil.SOURCE_SELECTED) {
-            THashSet<HabboItem> toRemove = new THashSet<>();
+            HashSet<HabboItem> toRemove = new HashSet<>();
             for (HabboItem item : effectiveItems) {
                 if (item != null && item.getRoomId() == 0) {
                     toRemove.add(item);
@@ -173,7 +173,7 @@ public class WiredEffectMoveFurniAway extends InteractionWiredEffect {
 
     @Override
     public void loadWiredData(ResultSet set, Room room) throws SQLException {
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
         String wiredData = set.getString("wired_data");
 
         if (wiredData.startsWith("{")) {
@@ -224,7 +224,7 @@ public class WiredEffectMoveFurniAway extends InteractionWiredEffect {
     @Override
     public void serializeWiredData(ServerMessage message, Room room) {
         List<HabboItem> itemsSnapshot = new ArrayList<>(this.items);
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         for (HabboItem item : itemsSnapshot) {
             if (item.getRoomId() != this.getRoomId() || Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId()).getHabboItem(item.getId()) == null)

@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.modtool.ModToolChatLog;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.map.hash.TIntIntHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.util.Calendar;
 
@@ -18,7 +18,7 @@ public class GuardianVotingRequestedComposer extends MessageComposer {
 
     @Override
     protected ServerMessage composeInternal() {
-        TIntIntHashMap mappedUsers = new TIntIntHashMap();
+        Int2IntOpenHashMap mappedUsers = new Int2IntOpenHashMap();
         mappedUsers.put(this.ticket.getReported().getHabboInfo().getId(), 0);
 
         Calendar c = Calendar.getInstance();

@@ -3,7 +3,7 @@ package com.eu.habbo.habbohotel.modtool;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.plugin.events.sanctions.SanctionEvent;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +17,13 @@ import java.util.Date;
 public class ModToolSanctions {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModToolSanctions.class);
 
-    private final THashMap<Integer, ArrayList<ModToolSanctionItem>> sanctionHashmap;
-    private final THashMap<Integer, ModToolSanctionLevelItem> sanctionLevelsHashmap;
+    private final HashMap<Integer, ArrayList<ModToolSanctionItem>> sanctionHashmap;
+    private final HashMap<Integer, ModToolSanctionLevelItem> sanctionLevelsHashmap;
 
     public ModToolSanctions() {
         long millis = System.currentTimeMillis();
-        this.sanctionHashmap = new THashMap<>();
-        this.sanctionLevelsHashmap = new THashMap<>();
+        this.sanctionHashmap = new HashMap<>();
+        this.sanctionLevelsHashmap = new HashMap<>();
         this.loadModSanctions();
 
         LOGGER.info("Sanctions Manager -> Loaded! ({} MS)", System.currentTimeMillis() - millis);
@@ -52,7 +52,7 @@ public class ModToolSanctions {
         return this.sanctionLevelsHashmap.get(sanctionLevel);
     }
 
-    public THashMap<Integer, ArrayList<ModToolSanctionItem>> getSanctions(int habboId) {
+    public HashMap<Integer, ArrayList<ModToolSanctionItem>> getSanctions(int habboId) {
         synchronized (this.sanctionHashmap) {
             this.sanctionHashmap.clear();
             try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT * FROM sanctions WHERE habbo_id = ? ORDER BY id ASC")) {

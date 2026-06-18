@@ -9,6 +9,7 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -50,7 +51,9 @@ public class TalentTrackComposer extends MessageComposer {
                     this.response.appendInt(level.achievements.size());
 
                     final TalentTrackState finalState = state;
-                    level.achievements.forEachEntry((achievement, index) -> {
+                    for (Object2IntMap.Entry<com.eu.habbo.habbohotel.achievements.Achievement> entry : level.achievements.object2IntEntrySet()) {
+                        com.eu.habbo.habbohotel.achievements.Achievement achievement = entry.getKey();
+                        int index = entry.getIntValue();
                         if (achievement != null) {
                             this.response.appendInt(achievement.id);
 
@@ -84,8 +87,7 @@ public class TalentTrackComposer extends MessageComposer {
                             this.response.appendInt(0);
                             this.response.appendInt(0);
                         }
-                        return true;
-                    });
+                    }
 
 
                     if (level.perks != null && level.perks.length > 0) {

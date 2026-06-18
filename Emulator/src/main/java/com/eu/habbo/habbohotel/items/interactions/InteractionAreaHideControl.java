@@ -10,13 +10,13 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.habbohotel.wired.WiredEffectType;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class InteractionAreaHideControl extends InteractionCustomValues {
-    public static final THashMap<String, String> defaultValues = new THashMap<String, String>() {
+    public static final HashMap<String, String> defaultValues = new HashMap<String, String>() {
         {
             this.put("state", "0");
         }
@@ -108,7 +108,7 @@ public class InteractionAreaHideControl extends InteractionCustomValues {
     }
 
     @Override
-    public void onCustomValuesSaved(Room room, GameClient client, THashMap<String, String> oldValues) {
+    public void onCustomValuesSaved(Room room, GameClient client, HashMap<String, String> oldValues) {
         this.normalizeValues();
     }
 

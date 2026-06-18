@@ -3,7 +3,7 @@ package com.eu.habbo.habbohotel.navigation;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.users.Habbo;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +25,9 @@ public class NavigatorManager {
     public static int MAXIMUM_RESULTS_PER_PAGE = 10;
     public static boolean CATEGORY_SORT_USING_ORDER_NUM = false;
 
-    public final THashMap<Integer, NavigatorPublicCategory> publicCategories = new THashMap<>();
+    public final HashMap<Integer, NavigatorPublicCategory> publicCategories = new HashMap<>();
     public final ConcurrentHashMap<String, NavigatorFilterField> filterSettings = new ConcurrentHashMap<>();
-    public final THashMap<String, NavigatorFilter> filters = new THashMap<>();
+    public final HashMap<String, NavigatorFilter> filters = new HashMap<>();
 
     public NavigatorManager() {
         long millis = System.currentTimeMillis();

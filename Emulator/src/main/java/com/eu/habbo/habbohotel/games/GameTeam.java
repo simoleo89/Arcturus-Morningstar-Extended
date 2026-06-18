@@ -1,19 +1,19 @@
 package com.eu.habbo.habbohotel.games;
 
 import com.eu.habbo.habbohotel.users.Habbo;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 public class GameTeam {
 
     public final GameTeamColors teamColor;
-    private final THashSet<GamePlayer> members;
+    private final HashSet<GamePlayer> members;
     private int teamScore;
 
 
     public GameTeam(GameTeamColors teamColor) {
         this.teamColor = teamColor;
 
-        this.members = new THashSet<>();
+        this.members = new HashSet<>();
     }
 
 
@@ -88,7 +88,7 @@ public class GameTeam {
     }
 
 
-    public THashSet<GamePlayer> getMembers() {
+    public HashSet<GamePlayer> getMembers() {
         return this.members;
     }
 

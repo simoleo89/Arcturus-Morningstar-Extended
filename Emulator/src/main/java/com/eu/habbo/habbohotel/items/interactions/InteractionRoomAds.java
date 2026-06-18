@@ -3,13 +3,13 @@ package com.eu.habbo.habbohotel.items.interactions;
 import com.eu.habbo.habbohotel.items.Item;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class InteractionRoomAds extends InteractionCustomValues {
-    public final static THashMap<String, String> defaultValues = new THashMap<String, String>() {
+    public final static HashMap<String, String> defaultValues = new HashMap<String, String>() {
         {
             this.put("imageUrl", "");
         }

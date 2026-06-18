@@ -6,9 +6,8 @@ import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.set.hash.THashSet;
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,7 +17,7 @@ public class UpdateStackHeightComposer extends MessageComposer {
     private short z;
     private double height;
 
-    private THashSet<RoomTile> updateTiles;
+    private HashSet<RoomTile> updateTiles;
     private Room room;
 
     public UpdateStackHeightComposer(int x, int y, short z, double height) {
@@ -28,7 +27,7 @@ public class UpdateStackHeightComposer extends MessageComposer {
         this.height = height;
     }
 
-    public UpdateStackHeightComposer(Room room, THashSet<RoomTile> updateTiles) {
+    public UpdateStackHeightComposer(Room room, HashSet<RoomTile> updateTiles) {
         this.updateTiles = updateTiles;
         this.room = room;
     }
@@ -56,7 +55,7 @@ public class UpdateStackHeightComposer extends MessageComposer {
 
                 List<RoomTile> remainingTiles = tilesCopy.subList(127, tilesCopy.size());
                 if (!remainingTiles.isEmpty()) {
-                    this.room.sendComposer(new UpdateStackHeightComposer(this.room, new THashSet<>(remainingTiles)).compose());
+                    this.room.sendComposer(new UpdateStackHeightComposer(this.room, new HashSet<>(remainingTiles)).compose());
                 }
 
                 return this.response;
@@ -102,7 +101,7 @@ public class UpdateStackHeightComposer extends MessageComposer {
         return height;
     }
 
-    public THashSet<RoomTile> getUpdateTiles() {
+    public HashSet<RoomTile> getUpdateTiles() {
         return updateTiles;
     }
 

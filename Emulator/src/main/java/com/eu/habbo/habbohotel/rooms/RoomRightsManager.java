@@ -16,9 +16,9 @@ import com.eu.habbo.messages.outgoing.rooms.users.RoomUserUnbannedComposer;
 import com.eu.habbo.habbohotel.messenger.MessengerBuddy;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.plugin.events.users.UserRightsTakenEvent;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +37,15 @@ public class RoomRightsManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoomRightsManager.class);
 
     private final Room room;
-    private final TIntArrayList rights;
-    private final TIntObjectHashMap<RoomBan> bannedHabbos;
-    private final TIntIntHashMap mutedHabbos;
+    private final IntArrayList rights;
+    private final Int2ObjectOpenHashMap<RoomBan> bannedHabbos;
+    private final Int2IntOpenHashMap mutedHabbos;
 
     public RoomRightsManager(Room room) {
         this.room = room;
-        this.rights = new TIntArrayList();
-        this.bannedHabbos = new TIntObjectHashMap<>();
-        this.mutedHabbos = new TIntIntHashMap();
+        this.rights = new IntArrayList();
+        this.bannedHabbos = new Int2ObjectOpenHashMap<>();
+        this.mutedHabbos = new Int2IntOpenHashMap();
     }
 
     /**
@@ -203,7 +203,7 @@ public class RoomRightsManager {
 
         this.room.sendComposer(new RoomRemoveRightsListComposer(this.room, userId).compose());
 
-        if (this.rights.remove(userId)) {
+        if (this.rights.rem(userId)) {
             try {
                 SqlQueries.update(
                     "DELETE FROM room_rights WHERE room_id = ? AND user_id = ?",
@@ -225,7 +225,7 @@ public class RoomRightsManager {
      * Removes all rights from the room.
      */
     public void removeAllRights() {
-        for (int userId : rights.toArray()) {
+        for (int userId : rights.toIntArray()) {
             this.room.getItemManager().ejectUserFurni(userId);
         }
 
@@ -348,7 +348,7 @@ public class RoomRightsManager {
     /**
      * Gets all banned users.
      */
-    public TIntObjectHashMap<RoomBan> getBannedHabbos() {
+    public Int2ObjectOpenHashMap<RoomBan> getBannedHabbos() {
         return this.bannedHabbos;
     }
 
@@ -401,14 +401,14 @@ public class RoomRightsManager {
     /**
      * Gets the rights list.
      */
-    public TIntArrayList getRights() {
+    public IntArrayList getRights() {
         return this.rights;
     }
 
     /**
      * Gets the muted habbos map.
      */
-    public TIntIntHashMap getMutedHabbos() {
+    public Int2IntOpenHashMap getMutedHabbos() {
         return this.mutedHabbos;
     }
 

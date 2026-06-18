@@ -15,7 +15,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,7 +44,7 @@ public class WiredExtraTextOutputVariable extends InteractionWiredExtra {
     private static final String INTERNAL_TOKEN_PREFIX = "internal:";
     private static final Pattern WRAPPED_PLACEHOLDER_PATTERN = Pattern.compile("^\\$\\((.*)\\)$");
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int targetType = TARGET_USER;
     private int displayType = DISPLAY_NUMERIC;
     private int placeholderType = TYPE_SINGLE;
@@ -57,12 +57,12 @@ public class WiredExtraTextOutputVariable extends InteractionWiredExtra {
 
     public WiredExtraTextOutputVariable(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredExtraTextOutputVariable(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -284,7 +284,7 @@ public class WiredExtraTextOutputVariable extends InteractionWiredExtra {
         return this.furniSource;
     }
 
-    public THashSet<HabboItem> getItems() {
+    public HashSet<HabboItem> getItems() {
         return this.items;
     }
 
@@ -294,7 +294,7 @@ public class WiredExtraTextOutputVariable extends InteractionWiredExtra {
     }
 
     public void refresh(Room room) {
-        THashSet<HabboItem> remove = new THashSet<>();
+        HashSet<HabboItem> remove = new HashSet<>();
 
         for (HabboItem item : this.items) {
             if (room == null || room.getHabboItem(item.getId()) == null) {

@@ -9,12 +9,10 @@ import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.habbohotel.users.Habbo;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntObjectProcedure;
-import gnu.trove.set.hash.THashSet;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class PetManager {
@@ -29,7 +29,7 @@ public class PetManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(PetManager.class);
     public static final int[] experiences = new int[]{100, 200, 400, 600, 900, 1300, 1800, 2400, 3200, 4300, 5700, 7600, 10100, 13300, 17500, 23000, 30200, 39600, 51900};
     static int[] skins = new int[]{0, 1, 6, 7};
-    public final THashMap<Integer, PetAction> petActions = new THashMap<Integer, PetAction>() {
+    public final HashMap<Integer, PetAction> petActions = new HashMap<Integer, PetAction>() {
         {
             this.put(0, new ActionFree());
             this.put(1, new ActionSit());
@@ -80,19 +80,19 @@ public class PetManager {
 
         }
     };
-    private final THashMap<Integer, THashSet<PetRace>> petRaces;
-    private final THashMap<Integer, PetData> petData;
-    private final TIntIntMap breedingPetType;
-    private final THashMap<Integer, TIntObjectHashMap<ArrayList<PetBreedingReward>>> breedingReward;
+    private final HashMap<Integer, HashSet<PetRace>> petRaces;
+    private final HashMap<Integer, PetData> petData;
+    private final Int2IntMap breedingPetType;
+    private final HashMap<Integer, Int2ObjectOpenHashMap<ArrayList<PetBreedingReward>>> breedingReward;
 
 
     public PetManager() {
         long millis = System.currentTimeMillis();
 
-        this.petRaces = new THashMap<>();
-        this.petData = new THashMap<>();
-        this.breedingPetType = new TIntIntHashMap();
-        this.breedingReward = new THashMap<>();
+        this.petRaces = new HashMap<>();
+        this.petData = new HashMap<>();
+        this.breedingPetType = new Int2IntOpenHashMap();
+        this.breedingReward = new HashMap<>();
 
         reloadPetData();
 
@@ -191,7 +191,7 @@ public class PetManager {
         try (Statement statement = connection.createStatement(); ResultSet set = statement.executeQuery("SELECT * FROM pet_breeds ORDER BY race, color_one, color_two ASC")) {
             while (set.next()) {
                 if (this.petRaces.get(set.getInt("race")) == null)
-                    this.petRaces.put(set.getInt("race"), new THashSet<>());
+                    this.petRaces.put(set.getInt("race"), new HashSet<>());
 
                 this.petRaces.get(set.getInt("race")).add(new PetRace(set));
             }
@@ -267,7 +267,7 @@ public class PetManager {
                     }
                 } else {
                     if (!PetData.generalPetVocals.containsKey(PetVocalsType.valueOf(set.getString("type").toUpperCase())))
-                        PetData.generalPetVocals.put(PetVocalsType.valueOf(set.getString("type").toUpperCase()), new THashSet<>());
+                        PetData.generalPetVocals.put(PetVocalsType.valueOf(set.getString("type").toUpperCase()), new HashSet<>());
 
                     PetData.generalPetVocals.get(PetVocalsType.valueOf(set.getString("type").toUpperCase())).add(new PetVocal(set.getString("message")));
                 }
@@ -278,7 +278,7 @@ public class PetManager {
     }
 
     private void loadPetCommands(Connection connection) {
-        THashMap<Integer, PetCommand> commandsList = new THashMap<>();
+        HashMap<Integer, PetCommand> commandsList = new HashMap<>();
         try (Statement statement = connection.createStatement(); ResultSet set = statement.executeQuery("SELECT * FROM pet_commands_data")) {
             while (set.next()) {
                 commandsList.put(set.getInt("command_id"), new PetCommand(set, this.petActions.get(set.getInt("command_id"))));
@@ -313,7 +313,7 @@ public class PetManager {
             while (set.next()) {
                 PetBreedingReward reward = new PetBreedingReward(set);
                 if (!this.breedingReward.containsKey(reward.petType)) {
-                    this.breedingReward.put(reward.petType, new TIntObjectHashMap<>());
+                    this.breedingReward.put(reward.petType, new Int2ObjectOpenHashMap<>());
                 }
 
                 if (!this.breedingReward.get(reward.petType).containsKey(reward.rarityLevel)) {
@@ -327,7 +327,7 @@ public class PetManager {
         }
     }
 
-    public THashSet<PetRace> getBreeds(String petName) {
+    public HashSet<PetRace> getBreeds(String petName) {
         if (!petName.matches("a0 pet\\d{1,3}")) {
             LOGGER.error("Pet data '{}' not found. Expected format: a0 pet<0-999>", petName);
             return null;
@@ -337,28 +337,30 @@ public class PetManager {
         return this.petRaces.get(petId);
     }
 
-    public TIntObjectHashMap<ArrayList<PetBreedingReward>> getBreedingRewards(int petType) {
+    public Int2ObjectOpenHashMap<ArrayList<PetBreedingReward>> getBreedingRewards(int petType) {
         return this.breedingReward.get(petType);
     }
 
     public int getRarityForOffspring(Pet pet) {
         final int[] rarityLevel = {0};
 
-        TIntObjectHashMap<ArrayList<PetBreedingReward>> offspringList = this.breedingReward.get(pet.getPetData().getType());
+        Int2ObjectOpenHashMap<ArrayList<PetBreedingReward>> offspringList = this.breedingReward.get(pet.getPetData().getType());
 
-        offspringList.forEachEntry(new TIntObjectProcedure<ArrayList<PetBreedingReward>>() {
-            @Override
-            public boolean execute(int i, ArrayList<PetBreedingReward> petBreedingRewards) {
-                for (PetBreedingReward reward : petBreedingRewards) {
-                    if (reward.breed == pet.getRace()) {
-                        rarityLevel[0] = i;
-                        return false;
-                    }
+        for (Int2ObjectMap.Entry<ArrayList<PetBreedingReward>> e : offspringList.int2ObjectEntrySet()) {
+            int i = e.getIntKey();
+            ArrayList<PetBreedingReward> petBreedingRewards = e.getValue();
+            boolean found = false;
+            for (PetBreedingReward reward : petBreedingRewards) {
+                if (reward.breed == pet.getRace()) {
+                    rarityLevel[0] = i;
+                    found = true;
+                    break;
                 }
-
-                return true;
             }
-        });
+            if (found) {
+                break;
+            }
+        }
 
         return 4 - rarityLevel[0];
     }

@@ -15,14 +15,13 @@ import com.eu.habbo.habbohotel.wired.core.WiredEvent;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.habbohotel.wired.core.WiredTriggerSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.procedure.TObjectProcedure;
-import gnu.trove.set.hash.THashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,19 +32,19 @@ public class WiredTriggerBotReachedFurni extends InteractionWiredTrigger {
 
     public final static WiredTriggerType type = WiredTriggerType.BOT_REACHED_STF;
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private String botName = "";
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
     private int botSource = BOT_SOURCE_NAME;
 
     public WiredTriggerBotReachedFurni(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredTriggerBotReachedFurni(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -55,7 +54,7 @@ public class WiredTriggerBotReachedFurni extends InteractionWiredTrigger {
 
     @Override
     public void serializeWiredData(ServerMessage message, Room room) {
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
 
         if (Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId()) == null) {
             items.addAll(this.items);
@@ -87,15 +86,11 @@ public class WiredTriggerBotReachedFurni extends InteractionWiredTrigger {
 
         if (!this.isTriggeredByRoomUnit()) {
             List<Integer> invalidTriggers = new ArrayList<>();
-            room.getRoomSpecialTypes().getEffects(this.getX(), this.getY()).forEach(new TObjectProcedure<InteractionWiredEffect>() {
-                @Override
-                public boolean execute(InteractionWiredEffect object) {
-                    if (object.requiresTriggeringUser()) {
-                        invalidTriggers.add(object.getBaseItem().getSpriteId());
-                    }
-                    return true;
+            for (InteractionWiredEffect object : room.getRoomSpecialTypes().getEffects(this.getX(), this.getY())) {
+                if (object.requiresTriggeringUser()) {
+                    invalidTriggers.add(object.getBaseItem().getSpriteId());
                 }
-            });
+            }
             message.appendInt(invalidTriggers.size());
             for (Integer i : invalidTriggers) {
                 message.appendInt(i);

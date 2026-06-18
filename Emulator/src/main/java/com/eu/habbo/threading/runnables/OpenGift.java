@@ -10,7 +10,7 @@ import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.messages.outgoing.inventory.InventoryUpdateItemComposer;
 import com.eu.habbo.messages.outgoing.rooms.items.PresentItemOpenedComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ public class OpenGift implements Runnable {
         try {
             HabboItem inside = null;
 
-            THashSet<HabboItem> items = ((InteractionGift) this.item).loadItems();
+            HashSet<HabboItem> items = ((InteractionGift) this.item).loadItems();
             for (HabboItem i : items) {
                 if (inside == null)
                     inside = i;

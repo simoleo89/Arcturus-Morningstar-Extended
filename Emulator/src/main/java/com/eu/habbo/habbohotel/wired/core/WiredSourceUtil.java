@@ -11,11 +11,11 @@ import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.habbohotel.wired.api.IWiredEffect;
-import gnu.trove.set.hash.THashSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 public final class WiredSourceUtil {
@@ -209,7 +209,7 @@ public final class WiredSourceUtil {
             }
         }
 
-        THashSet<InteractionWiredEffect> roomEffects = room.getRoomSpecialTypes().getEffects(triggerItem.getX(), triggerItem.getY());
+        HashSet<InteractionWiredEffect> roomEffects = room.getRoomSpecialTypes().getEffects(triggerItem.getX(), triggerItem.getY());
         for (InteractionWiredEffect effect : WiredExecutionOrderUtil.sort(roomEffects)) {
             if (effect != null && effect.isSelector()) {
                 selectorEffects.add(effect);

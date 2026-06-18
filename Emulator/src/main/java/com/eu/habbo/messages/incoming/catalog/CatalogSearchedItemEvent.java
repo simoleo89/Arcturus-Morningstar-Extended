@@ -5,7 +5,7 @@ import com.eu.habbo.habbohotel.catalog.CatalogItem;
 import com.eu.habbo.habbohotel.catalog.CatalogPage;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.catalog.CatalogSearchResultComposer;
-import gnu.trove.iterator.TIntObjectIterator;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 public class CatalogSearchedItemEvent extends MessageHandler {
     @Override
@@ -18,12 +18,8 @@ public class CatalogSearchedItemEvent extends MessageHandler {
             CatalogPage page = Emulator.getGameEnvironment().getCatalogManager().getCatalogPage(Emulator.getGameEnvironment().getCatalogManager().getCatalogItem(pageId).getPageId());
 
             if (page != null) {
-                TIntObjectIterator<CatalogItem> iterator = page.getCatalogItems().iterator();
-
-                while (iterator.hasNext()) {
-                    iterator.advance();
-
-                    CatalogItem item = iterator.value();
+                for (Int2ObjectMap.Entry<CatalogItem> entry : page.getCatalogItems().int2ObjectEntrySet()) {
+                    CatalogItem item = entry.getValue();
 
                     if (item.getOfferId() == offerId) {
                         this.client.sendResponse(new CatalogSearchResultComposer(item));

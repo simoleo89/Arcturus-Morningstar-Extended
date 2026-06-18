@@ -4,7 +4,7 @@ import com.eu.habbo.habbohotel.campaign.calendar.CalendarRewardClaimed;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.list.array.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.util.ArrayList;
 
@@ -34,27 +34,26 @@ public class AdventCalendarDataComposer extends MessageComposer {
         this.response.appendInt(this.totalDays);
         this.response.appendInt(this.unlocked.size());
 
-        TIntArrayList expired = new TIntArrayList();
+        IntArrayList expired = new IntArrayList();
         if (this.lockExpired) { for (int i = 0; i < this.totalDays; i++) {
             expired.add(i);
         }
         }
-        expired.remove(this.currentDay);
-        if(this.currentDay > 1) expired.remove(this.currentDay - 2);
-        if(this.currentDay > 0) expired.remove(this.currentDay - 1);
+        expired.rem(this.currentDay);
+        if(this.currentDay > 1) expired.rem(this.currentDay - 2);
+        if(this.currentDay > 0) expired.rem(this.currentDay - 1);
 
         this.unlocked.forEach(claimed -> {
             AdventCalendarDataComposer.this.response.appendInt(claimed.getDay());
-            expired.remove(claimed.getDay());
+            expired.rem(claimed.getDay());
         });
 
 
         if (this.lockExpired) {
             this.response.appendInt(expired.size());
-            expired.forEach(value -> {
-                AdventCalendarDataComposer.this.response.appendInt(value);
-                return true;
-            });
+            for (int value : expired) {
+                this.response.appendInt(value);
+            }
         } else {
             this.response.appendInt(0);
         }

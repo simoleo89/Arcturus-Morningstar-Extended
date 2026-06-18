@@ -34,7 +34,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
 import com.eu.habbo.util.HotelDateTimeUtil;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -81,7 +81,7 @@ public abstract class WiredEffectVariableSelectorBase extends InteractionWiredEf
     protected int variableItemId = 0;
     protected String referenceVariableToken = "";
     protected int referenceVariableItemId = 0;
-    protected final THashSet<HabboItem> referenceSelectedItems = new THashSet<>();
+    protected final HashSet<HabboItem> referenceSelectedItems = new HashSet<>();
 
     protected WiredEffectVariableSelectorBase(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
@@ -663,7 +663,7 @@ public abstract class WiredEffectVariableSelectorBase extends InteractionWiredEf
     }
 
     private void refreshReferenceItems() {
-        THashSet<HabboItem> staleItems = new THashSet<>();
+        HashSet<HabboItem> staleItems = new HashSet<>();
         Room room = this.getRoom();
 
         if (room == null) {
@@ -693,7 +693,7 @@ public abstract class WiredEffectVariableSelectorBase extends InteractionWiredEf
         this.referenceVariableItemId = getCustomItemId(this.referenceVariableToken);
     }
 
-    private List<Integer> toIds(THashSet<HabboItem> items) {
+    private List<Integer> toIds(HashSet<HabboItem> items) {
         List<Integer> ids = new ArrayList<>();
 
         for (HabboItem item : items) {

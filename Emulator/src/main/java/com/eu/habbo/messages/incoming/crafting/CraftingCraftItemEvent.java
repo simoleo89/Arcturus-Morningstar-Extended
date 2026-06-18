@@ -13,7 +13,7 @@ import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.messages.outgoing.inventory.RemoveHabboItemComposer;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItems;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.Map;
 
@@ -31,7 +31,7 @@ public class CraftingCraftItemEvent extends MessageHandler {
                 return;
             }
 
-            TIntObjectHashMap<HabboItem> toRemove = new TIntObjectHashMap<>();
+            Int2ObjectOpenHashMap<HabboItem> toRemove = new Int2ObjectOpenHashMap<>();
             for (Map.Entry<Item, Integer> set : recipe.getIngredients().entrySet()) {
                 for (int i = 0; i < set.getValue(); i++) {
                     HabboItem habboItem = this.client.getHabbo().getInventory().getItemsComponent().getAndRemoveHabboItem(set.getKey());
@@ -62,10 +62,9 @@ public class CraftingCraftItemEvent extends MessageHandler {
                 this.client.getHabbo().getInventory().getItemsComponent().addItem(rewardItem);
                 this.client.sendResponse(new AddHabboItemComposer(rewardItem));
                 AchievementManager.progressAchievement(this.client.getHabbo(), Emulator.getGameEnvironment().getAchievementManager().getAchievement("Atcg"));
-                toRemove.forEachValue(object -> {
-                    CraftingCraftItemEvent.this.client.sendResponse(new RemoveHabboItemComposer(object.getGiftAdjustedId()));
-                    return true;
-                });
+                for (HabboItem object : toRemove.values()) {
+                    this.client.sendResponse(new RemoveHabboItemComposer(object.getGiftAdjustedId()));
+                }
                 this.client.sendResponse(new InventoryRefreshComposer());
 
                 Emulator.getThreading().run(new QueryDeleteHabboItems(toRemove));
@@ -80,15 +79,14 @@ public class CraftingCraftItemEvent extends MessageHandler {
         this.client.sendResponse(new CraftingResultComposer(null));
     }
 
-    private void restoreItems(TIntObjectHashMap<HabboItem> items) {
+    private void restoreItems(Int2ObjectOpenHashMap<HabboItem> items) {
         if (items.isEmpty()) {
             return;
         }
-        items.forEachValue(item -> {
+        for (HabboItem item : items.values()) {
             this.client.getHabbo().getInventory().getItemsComponent().addItem(item);
             this.client.sendResponse(new AddHabboItemComposer(item));
-            return true;
-        });
+        }
         this.client.sendResponse(new InventoryRefreshComposer());
     }
 }

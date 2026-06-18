@@ -12,6 +12,7 @@ import com.eu.habbo.messages.outgoing.rooms.UpdateStackHeightComposer;
 import com.eu.habbo.messages.outgoing.rooms.items.RemoveFloorItemComposer;
 import com.eu.habbo.messages.outgoing.users.UserClothesComposer;
 import com.eu.habbo.threading.runnables.QueryDeleteHabboItem;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class RedeemClothingEvent extends MessageHandler {
                             }
 
                             this.client.getHabbo().getInventory().getWardrobeComponent().getClothing().add(clothing.id);
-                            this.client.getHabbo().getInventory().getWardrobeComponent().getClothingSets().addAll(clothing.setId);
+                            this.client.getHabbo().getInventory().getWardrobeComponent().getClothingSets().addAll(IntArrayList.wrap(clothing.setId));
                             this.client.sendResponse(new UserClothesComposer(this.client.getHabbo()));
                             this.client.sendResponse(new BubbleAlertComposer(BubbleAlertKeys.FIGURESET_REDEEMED.key));
 

@@ -6,14 +6,14 @@ import com.eu.habbo.habbohotel.items.Item;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class InteractionGuildFurni extends InteractionDefault {
     private int guildId;
-    private static final THashSet<String> ROTATION_8_ITEMS = new THashSet<String>() {
+    private static final HashSet<String> ROTATION_8_ITEMS = new HashSet<String>() {
         {
             this.add("gld_wall_tall");
         }

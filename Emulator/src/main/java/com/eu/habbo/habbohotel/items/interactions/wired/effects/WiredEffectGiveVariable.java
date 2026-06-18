@@ -17,7 +17,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredSaveException;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,16 +37,16 @@ public class WiredEffectGiveVariable extends InteractionWiredEffect {
     private int initialValue = 0;
     private int userSource = WiredSourceUtil.SOURCE_TRIGGER;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
-    private final THashSet<HabboItem> selectedFurni;
+    private final HashSet<HabboItem> selectedFurni;
 
     public WiredEffectGiveVariable(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.selectedFurni = new THashSet<>();
+        this.selectedFurni = new HashSet<>();
     }
 
     public WiredEffectGiveVariable(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.selectedFurni = new THashSet<>();
+        this.selectedFurni = new HashSet<>();
     }
 
     @Override
@@ -369,7 +369,7 @@ public class WiredEffectGiveVariable extends InteractionWiredEffect {
         return this.furniSource;
     }
 
-    public THashSet<HabboItem> getSelectedFurni() {
+    public HashSet<HabboItem> getSelectedFurni() {
         return this.selectedFurni;
     }
 

@@ -14,21 +14,21 @@ import com.eu.habbo.habbohotel.rooms.RoomRightLevels;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserTypingComposer;
 import com.eu.habbo.plugin.events.users.UserCommandEvent;
 import com.eu.habbo.plugin.events.users.UserExecuteCommandEvent;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.hash.THashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Map;
 
 public class CommandHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandHandler.class);
 
-    private final static THashMap<String, Command> commands = new THashMap<>(5);
+    private final static HashMap<String, Command> commands = new HashMap<>(5);
     private static final Comparator<Command> ALPHABETICAL_ORDER = new Comparator<Command>() {
         public int compare(Command c1, Command c2) {
             int res = String.CASE_INSENSITIVE_ORDER.compare(c1.permission, c2.permission);
@@ -115,16 +115,8 @@ public class CommandHandler {
                     if (room.getCurrentPets().isEmpty())
                         return false;
 
-                    TIntObjectIterator<Pet> petIterator = room.getCurrentPets().iterator();
-
-                    for (int j = room.getCurrentPets().size(); j-- > 0; ) {
-                        try {
-                            petIterator.advance();
-                        } catch (NoSuchElementException e) {
-                            break;
-                        }
-
-                        Pet pet = petIterator.value();
+                    for (Int2ObjectMap.Entry<Pet> petEntry : room.getCurrentPets().int2ObjectEntrySet()) {
+                        Pet pet = petEntry.getValue();
 
                         if (pet != null) {
                             if (pet.getName().equalsIgnoreCase(args[0])) {
@@ -310,13 +302,13 @@ public class CommandHandler {
     public List<Command> getCommandsForRank(int rankId) {
         List<Command> allowedCommands = new ArrayList<>();
         if (Emulator.getGameEnvironment().getPermissionsManager().rankExists(rankId)) {
-            THashMap<String, Permission> permissions = Emulator.getGameEnvironment().getPermissionsManager().getRank(rankId).getPermissions();
+            Map<String, Permission> permissions = Emulator.getGameEnvironment().getPermissionsManager().getRank(rankId).getPermissions();
 
             for (Command command : commands.values()) {
                 if (allowedCommands.contains(command))
                     continue;
 
-                if (permissions.contains(command.permission) && permissions.get(command.permission).setting != PermissionSetting.DISALLOWED) {
+                if (permissions.containsKey(command.permission) && permissions.get(command.permission).setting != PermissionSetting.DISALLOWED) {
                     allowedCommands.add(command);
                 }
             }

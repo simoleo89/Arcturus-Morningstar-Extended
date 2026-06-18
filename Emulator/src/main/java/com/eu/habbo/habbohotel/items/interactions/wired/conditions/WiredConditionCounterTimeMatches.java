@@ -13,7 +13,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredContext;
 import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,7 +31,7 @@ public class WiredConditionCounterTimeMatches extends InteractionWiredCondition 
 
     public static final WiredConditionType type = WiredConditionType.COUNTER_TIME_MATCHES;
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int comparison = COMPARISON_EQUAL;
     private int minutes = 0;
     private int halfSecondSteps = 0;
@@ -40,12 +40,12 @@ public class WiredConditionCounterTimeMatches extends InteractionWiredCondition 
 
     public WiredConditionCounterTimeMatches(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredConditionCounterTimeMatches(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -225,7 +225,7 @@ public class WiredConditionCounterTimeMatches extends InteractionWiredCondition 
     }
 
     private void refresh(Room room) {
-        THashSet<HabboItem> remove = new THashSet<>();
+        HashSet<HabboItem> remove = new HashSet<>();
 
         for (HabboItem item : this.items) {
             HabboItem roomItem = room.getHabboItem(item.getId());

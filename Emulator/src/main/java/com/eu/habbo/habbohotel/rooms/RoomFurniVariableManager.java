@@ -11,7 +11,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredVariableLevelSystemSupport;
 import com.eu.habbo.habbohotel.wired.core.WiredVariableTextConnectorSupport;
 import com.eu.habbo.messages.outgoing.wired.WiredUserVariablesDataComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -512,7 +512,7 @@ public class RoomFurniVariableManager {
         }
 
         List<FurniAssignmentsEntry> furnis = new ArrayList<>();
-        THashSet<Integer> furniIds = new THashSet<>();
+        HashSet<Integer> furniIds = new HashSet<>();
         furniIds.addAll(this.activeAssignmentsByFurniId.keySet());
 
         for (HabboItem item : this.room.getFloorItems()) {
@@ -626,7 +626,7 @@ public class RoomFurniVariableManager {
             return Collections.emptyList();
         }
 
-        THashSet<InteractionWiredExtra> extras = this.room.getRoomSpecialTypes().getExtras();
+        HashSet<InteractionWiredExtra> extras = this.room.getRoomSpecialTypes().getExtras();
         List<WiredExtraFurniVariable> result = new ArrayList<>();
 
         for (InteractionWiredExtra extra : extras) {

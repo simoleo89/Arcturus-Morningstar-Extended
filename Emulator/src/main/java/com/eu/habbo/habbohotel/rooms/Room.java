@@ -37,14 +37,11 @@ import com.eu.habbo.plugin.events.furniture.FurniturePickedUpEvent;
 import com.eu.habbo.plugin.events.rooms.RoomLoadedEvent;
 import com.eu.habbo.plugin.events.rooms.RoomUnloadedEvent;
 import com.eu.habbo.plugin.events.rooms.RoomUnloadingEvent;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.THashSet;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +80,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
   public static final Comparator<Room> SORT_SCORE = (o1, o2) -> o2.getScore() - o1.getScore();
   public static final Comparator<Room> SORT_ID = (o1, o2) -> o2.getId() - o1.getId();
-  private static final TIntObjectHashMap<RoomMoodlightData> defaultMoodData = new TIntObjectHashMap<>();
+  private static final Int2ObjectOpenHashMap<RoomMoodlightData> defaultMoodData = new Int2ObjectOpenHashMap<>();
   //Configuration. Loaded from database & updated accordingly.
   public static boolean HABBO_CHAT_DELAY = false;
   public static int MAXIMUM_BOTS = 10;
@@ -116,11 +113,11 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
   public final Object roomUnitLock = new Object();
   public final List<Integer> userVotes;
-  private final TIntArrayList rights;
-  private final TIntIntHashMap mutedHabbos;
-  private final TIntObjectHashMap<RoomBan> bannedHabbos;
+  private final IntArrayList rights;
+  private final Int2IntOpenHashMap mutedHabbos;
+  private final Int2ObjectOpenHashMap<RoomBan> bannedHabbos;
   private final Set<Game> games;
-  private final TIntObjectMap<RoomMoodlightData> moodlightData;
+  private final Int2ObjectMap<RoomMoodlightData> moodlightData;
   public volatile double lastCycleCpuMs = 0.0;
   public volatile String lastCycleThread = "N/A";
 
@@ -225,10 +222,10 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.youtubePlaylist.clear();
   }
 
-  public final THashMap<String, Object> cache;
+  public final HashMap<String, Object> cache;
 
   public Room(ResultSet set) throws SQLException {
-    this.cache = new THashMap<>(1000);
+    this.cache = new HashMap<>(1000);
     this.id = set.getInt("id");
     this.ownerId = set.getInt("owner_id");
     this.ownerName = set.getString("owner_name");
@@ -284,7 +281,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
       this.buildersClubOriginalState = RoomState.OPEN;
     }
 
-    this.bannedHabbos = new TIntObjectHashMap<>();
+    this.bannedHabbos = new Int2ObjectOpenHashMap<>();
 
     try (Connection connection = Emulator.getDatabase().getDataSource().getConnection()) {
       // Load bans eagerly (needed for entry check before loadData)
@@ -300,17 +297,17 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.preLoaded = true;
     this.allowBotsWalk = true;
     this.allowEffects = true;
-    this.moodlightData = new TIntObjectHashMap<>(defaultMoodData);
+    this.moodlightData = new Int2ObjectOpenHashMap<>(defaultMoodData);
 
     for (String s : set.getString("moodlight_data").split(";")) {
       RoomMoodlightData data = RoomMoodlightData.fromString(s);
       this.moodlightData.put(data.getId(), data);
     }
 
-    this.mutedHabbos = new TIntIntHashMap();
+    this.mutedHabbos = new Int2IntOpenHashMap();
     this.games = ConcurrentHashMap.newKeySet();
 
-    this.rights = new TIntArrayList();
+    this.rights = new IntArrayList();
     this.userVotes = new ArrayList<>();
 
     // Initialize managers
@@ -803,7 +800,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.tileManager.updateTile(tile);
   }
 
-  public void updateTiles(THashSet<RoomTile> tiles) {
+  public void updateTiles(HashSet<RoomTile> tiles) {
     this.tileManager.updateTiles(tiles);
   }
 
@@ -847,7 +844,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     if (item.getBaseItem().getType() == FurnitureType.FLOOR) {
       this.sendComposer(new RemoveFloorItemComposer(item).compose());
 
-      THashSet<RoomTile> updatedTiles = new THashSet<>();
+      HashSet<RoomTile> updatedTiles = new HashSet<>();
       Rectangle rectangle = RoomLayout.getRectangle(item.getX(), item.getY(),
               item.getBaseItem().getWidth(), item.getBaseItem().getLength(), item.getRotation());
 
@@ -933,7 +930,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.unitManager.updateHabbosAt(x, y);
   }
 
-  public void updateHabbosAt(short x, short y, THashSet<Habbo> habbos) {
+  public void updateHabbosAt(short x, short y, HashSet<Habbo> habbos) {
     this.unitManager.updateHabbosAt(x, y, habbos);
   }
 
@@ -1037,13 +1034,10 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
           this.sendComposer(new HotelViewComposer().compose());
 
           // Save bots BEFORE clearing - must happen before unitManager.clear()
-          TIntObjectIterator<Bot> botIterator = this.getCurrentBots().iterator();
-
-          for (int i = this.getCurrentBots().size(); i-- > 0; ) {
+          for (Bot bot : this.getCurrentBots().values()) {
             try {
-              botIterator.advance();
-              botIterator.value().needsUpdate(true);
-              botIterator.value().run();  // Run synchronously to ensure DB is updated before room reload
+              bot.needsUpdate(true);
+              bot.run();  // Run synchronously to ensure DB is updated before room reload
             } catch (NoSuchElementException e) {
               LOGGER.error("Caught exception", e);
               break;
@@ -1051,12 +1045,10 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
           }
 
           // Save ALL remaining pets (including owner's pets) BEFORE clearing
-          TIntObjectIterator<Pet> petIterator = this.getCurrentPets().iterator();
-          for (int i = this.getCurrentPets().size(); i-- > 0; ) {
+          for (Pet pet : this.getCurrentPets().values()) {
             try {
-              petIterator.advance();
-              petIterator.value().needsUpdate = true;
-              petIterator.value().run();  // Run synchronously to ensure DB is updated before room reload
+              pet.needsUpdate = true;
+              pet.run();  // Run synchronously to ensure DB is updated before room reload
             } catch (NoSuchElementException e) {
               LOGGER.error("Caught exception", e);
               break;
@@ -1201,7 +1193,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
         StringBuilder moodLightData = new StringBuilder();
 
         int id = 1;
-        for (RoomMoodlightData data : this.moodlightData.valueCollection()) {
+        for (RoomMoodlightData data : this.moodlightData.values()) {
           data.setId(id);
           moodLightData.append(data.toString()).append(";");
           id++;
@@ -1590,14 +1582,10 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
   public Color getBackgroundTonerColor() {
     Color color = new Color(0, 0, 0);
-    TIntObjectMap<HabboItem> items = this.itemManager.getRoomItems();
-    TIntObjectIterator<HabboItem> iterator = items.iterator();
+    Int2ObjectMap<HabboItem> items = this.itemManager.getRoomItems();
 
-    for (int i = items.size(); i > 0; i--) {
+    for (HabboItem object : items.values()) {
       try {
-        iterator.advance();
-        HabboItem object = iterator.value();
-
         if (object instanceof InteractionBackgroundToner) {
           String[] extraData = object.getExtradata().split(":");
 
@@ -1770,11 +1758,11 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.unitManager.getHabbos();
   }
 
-  public TIntObjectMap<Habbo> getHabboQueue() {
+  public Int2ObjectMap<Habbo> getHabboQueue() {
     return this.unitManager.getHabboQueue();
   }
 
-  public TIntObjectMap<String> getFurniOwnerNames() {
+  public Int2ObjectMap<String> getFurniOwnerNames() {
     return this.itemManager.getFurniOwnerNames();
   }
 
@@ -1782,11 +1770,11 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.itemManager.getFurniOwnerName(userId);
   }
 
-  public TIntIntMap getFurniOwnerCount() {
+  public Int2IntMap getFurniOwnerCount() {
     return this.itemManager.getFurniOwnerCount();
   }
 
-  public TIntObjectMap<RoomMoodlightData> getMoodlightData() {
+  public Int2ObjectMap<RoomMoodlightData> getMoodlightData() {
     return this.moodlightData;
   }
 
@@ -1814,15 +1802,15 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return true;
   }
 
-  public TIntObjectMap<Bot> getCurrentBots() {
+  public Int2ObjectMap<Bot> getCurrentBots() {
     return this.unitManager.getCurrentBots();
   }
 
-  public TIntObjectMap<Pet> getCurrentPets() {
+  public Int2ObjectMap<Pet> getCurrentPets() {
     return this.unitManager.getCurrentPets();
   }
 
-  public THashSet<String> getWordFilterWords() {
+  public HashSet<String> getWordFilterWords() {
     return this.chatManager.getWordFilterWords();
   }
 
@@ -1849,7 +1837,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.needsUpdate = needsUpdate;
   }
 
-  public TIntArrayList getRights() {
+  public IntArrayList getRights() {
     return this.rights;
   }
 
@@ -1882,15 +1870,15 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.itemManager.removeHabboItem(item);
   }
 
-  public THashSet<HabboItem> getFloorItems() {
+  public HashSet<HabboItem> getFloorItems() {
     return this.itemManager.getFloorItems();
   }
 
-  public THashSet<HabboItem> getWallItems() {
+  public HashSet<HabboItem> getWallItems() {
     return this.itemManager.getWallItems();
   }
 
-  public THashSet<HabboItem> getPostItNotes() {
+  public HashSet<HabboItem> getPostItNotes() {
     return this.itemManager.getPostItNotes();
   }
 
@@ -1984,35 +1972,35 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.unitManager.hasPetsAt(x, y);
   }
 
-  public THashSet<Bot> getBotsAt(RoomTile tile) {
+  public HashSet<Bot> getBotsAt(RoomTile tile) {
     return this.unitManager.getBotsAt(tile);
   }
 
-  public THashSet<Pet> getPetsAt(RoomTile tile) {
+  public HashSet<Pet> getPetsAt(RoomTile tile) {
     return this.unitManager.getPetsAt(tile);
   }
 
-  public THashSet<Habbo> getHabbosAt(short x, short y) {
+  public HashSet<Habbo> getHabbosAt(short x, short y) {
     return this.unitManager.getHabbosAt(x, y);
   }
 
-  public THashSet<Habbo> getHabbosAt(RoomTile tile) {
+  public HashSet<Habbo> getHabbosAt(RoomTile tile) {
     return this.unitManager.getHabbosAt(tile);
   }
 
-  public THashSet<RoomUnit> getHabbosAndBotsAt(short x, short y) {
+  public HashSet<RoomUnit> getHabbosAndBotsAt(short x, short y) {
     return this.unitManager.getHabbosAndBotsAt(x, y);
   }
 
-  public THashSet<RoomUnit> getHabbosAndBotsAt(RoomTile tile) {
+  public HashSet<RoomUnit> getHabbosAndBotsAt(RoomTile tile) {
     return this.unitManager.getHabbosAndBotsAt(tile);
   }
 
-  public THashSet<Habbo> getHabbosOnItem(HabboItem item) {
+  public HashSet<Habbo> getHabbosOnItem(HabboItem item) {
     return this.unitManager.getHabbosOnItem(item);
   }
 
-  public THashSet<Bot> getBotsOnItem(HabboItem item) {
+  public HashSet<Bot> getBotsOnItem(HabboItem item) {
     return this.unitManager.getBotsOnItem(item);
   }
 
@@ -2067,28 +2055,28 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     this.chatManager.talk(habbo, roomChatMessage, chatType, ignoreWired);
   }
 
-  public THashSet<RoomTile> getLockedTiles() {
+  public HashSet<RoomTile> getLockedTiles() {
     return this.itemManager.getLockedTiles();
   }
 
   @Deprecated
-  public THashSet<HabboItem> getItemsAt(int x, int y) {
+  public HashSet<HabboItem> getItemsAt(int x, int y) {
     return this.itemManager.getItemsAt(x, y);
   }
 
-  public THashSet<HabboItem> getItemsAt(RoomTile tile) {
+  public HashSet<HabboItem> getItemsAt(RoomTile tile) {
     return this.itemManager.getItemsAt(tile);
   }
 
-  public THashSet<HabboItem> getItemsAt(RoomTile tile, boolean returnOnFirst) {
+  public HashSet<HabboItem> getItemsAt(RoomTile tile, boolean returnOnFirst) {
     return this.itemManager.getItemsAt(tile, returnOnFirst);
   }
 
-  public THashSet<HabboItem> getItemsAt(int x, int y, double minZ) {
+  public HashSet<HabboItem> getItemsAt(int x, int y, double minZ) {
     return this.itemManager.getItemsAt(x, y, minZ);
   }
 
-  public THashSet<HabboItem> getItemsAt(Class<? extends HabboItem> type, int x, int y) {
+  public HashSet<HabboItem> getItemsAt(Class<? extends HabboItem> type, int x, int y) {
     return this.itemManager.getItemsAt(type, x, y);
   }
 
@@ -2104,7 +2092,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.itemManager.getTopItemAt(x, y, exclude);
   }
 
-  public HabboItem getTopItemAt(THashSet<RoomTile> tiles, HabboItem exclude) {
+  public HabboItem getTopItemAt(HashSet<RoomTile> tiles, HabboItem exclude) {
     return this.itemManager.getTopItemAt(tiles, exclude);
   }
 
@@ -2149,7 +2137,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.tileManager.canWalkAt(roomTile);
   }
 
-  boolean canSitAt(THashSet<HabboItem> items) {
+  boolean canSitAt(HashSet<HabboItem> items) {
     return this.tileManager.canSitAt(items);
   }
 
@@ -2157,7 +2145,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.tileManager.canLayAt(x, y);
   }
 
-  boolean canLayAt(THashSet<HabboItem> items) {
+  boolean canLayAt(HashSet<HabboItem> items) {
     return this.tileManager.canLayAt(items);
   }
 
@@ -2385,7 +2373,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
   public void removeRights(int userId) {
     this.rightsManager.removeRights(userId);
-    this.rights.remove(userId);
+    this.rights.rem(userId);
     this.pushWiredSettingsToCurrentHabbos();
   }
 
@@ -2415,7 +2403,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
     return this.rightsManager.isBanned(habbo);
   }
 
-  public TIntObjectHashMap<RoomBan> getBannedHabbos() {
+  public Int2ObjectOpenHashMap<RoomBan> getBannedHabbos() {
     return this.bannedHabbos;
   }
 
@@ -2674,7 +2662,7 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
   public void refreshGuild(Guild guild) {
     if (guild.getRoomId() == this.id) {
-      THashSet<GuildMember> members = Emulator.getGameEnvironment().getGuildManager()
+      HashSet<GuildMember> members = Emulator.getGameEnvironment().getGuildManager()
               .getGuildMembers(guild.getId());
 
       for (Habbo habbo : this.getHabbos()) {
@@ -2695,18 +2683,9 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
   public void refreshGuildColors(Guild guild) {
     if (guild.getRoomId() == this.id) {
-      TIntObjectMap<HabboItem> items = this.itemManager.getRoomItems();
-      TIntObjectIterator<HabboItem> iterator = items.iterator();
+      Int2ObjectMap<HabboItem> items = this.itemManager.getRoomItems();
 
-      for (int i = items.size(); i-- > 0; ) {
-        try {
-          iterator.advance();
-        } catch (Exception e) {
-          break;
-        }
-
-        HabboItem habboItem = iterator.value();
-
+      for (HabboItem habboItem : items.values()) {
         if (habboItem instanceof InteractionGuildFurni) {
           if (((InteractionGuildFurni) habboItem).getGuildId() == guild.getId()) {
             this.updateItem(habboItem);
@@ -2888,11 +2867,11 @@ public class Room implements Comparable<Room>, ISerialize, Runnable {
 
 
 
-  public THashSet<RoomUnit> getRoomUnits() {
+  public HashSet<RoomUnit> getRoomUnits() {
     return this.unitManager.getRoomUnits();
   }
 
-  public THashSet<RoomUnit> getRoomUnits(RoomTile atTile) {
+  public HashSet<RoomUnit> getRoomUnits(RoomTile atTile) {
     return this.unitManager.getRoomUnits(atTile);
   }
 

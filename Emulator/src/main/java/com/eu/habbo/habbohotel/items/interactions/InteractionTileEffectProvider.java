@@ -4,13 +4,13 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.items.Item;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
-import gnu.trove.map.hash.THashMap;
+import java.util.HashMap;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class InteractionTileEffectProvider extends InteractionCustomValues {
-    public static THashMap<String, String> defaultValues = new THashMap<String, String>() {
+    public static HashMap<String, String> defaultValues = new HashMap<String, String>() {
         {
             this.put("effectId", "0");
         }

@@ -16,10 +16,9 @@ import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.habbohotel.wired.core.WiredTriggerSourceUtil;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.incoming.wired.WiredTriggerSaveException;
-import gnu.trove.set.hash.THashSet;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,19 +28,19 @@ public class WiredTriggerClockCounter extends InteractionWiredTrigger {
 
     public static final WiredTriggerType type = WiredTriggerType.CLOCK_COUNTER;
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int minutes = 0;
     private int halfSecondSteps = 0;
     private int furniSource = WiredSourceUtil.SOURCE_TRIGGER;
 
     public WiredTriggerClockCounter(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredTriggerClockCounter(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -200,7 +199,7 @@ public class WiredTriggerClockCounter extends InteractionWiredTrigger {
     }
 
     private void refresh(Room room) {
-        THashSet<HabboItem> remove = new THashSet<>();
+        HashSet<HabboItem> remove = new HashSet<>();
 
         for (HabboItem item : this.items) {
             HabboItem roomItem = room.getHabboItem(item.getId());

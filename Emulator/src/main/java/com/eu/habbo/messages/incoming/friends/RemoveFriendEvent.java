@@ -5,14 +5,14 @@ import com.eu.habbo.habbohotel.messenger.Messenger;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.incoming.MessageHandler;
 import com.eu.habbo.messages.outgoing.friends.RemoveFriendComposer;
-import gnu.trove.list.array.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 public class RemoveFriendEvent extends MessageHandler {
 
-    private final TIntArrayList removedFriends;
+    private final IntArrayList removedFriends;
 
     public RemoveFriendEvent() {
-        this.removedFriends = new TIntArrayList();
+        this.removedFriends = new IntArrayList();
     }
 
     @Override

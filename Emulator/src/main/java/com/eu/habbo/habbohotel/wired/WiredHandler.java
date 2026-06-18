@@ -33,7 +33,6 @@ import com.eu.habbo.plugin.events.furniture.wired.WiredStackTriggeredEvent;
 import com.eu.habbo.plugin.events.users.UserWiredRewardReceived;
 import com.eu.habbo.habbohotel.wired.core.WiredExecutionOrderUtil;
 import com.google.gson.GsonBuilder;
-import gnu.trove.set.hash.THashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -82,7 +82,7 @@ public class WiredHandler {
         if (room.getRoomSpecialTypes() == null)
             return false;
 
-        THashSet<InteractionWiredTrigger> triggers = room.getRoomSpecialTypes().getTriggers(triggerType);
+        HashSet<InteractionWiredTrigger> triggers = room.getRoomSpecialTypes().getTriggers(triggerType);
 
         if (triggers == null || triggers.isEmpty())
             return false;
@@ -130,7 +130,7 @@ public class WiredHandler {
         if (room.getRoomSpecialTypes() == null)
             return false;
 
-        THashSet<InteractionWiredTrigger> triggers = room.getRoomSpecialTypes().getTriggers(WiredTriggerType.CUSTOM);
+        HashSet<InteractionWiredTrigger> triggers = room.getRoomSpecialTypes().getTriggers(WiredTriggerType.CUSTOM);
 
         if (triggers == null || triggers.isEmpty())
             return false;
@@ -188,9 +188,9 @@ public class WiredHandler {
 
         try {
         if (Emulator.isReady && ((Emulator.getConfig().getBoolean("wired.custom.enabled", false) && (trigger.canExecute(millis) || roomUnitId > -1) && trigger.userCanExecute(roomUnitId, millis)) || (!Emulator.getConfig().getBoolean("wired.custom.enabled", false) && trigger.canExecute(millis))) && trigger.execute(roomUnit, room, stuff)) {
-            THashSet<InteractionWiredCondition> conditions = room.getRoomSpecialTypes().getConditions(trigger.getX(), trigger.getY());
-            THashSet<InteractionWiredEffect> effects = room.getRoomSpecialTypes().getEffects(trigger.getX(), trigger.getY());
-            THashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(trigger.getX(), trigger.getY());
+            HashSet<InteractionWiredCondition> conditions = room.getRoomSpecialTypes().getConditions(trigger.getX(), trigger.getY());
+            HashSet<InteractionWiredEffect> effects = room.getRoomSpecialTypes().getEffects(trigger.getX(), trigger.getY());
+            HashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(trigger.getX(), trigger.getY());
             WiredExtraExecutionLimit executionLimitExtra = null;
             WiredExtraRandom randomExtra = null;
 
@@ -286,7 +286,7 @@ public class WiredHandler {
         }
     }
 
-    private static boolean evaluateConditions(THashSet<InteractionWiredCondition> conditions, RoomUnit roomUnit, Room room, Object[] stuff, int evaluationMode, int evaluationValue) {
+    private static boolean evaluateConditions(HashSet<InteractionWiredCondition> conditions, RoomUnit roomUnit, Room room, Object[] stuff, int evaluationMode, int evaluationValue) {
         if (conditions == null || conditions.isEmpty()) {
             return true;
         }
@@ -447,10 +447,10 @@ public class WiredHandler {
         return (((long) x) << 32) | (y & 0xffffffffL);
     }
 
-    public static boolean executeEffectsAtTiles(THashSet<RoomTile> tiles, final RoomUnit roomUnit, final Room room, final Object[] stuff) {
+    public static boolean executeEffectsAtTiles(HashSet<RoomTile> tiles, final RoomUnit roomUnit, final Room room, final Object[] stuff) {
         for (RoomTile tile : tiles) {
             if (room != null) {
-                THashSet<HabboItem> items = room.getItemsAt(tile);
+                HashSet<HabboItem> items = room.getItemsAt(tile);
 
                 long millis = room.getCycleTimestamp();
                 for (final HabboItem item : items) {

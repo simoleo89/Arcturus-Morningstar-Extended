@@ -5,13 +5,11 @@ import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.iterator.TIntObjectIterator;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 public class RoomWallItemsComposer extends MessageComposer {
     private final Room room;
@@ -23,18 +21,11 @@ public class RoomWallItemsComposer extends MessageComposer {
     @Override
     protected ServerMessage composeInternal() {
         this.response.init(Outgoing.RoomWallItemsComposer);
-        THashMap<Integer, String> userNames = new THashMap<>();
-        TIntObjectMap<String> furniOwnerNames = this.room.getFurniOwnerNames();
-        TIntObjectIterator<String> iterator = furniOwnerNames.iterator();
+        HashMap<Integer, String> userNames = new HashMap<>();
+        Int2ObjectMap<String> furniOwnerNames = this.room.getFurniOwnerNames();
 
-        for (int i = furniOwnerNames.size(); i-- > 0; ) {
-            try {
-                iterator.advance();
-
-                userNames.put(iterator.key(), iterator.value());
-            } catch (NoSuchElementException e) {
-                break;
-            }
+        for (Int2ObjectMap.Entry<String> entry : furniOwnerNames.int2ObjectEntrySet()) {
+            userNames.put(entry.getIntKey(), entry.getValue());
         }
 
         this.response.appendInt(userNames.size());
@@ -43,7 +34,7 @@ public class RoomWallItemsComposer extends MessageComposer {
             this.response.appendString(set.getValue());
         }
 
-        THashSet<HabboItem> items = this.room.getWallItems();
+        HashSet<HabboItem> items = this.room.getWallItems();
 
         this.response.appendInt(items.size());
         for (HabboItem item : items) {

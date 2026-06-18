@@ -17,7 +17,6 @@ import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserDanceComposer;
 import com.eu.habbo.messages.outgoing.rooms.users.RoomUserDataComposer;
 import com.eu.habbo.messages.outgoing.users.UpdateUserLookComposer;
-import gnu.trove.set.hash.THashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
@@ -30,6 +29,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public abstract class HabboItem implements Runnable, IEventTriggers {
@@ -527,7 +527,7 @@ public abstract class HabboItem implements Runnable, IEventTriggers {
         return this.baseItem.getStateCount() > 1;
     }
 
-    public boolean canStackAt(Room room, List<Pair<RoomTile, THashSet<HabboItem>>> itemsAtLocation) {
+    public boolean canStackAt(Room room, List<Pair<RoomTile, HashSet<HabboItem>>> itemsAtLocation) {
         return true;
     }
 

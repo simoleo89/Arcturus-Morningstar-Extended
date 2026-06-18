@@ -5,7 +5,6 @@ import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.messages.outgoing.inventory.EffectsListAddComposer;
 import com.eu.habbo.messages.outgoing.inventory.EffectsListEffectEnableComposer;
 import com.eu.habbo.messages.outgoing.inventory.EffectsListRemoveComposer;
-import gnu.trove.map.hash.THashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +12,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 public class EffectsComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(EffectsComponent.class);
 
-    public final THashMap<Integer, HabboEffect> effects = new THashMap<>();
+    public final HashMap<Integer, HabboEffect> effects = new HashMap<>();
     public final Habbo habbo;
     public int activatedEffect = 0;
 
@@ -82,7 +82,7 @@ public class EffectsComponent {
     public void dispose() {
         synchronized (this.effects) {
             try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement("UPDATE users_effects SET duration = ?, activation_timestamp = ?, total = ? WHERE user_id = ? AND effect = ?")) {
-                this.effects.forEachValue(effect -> {
+                for (HabboEffect effect : this.effects.values()) {
                     if(!effect.isRankEnable) {
                         try {
                             statement.setInt(1, effect.duration);
@@ -95,8 +95,7 @@ public class EffectsComponent {
                             LOGGER.error("Caught SQL exception", e);
                         }
                     }
-                    return true;
-                });
+                }
 
                 statement.executeBatch();
             } catch (SQLException e) {

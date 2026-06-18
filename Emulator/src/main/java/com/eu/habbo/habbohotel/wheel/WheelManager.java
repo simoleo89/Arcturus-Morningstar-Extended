@@ -4,7 +4,7 @@ import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.items.Item;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -243,7 +243,7 @@ public class WheelManager {
         Item base = Emulator.getGameEnvironment().getItemManager().getItem(baseId);
         if (base == null) return;
 
-        THashSet<HabboItem> items = new THashSet<>();
+        HashSet<HabboItem> items = new HashSet<>();
         for (int i = 0; i < quantity; i++) {
             HabboItem item = Emulator.getGameEnvironment().getItemManager().createItem(habbo.getHabboInfo().getId(), base, 0, 0, "");
             if (item != null) items.add(item);

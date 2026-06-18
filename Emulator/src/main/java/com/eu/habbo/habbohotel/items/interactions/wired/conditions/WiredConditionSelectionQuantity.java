@@ -12,7 +12,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredSourceUtil;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.messages.ServerMessage;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,7 +35,7 @@ public class WiredConditionSelectionQuantity extends InteractionWiredCondition {
 
     public static final WiredConditionType type = WiredConditionType.SLC_QUANTITY;
 
-    private final THashSet<HabboItem> items;
+    private final HashSet<HabboItem> items;
     private int comparison = COMPARISON_EQUAL;
     private int quantity = 0;
     private int sourceGroup = SOURCE_GROUP_USERS;
@@ -43,12 +43,12 @@ public class WiredConditionSelectionQuantity extends InteractionWiredCondition {
 
     public WiredConditionSelectionQuantity(ResultSet set, Item baseItem) throws SQLException {
         super(set, baseItem);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     public WiredConditionSelectionQuantity(int id, int userId, Item item, String extradata, int limitedStack, int limitedSells) {
         super(id, userId, item, extradata, limitedStack, limitedSells);
-        this.items = new THashSet<>();
+        this.items = new HashSet<>();
     }
 
     @Override
@@ -335,7 +335,7 @@ public class WiredConditionSelectionQuantity extends InteractionWiredCondition {
             return;
         }
 
-        THashSet<HabboItem> itemsToRemove = new THashSet<>();
+        HashSet<HabboItem> itemsToRemove = new HashSet<>();
 
         for (HabboItem item : this.items) {
             if (item == null || room.getHabboItem(item.getId()) == null) {

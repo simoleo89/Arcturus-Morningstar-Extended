@@ -7,8 +7,6 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.plugin.events.bots.BotServerItemEvent;
 import com.eu.habbo.threading.runnables.RoomUnitGiveHanditem;
 import com.eu.habbo.threading.runnables.RoomUnitWalkToRoomUnit;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +16,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 public class ButlerBot extends Bot {
     private static final Logger LOGGER = LoggerFactory.getLogger(ButlerBot.class);
-    public static THashMap<THashSet<String>, Integer> serveItems = new THashMap<>();
+    public static HashMap<HashSet<String>, Integer> serveItems = new HashMap<>();
     private static final ConcurrentHashMap<Pattern, Integer> serveItemsCompiled = new ConcurrentHashMap<>();
 
     public ButlerBot(ResultSet set) throws SQLException {
@@ -38,7 +38,7 @@ public class ButlerBot extends Bot {
 
     public static void initialise() {
         if (serveItems == null)
-            serveItems = new THashMap<>();
+            serveItems = new HashMap<>();
 
         serveItems.clear();
         serveItemsCompiled.clear();
@@ -46,7 +46,7 @@ public class ButlerBot extends Bot {
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection(); Statement statement = connection.createStatement(); ResultSet set = statement.executeQuery("SELECT * FROM bot_serves")) {
             while (set.next()) {
                 String[] keys = set.getString("keys").split(";");
-                THashSet<String> ks = new THashSet<>();
+                HashSet<String> ks = new HashSet<>();
                 Collections.addAll(ks, keys);
                 serveItems.put(ks, set.getInt("item"));
 

@@ -4,12 +4,12 @@ import com.eu.habbo.habbohotel.rooms.RoomMoodlightData;
 import com.eu.habbo.messages.ServerMessage;
 import com.eu.habbo.messages.outgoing.MessageComposer;
 import com.eu.habbo.messages.outgoing.Outgoing;
-import gnu.trove.map.TIntObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 public class MoodLightDataComposer extends MessageComposer {
-    private final TIntObjectMap<RoomMoodlightData> moodLightData;
+    private final Int2ObjectMap<RoomMoodlightData> moodLightData;
 
-    public MoodLightDataComposer(TIntObjectMap<RoomMoodlightData> moodLightData) {
+    public MoodLightDataComposer(Int2ObjectMap<RoomMoodlightData> moodLightData) {
         this.moodLightData = moodLightData;
     }
 
@@ -19,7 +19,7 @@ public class MoodLightDataComposer extends MessageComposer {
         this.response.appendInt(3); //PresetCount
 
         int index = 1;
-        for (RoomMoodlightData data : this.moodLightData.valueCollection()) {
+        for (RoomMoodlightData data : this.moodLightData.values()) {
             if (data.isEnabled()) {
                 this.response.appendInt(data.getId());
                 index = -1;
@@ -33,7 +33,7 @@ public class MoodLightDataComposer extends MessageComposer {
         }
 
         int i = 1;
-        for (RoomMoodlightData data : this.moodLightData.valueCollection()) {
+        for (RoomMoodlightData data : this.moodLightData.values()) {
             this.response.appendInt(data.getId()); //Preset ID
             this.response.appendInt(data.isBackgroundOnly() ? 2 : 1); //Background only ? 2 : 1
             this.response.appendString(data.getColor()); //Color
@@ -53,7 +53,7 @@ public class MoodLightDataComposer extends MessageComposer {
         return this.response;
     }
 
-    public TIntObjectMap<RoomMoodlightData> getMoodLightData() {
+    public Int2ObjectMap<RoomMoodlightData> getMoodLightData() {
         return moodLightData;
     }
 }

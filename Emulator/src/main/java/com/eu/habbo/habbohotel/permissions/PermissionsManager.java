@@ -3,14 +3,14 @@ package com.eu.habbo.habbohotel.permissions;
 import com.eu.habbo.Emulator;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.plugin.HabboPlugin;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,16 +18,16 @@ import java.util.Set;
 public class PermissionsManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionsManager.class);
 
-    private final TIntObjectHashMap<Rank> ranks;
-    private final TIntIntHashMap enables;
-    private final THashMap<String, List<Rank>> badges;
+    private final Int2ObjectOpenHashMap<Rank> ranks;
+    private final Int2IntOpenHashMap enables;
+    private final HashMap<String, List<Rank>> badges;
     private volatile boolean normalizedSchemaEnabled;
 
     public PermissionsManager() {
         long millis = System.currentTimeMillis();
-        this.ranks = new TIntObjectHashMap<>();
-        this.enables = new TIntIntHashMap();
-        this.badges = new THashMap<String, List<Rank>>();
+        this.ranks = new Int2ObjectOpenHashMap<>();
+        this.enables = new Int2IntOpenHashMap();
+        this.badges = new HashMap<String, List<Rank>>();
 
         this.reload();
 
@@ -234,7 +234,7 @@ public class PermissionsManager {
 
 
     public Rank getRankByName(String rankName) {
-        for (Rank rank : this.ranks.valueCollection()) {
+        for (Rank rank : this.ranks.values()) {
             if (rank.getName().equalsIgnoreCase(rankName))
                 return rank;
         }
@@ -244,7 +244,7 @@ public class PermissionsManager {
 
 
     public boolean isEffectBlocked(int effectId, int rank) {
-        return this.enables.contains(effectId) && this.enables.get(effectId) > rank;
+        return this.enables.containsKey(effectId) && this.enables.get(effectId) > rank;
     }
 
 
@@ -281,7 +281,7 @@ public class PermissionsManager {
     }
 
     public List<Rank> getAllRanks() {
-        return new ArrayList<>(this.ranks.valueCollection());
+        return new ArrayList<>(this.ranks.values());
     }
 
     public boolean isNormalizedSchemaEnabled() {

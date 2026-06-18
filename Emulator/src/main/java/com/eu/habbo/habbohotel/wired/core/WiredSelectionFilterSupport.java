@@ -9,10 +9,10 @@ import com.eu.habbo.habbohotel.items.interactions.wired.extra.WiredExtraFilterUs
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.rooms.RoomUnit;
 import com.eu.habbo.habbohotel.users.HabboItem;
-import gnu.trove.set.hash.THashSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 final class WiredSelectionFilterSupport {
@@ -42,7 +42,7 @@ final class WiredSelectionFilterSupport {
             return items;
         }
 
-        THashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(triggerItem.getX(), triggerItem.getY());
+        HashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(triggerItem.getX(), triggerItem.getY());
         if (extras == null || extras.isEmpty()) {
             return items;
         }
@@ -86,7 +86,7 @@ final class WiredSelectionFilterSupport {
             return users;
         }
 
-        THashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(triggerItem.getX(), triggerItem.getY());
+        HashSet<InteractionWiredExtra> extras = room.getRoomSpecialTypes().getExtras(triggerItem.getX(), triggerItem.getY());
         if (extras == null || extras.isEmpty()) {
             return users;
         }

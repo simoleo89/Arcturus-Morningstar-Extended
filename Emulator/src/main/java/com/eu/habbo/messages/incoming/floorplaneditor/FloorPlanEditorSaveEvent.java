@@ -13,13 +13,13 @@ import com.eu.habbo.messages.outgoing.generic.alerts.GenericAlertComposer;
 import com.eu.habbo.messages.outgoing.inventory.AddHabboItemComposer;
 import com.eu.habbo.messages.outgoing.inventory.InventoryRefreshComposer;
 import com.eu.habbo.messages.outgoing.rooms.ForwardToRoomComposer;
-import gnu.trove.set.hash.THashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
@@ -143,9 +143,9 @@ public class FloorPlanEditorSaveEvent extends MessageHandler {
             return;
         }
 
-        THashSet<RoomTile> locked_tileList = room.getLockedTiles();
-        THashSet<RoomTile> new_tileList = new THashSet<>();
-        THashSet<HabboItem> itemsToPickup = new THashSet<>();
+        HashSet<RoomTile> locked_tileList = room.getLockedTiles();
+        HashSet<RoomTile> new_tileList = new HashSet<>();
+        HashSet<HabboItem> itemsToPickup = new HashSet<>();
         int blockedX = -1;
         int blockedY = -1;
         blockingRoomItemScan:
@@ -159,7 +159,7 @@ public class FloorPlanEditorSaveEvent extends MessageHandler {
 
                 if (square.equalsIgnoreCase("x") && room.getTopItemAt(x, y) != null) {
                     if (autoPickup) {
-                        THashSet<HabboItem> here = room.getItemsAt(x, y);
+                        HashSet<HabboItem> here = room.getItemsAt(x, y);
                         if (here != null) itemsToPickup.addAll(here);
                         continue;
                     }
@@ -186,7 +186,7 @@ public class FloorPlanEditorSaveEvent extends MessageHandler {
 
                 if (tile != null && tile.state != RoomTileState.INVALID && height != tile.z && room.getTopItemAt(x, y) != null) {
                     if (autoPickup) {
-                        THashSet<HabboItem> here = room.getItemsAt(x, y);
+                        HashSet<HabboItem> here = room.getItemsAt(x, y);
                         if (here != null) itemsToPickup.addAll(here);
                         continue;
                     }
@@ -202,7 +202,7 @@ public class FloorPlanEditorSaveEvent extends MessageHandler {
             if (!locked_tileList.isEmpty()) {
                 if (autoPickup) {
                     for (RoomTile lt : locked_tileList) {
-                        THashSet<HabboItem> here = room.getItemsAt(lt.x, lt.y);
+                        HashSet<HabboItem> here = room.getItemsAt(lt.x, lt.y);
                         if (here != null) itemsToPickup.addAll(here);
                     }
                 } else {

@@ -9,7 +9,7 @@ import com.eu.habbo.habbohotel.items.interactions.games.freeze.InteractionFreeze
 import com.eu.habbo.habbohotel.rooms.RoomTile;
 import com.eu.habbo.habbohotel.users.Habbo;
 import com.eu.habbo.habbohotel.users.HabboItem;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ class FreezeHandleSnowballExplosion implements Runnable {
 
             player.addSnowball();
 
-            THashSet<RoomTile> tiles = new THashSet<>();
+            HashSet<RoomTile> tiles = new HashSet<>();
 
             FreezeGame game = ((FreezeGame) this.thrownData.room.getGame(FreezeGame.class));
 
@@ -51,10 +51,10 @@ class FreezeHandleSnowballExplosion implements Runnable {
                 player.nextDiagonal = false;
             }
 
-            THashSet<InteractionFreezeTile> freezeTiles = new THashSet<>();
+            HashSet<InteractionFreezeTile> freezeTiles = new HashSet<>();
 
             for (RoomTile roomTile : tiles) {
-                THashSet<HabboItem> items = this.thrownData.room.getItemsAt(roomTile);
+                HashSet<HabboItem> items = this.thrownData.room.getItemsAt(roomTile);
 
                 // Track if we already processed a block at this tile to prevent stacking exploit
                 boolean blockProcessedAtTile = false;
@@ -74,7 +74,7 @@ class FreezeHandleSnowballExplosion implements Runnable {
                             this.thrownData.room.updateItem(freezeTile);
 
 
-                            THashSet<Habbo> habbos = new THashSet<>();
+                            HashSet<Habbo> habbos = new HashSet<>();
                             habbos.addAll(this.thrownData.room.getHabbosAt(freezeTile.getX(), freezeTile.getY()));
 
                             for (Habbo habbo : habbos) {

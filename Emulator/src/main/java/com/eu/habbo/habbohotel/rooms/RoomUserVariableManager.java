@@ -12,7 +12,7 @@ import com.eu.habbo.habbohotel.wired.core.WiredManager;
 import com.eu.habbo.habbohotel.wired.core.WiredVariableLevelSystemSupport;
 import com.eu.habbo.habbohotel.wired.core.WiredVariableTextConnectorSupport;
 import com.eu.habbo.messages.outgoing.wired.WiredUserVariablesDataComposer;
-import gnu.trove.set.hash.THashSet;
+import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -570,7 +570,7 @@ public class RoomUserVariableManager {
         List<UserAssignmentsEntry> users = new ArrayList<>();
         List<WiredExtraVariableReference> userReferences = this.getUserReferences();
         List<WiredExtraVariableEcho> userEchoes = this.getUserEchoes();
-        THashSet<Integer> userIds = new THashSet<>();
+        HashSet<Integer> userIds = new HashSet<>();
         userIds.addAll(this.activeAssignmentsByUserId.keySet());
 
         for (Habbo habbo : this.room.getCurrentHabbos().values()) {
@@ -699,7 +699,7 @@ public class RoomUserVariableManager {
             return Collections.emptyList();
         }
 
-        THashSet<InteractionWiredExtra> extras = this.room.getRoomSpecialTypes().getExtras();
+        HashSet<InteractionWiredExtra> extras = this.room.getRoomSpecialTypes().getExtras();
         List<WiredExtraUserVariable> result = new ArrayList<>();
 
         for (InteractionWiredExtra extra : extras) {
