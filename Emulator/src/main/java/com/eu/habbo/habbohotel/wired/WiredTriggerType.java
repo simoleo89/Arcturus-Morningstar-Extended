@@ -29,7 +29,9 @@ public enum WiredTriggerType {
     CUSTOM(13),
     STARTS_DANCING(11),
     STOPS_DANCING(11),
-    RECEIVE_SIGNAL(15);
+    RECEIVE_SIGNAL(15),
+    TRANSACTION_COMPLETE(27),
+    TRANSACTION_FAIL(28);
 
     public final int code;
 
