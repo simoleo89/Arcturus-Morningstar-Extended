@@ -25,6 +25,7 @@ import java.util.List;
  */
 public abstract class InteractionWiredContract extends InteractionWiredExtra {
     private int[] termParams = new int[] { 0 };
+    private String termPosters = "";
     private int chestItemId = 0;
 
     protected InteractionWiredContract(ResultSet set, Item baseItem) throws SQLException {
@@ -39,7 +40,7 @@ public abstract class InteractionWiredContract extends InteractionWiredExtra {
     public abstract int getLayoutCode();
 
     public List<ContractTerm> getTerms() {
-        return ContractTerm.parse(this.termParams);
+        return ContractTerm.parse(this.termParams, this.termPosters);
     }
 
     public InteractionWiredChest resolveLinkedChest(Room room) {
@@ -63,7 +64,9 @@ public abstract class InteractionWiredContract extends InteractionWiredExtra {
     @Override
     public boolean saveData(WiredSettings settings, GameClient gameClient) throws WiredSaveException {
         int[] params = settings.getIntParams();
-        this.termParams = (params == null || params.length == 0) ? new int[] { 0 } : params.clone();
+        List<ContractTerm> terms = ContractTerm.parse(params, settings.getStringParam());
+        this.termParams = ContractTerm.serialize(terms);
+        this.termPosters = ContractTerm.serializePosters(terms);
         this.chestItemId = 0;
 
         Room room = Emulator.getGameEnvironment().getRoomManager().getRoom(this.getRoomId());
@@ -99,7 +102,7 @@ public abstract class InteractionWiredContract extends InteractionWiredExtra {
         }
         message.appendInt(this.getBaseItem().getSpriteId());
         message.appendInt(this.getId());
-        message.appendString("");
+        message.appendString(this.termPosters == null ? "" : this.termPosters);
         message.appendInt(this.termParams.length);
         for (int param : this.termParams) {
             message.appendInt(param);
@@ -112,7 +115,7 @@ public abstract class InteractionWiredContract extends InteractionWiredExtra {
 
     @Override
     public String getWiredData() {
-        return WiredManager.getGson().toJson(new JsonData(this.termParams, this.chestItemId));
+        return WiredManager.getGson().toJson(new JsonData(this.termParams, this.termPosters, this.chestItemId));
     }
 
     @Override
@@ -126,6 +129,7 @@ public abstract class InteractionWiredContract extends InteractionWiredExtra {
             JsonData data = WiredManager.getGson().fromJson(wiredData, JsonData.class);
             if (data != null) {
                 this.termParams = (data.terms != null && data.terms.length > 0) ? data.terms : new int[] { 0 };
+                this.termPosters = data.posters == null ? "" : data.posters;
                 this.chestItemId = data.chestItemId;
             }
         }
@@ -134,18 +138,21 @@ public abstract class InteractionWiredContract extends InteractionWiredExtra {
     @Override
     public void onPickUp() {
         this.termParams = new int[] { 0 };
+        this.termPosters = "";
         this.chestItemId = 0;
     }
 
     static class JsonData {
         int[] terms;
+        String posters;
         int chestItemId;
 
         JsonData() {
         }
 
-        JsonData(int[] terms, int chestItemId) {
+        JsonData(int[] terms, String posters, int chestItemId) {
             this.terms = terms;
+            this.posters = posters;
             this.chestItemId = chestItemId;
         }
     }
