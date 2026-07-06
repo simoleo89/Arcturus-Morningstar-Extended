@@ -121,6 +121,20 @@ public final class WiredEvent {
         /** Signal received from a Send Signal effect */
         SIGNAL_RECEIVED(WiredTriggerType.RECEIVE_SIGNAL),
 
+        /** A wired transaction completed (fired by Initiate Transaction) */
+        TRANSACTION_COMPLETE(WiredTriggerType.TRANSACTION_COMPLETE),
+
+        /** A wired transaction failed / was cancelled (fired by Cancel Transaction) */
+        TRANSACTION_FAIL(WiredTriggerType.TRANSACTION_FAIL),
+        /** User receives a hand item */
+        USER_GETS_HANDITEM(WiredTriggerType.USER_GETS_HANDITEM),
+
+        /** A dice furni was rolled */
+        DICE_ROLLED(WiredTriggerType.DICE_ROLLED),
+
+        /** A user pressed a configured keybind key (key code carried in actionParameter) */
+        PRESS_KEYBIND(WiredTriggerType.PRESS_KEYBIND),
+
         /** Custom trigger type for plugins */
         CUSTOM(WiredTriggerType.CUSTOM);
 

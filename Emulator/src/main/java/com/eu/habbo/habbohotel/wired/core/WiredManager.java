@@ -706,6 +706,45 @@ public final class WiredManager {
     }
 
     /**
+     * Trigger when a user receives a hand item.
+     */
+    public static boolean triggerUserGetsHandItem(Room room, RoomUnit user) {
+        if (!isEnabled() || room == null || user == null) {
+            return false;
+        }
+
+        WiredEvent event = WiredEvents.userGetsHandItem(room, user);
+        return handleEvent(event);
+    }
+
+    /**
+     * Trigger when a dice furni is rolled.
+     */
+    public static boolean triggerDiceRolled(Room room, HabboItem dice) {
+        if (!isEnabled() || room == null || dice == null) {
+            return false;
+        }
+
+        WiredEvent event = WiredEvents.diceRolled(room, dice);
+        return handleEvent(event);
+    }
+
+    /**
+     * Trigger when a user presses a configured keybind key.
+     * @param room the room
+     * @param user the user who pressed the key
+     * @param keyCode the pressed key code
+     */
+    public static boolean triggerKeybind(Room room, RoomUnit user, int keyCode) {
+        if (!isEnabled() || room == null || user == null) {
+            return false;
+        }
+
+        WiredEvent event = WiredEvents.keybind(room, user, keyCode);
+        return handleEvent(event);
+    }
+
+    /**
      * Trigger when a team wins a game.
      */
     public static boolean triggerTeamWins(Room room, RoomUnit user) {
