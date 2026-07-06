@@ -1,6 +1,7 @@
 package com.eu.habbo.networking.gameserver;
 
 import com.eu.habbo.Emulator;
+import com.eu.habbo.habbohotel.gameclients.GameClient;
 import com.eu.habbo.habbohotel.gameclients.GameClientManager;
 import com.eu.habbo.messages.PacketManager;
 import com.eu.habbo.networking.Server;
@@ -19,6 +20,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 public class GameServer extends Server {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameServer.class);
@@ -115,5 +118,18 @@ public class GameServer extends Server {
 
     public GameClientManager getGameClientManager() {
         return this.gameClientManager;
+    }
+
+    @Override
+    public void stop() {
+        for (GameClient client : new ArrayList<>(this.gameClientManager.getSessions().values())) {
+            this.gameClientManager.forceDisposeClient(client);
+        }
+
+        if (Emulator.getConfig().getBoolean("ws.enabled", false)) {
+            WebSocketChannelInitializer.shutdownPacketHandlers();
+        }
+
+        super.stop();
     }
 }

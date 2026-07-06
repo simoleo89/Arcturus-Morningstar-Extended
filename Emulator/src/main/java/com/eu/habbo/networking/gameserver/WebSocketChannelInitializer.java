@@ -29,10 +29,14 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
+import java.util.concurrent.TimeUnit;
 
 public class WebSocketChannelInitializer extends ChannelInitializer<SocketChannel> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketChannelInitializer.class);
     private static final int MAX_FRAME_SIZE = 500000;
 
     // Runs the game packet handler OFF the Netty I/O event loop, so a blocking
@@ -117,5 +121,14 @@ public class WebSocketChannelInitializer extends ChannelInitializer<SocketChanne
 
     public boolean isSslEnabled() {
         return this.sslEnabled;
+    }
+
+    /** Gracefully stop the off-I/O packet handler pool (call before worker/boss shutdown). */
+    public static void shutdownPacketHandlers() {
+        try {
+            PACKET_HANDLER_GROUP.shutdownGracefully(100, 3000, TimeUnit.MILLISECONDS).syncUninterruptibly();
+        } catch (Exception e) {
+            LOGGER.warn("Packet handler group shutdown interrupted", e);
+        }
     }
 }

@@ -35,7 +35,7 @@ public class GameMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-        ctx.channel().close();
+        ctx.fireChannelUnregistered();
     }
 
     @Override
@@ -70,7 +70,7 @@ public class GameMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ctx.channel().close();
+        super.channelInactive(ctx);
     }
 
     @Override

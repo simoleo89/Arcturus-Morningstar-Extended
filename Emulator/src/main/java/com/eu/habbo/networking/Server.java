@@ -95,10 +95,11 @@ public abstract class Server {
     public void stop() {
         LOGGER.info("Stopping {}", this.name);
         try {
-            this.workerGroup.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS).sync();
-            this.bossGroup.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS).sync();
+            this.workerGroup.shutdownGracefully(100, 3000, TimeUnit.MILLISECONDS).sync();
+            this.bossGroup.shutdownGracefully(100, 3000, TimeUnit.MILLISECONDS).sync();
         } catch(InterruptedException e) {
             LOGGER.error("Exception during {} shutdown... HARD STOP", this.name, e);
+            Thread.currentThread().interrupt();
         }
         LOGGER.info("Stopped {}", this.name);
     }
