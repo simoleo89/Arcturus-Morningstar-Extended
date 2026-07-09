@@ -16,7 +16,17 @@ import java.sql.SQLException;
 public final class CatalogAdminCacheSync {
     private static final Logger LOGGER = LoggerFactory.getLogger(CatalogAdminCacheSync.class);
 
+    private static final String BC_ITEM_SELECT =
+            "SELECT id, item_ids, page_id, catalog_name, 0 AS cost_credits, 0 AS cost_points, 0 AS points_type, 1 AS amount, "
+                    + "0 AS limited_stack, 0 AS limited_sells, extradata, '0' AS club_only, '1' AS have_offer, id AS offer_id, order_number "
+                    + "FROM catalog_items_bc WHERE id = ? LIMIT 1";
+
     private CatalogAdminCacheSync() {
+    }
+
+    public static void attachCreatedPage(CatalogPage page, int parentId, int orderNum, CatalogPageType pageType) {
+        if (page == null) return;
+        reparentPage(page, parentId, orderNum, pageType);
     }
 
     public static void reparentPage(CatalogPage page, int newParentId, int newOrderNum, CatalogPageType pageType) {
@@ -127,7 +137,7 @@ public final class CatalogAdminCacheSync {
         int previousPageId = existing != null ? existing.getPageId() : -1;
 
         String sql = (pageType == CatalogPageType.BUILDER)
-                ? "SELECT * FROM catalog_items_bc WHERE id = ? LIMIT 1"
+                ? BC_ITEM_SELECT
                 : "SELECT * FROM catalog_items WHERE id = ? LIMIT 1";
 
         try (Connection connection = Emulator.getDatabase().getDataSource().getConnection();
@@ -141,6 +151,8 @@ public final class CatalogAdminCacheSync {
                 }
 
                 if (existing != null) {
+                    unregisterOfferSearchIndex(existing, pageType);
+
                     if (previousPageId != set.getInt("page_id")) {
                         CatalogPage oldPage = catalogManager.getCatalogPage(previousPageId, pageType);
                         if (oldPage != null) {
@@ -150,6 +162,7 @@ public final class CatalogAdminCacheSync {
 
                     existing.update(set);
                     attachItemToPage(existing, pageType);
+                    registerOfferSearchIndex(existing, pageType);
                     return true;
                 }
 
@@ -173,14 +186,7 @@ public final class CatalogAdminCacheSync {
         CatalogItem item = catalogManager.getCatalogItem(offerId, pageType);
 
         if (item != null) {
-            int searchOfferId = item.getSearchOfferId();
-            if (searchOfferId != -1) {
-                if (pageType == CatalogPageType.BUILDER) {
-                    catalogManager.buildersClubOfferDefs.remove(searchOfferId);
-                } else {
-                    catalogManager.offerDefs.remove(searchOfferId);
-                }
-            }
+            unregisterOfferSearchIndex(item, pageType);
         }
 
         int pageId = item != null ? item.getPageId() : pageIdHint;
@@ -189,6 +195,35 @@ public final class CatalogAdminCacheSync {
             CatalogPage page = catalogManager.getCatalogPage(pageId, pageType);
             if (page != null) {
                 page.getCatalogItems().remove(offerId);
+            }
+        }
+    }
+
+    private static void unregisterOfferSearchIndex(CatalogItem item, CatalogPageType pageType) {
+        if (item == null) return;
+
+        CatalogManager catalogManager = Emulator.getGameEnvironment().getCatalogManager();
+        int searchOfferId = item.getSearchOfferId();
+
+        if (searchOfferId != -1) {
+            if (pageType == CatalogPageType.BUILDER) {
+                catalogManager.buildersClubOfferDefs.remove(searchOfferId);
+            } else {
+                catalogManager.offerDefs.remove(searchOfferId);
+            }
+
+            CatalogPage page = catalogManager.getCatalogPage(item.getPageId(), pageType);
+            removeOfferIdFromPage(page, searchOfferId);
+        }
+    }
+
+    private static void removeOfferIdFromPage(CatalogPage page, int offerId) {
+        if (page == null || offerId < 0) return;
+
+        for (int i = 0; i < page.getOfferIds().size(); i++) {
+            if (page.getOfferIds().getInt(i) == offerId) {
+                page.getOfferIds().removeInt(i);
+                return;
             }
         }
     }
