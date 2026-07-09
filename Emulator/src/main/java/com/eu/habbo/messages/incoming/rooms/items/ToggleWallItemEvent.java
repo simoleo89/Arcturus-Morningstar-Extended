@@ -1,6 +1,7 @@
 package com.eu.habbo.messages.incoming.rooms.items;
 
 import com.eu.habbo.Emulator;
+import com.eu.habbo.habbohotel.commands.FurniDataCommand;
 import com.eu.habbo.habbohotel.rooms.Room;
 import com.eu.habbo.habbohotel.users.HabboItem;
 import com.eu.habbo.habbohotel.wired.core.WiredManager;
@@ -31,6 +32,11 @@ public class ToggleWallItemEvent extends MessageHandler {
 
         if (item == null)
             return;
+
+        if (FurniDataCommand.isInspecting(this.client.getHabbo())) {
+            this.client.getHabbo().alert(FurniDataCommand.buildItemInfo(item, state));
+            return;
+        }
 
         WiredManager.cancelPendingUserClicksFurni(room, this.client.getHabbo().getRoomUnit(), item);
 

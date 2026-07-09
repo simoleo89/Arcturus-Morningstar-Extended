@@ -1,6 +1,7 @@
 package com.eu.habbo.messages.incoming.rooms.items;
 
 import com.eu.habbo.Emulator;
+import com.eu.habbo.habbohotel.commands.FurniDataCommand;
 import com.eu.habbo.habbohotel.items.interactions.InteractionDice;
 import com.eu.habbo.habbohotel.items.interactions.pets.InteractionMonsterPlantSeed;
 import com.eu.habbo.habbohotel.pets.MonsterplantPet;
@@ -48,6 +49,11 @@ public class ToggleFloorItemEvent extends MessageHandler {
 
             if (item == null || item instanceof InteractionDice)
                 return;
+
+            if (FurniDataCommand.isInspecting(this.client.getHabbo())) {
+                this.client.getHabbo().alert(FurniDataCommand.buildItemInfo(item, state));
+                return;
+            }
 
             WiredManager.cancelPendingUserClicksFurni(room, this.client.getHabbo().getRoomUnit(), item);
 

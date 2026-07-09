@@ -69,9 +69,6 @@ public class RoomUnit {
   private RoomUserRotation headRotation = RoomUserRotation.NORTH;
   private DanceType danceType;
   private RoomUnitType roomUnitType;
-  // Concurrent + volatile: the room cycle thread polls/clears this path while a
-  // walk packet thread rebuilds it via findPath/setPath. A plain LinkedList would
-  // corrupt under the concurrent structural modification.
   private volatile Deque<RoomTile> path = new ConcurrentLinkedDeque<>();
   private int handItem;
   private long handItemTimestamp;
@@ -132,7 +129,6 @@ public class RoomUnit {
       }
 
       if (rider != null) {
-        // copy things from rider
         if (this.status.containsKey(RoomUnitStatus.MOVE) && !rider.getRoomUnit().getStatusMap()
                 .containsKey(RoomUnitStatus.MOVE)) {
           this.status.remove(RoomUnitStatus.MOVE);
@@ -247,7 +243,7 @@ public class RoomUnit {
 
       if (!(this.path.isEmpty() && (canSitNextTile || canLayNextTile))) {
         double height = next.getStackHeight() - this.currentLocation.getStackHeight();
-        if (canMoveToTile(room, next, height, canSitNextTile, canLayNextTile)) {
+        if (!overrideChecks && canMoveToTile(room, next, height, canSitNextTile, canLayNextTile)) {
           this.path.clear();
           this.status.remove(RoomUnitStatus.MOVE);
           return false;
@@ -270,11 +266,9 @@ public class RoomUnit {
 
       double zHeight = 0.0D;
 
-      // A mounted rider may not sit or lay - stop them from stepping onto a sit/lay tile they were
-      // heading for, so they have to dismount first instead of sitting on the horse.
       if (habbo != null && habbo.getHabboInfo() != null && habbo.getHabboInfo().getRiding() != null
               && next.equals(this.goalLocation)
-              && (next.state == RoomTileState.SIT || next.state == RoomTileState.LAY)) {
+              && next.state == RoomTileState.LAY) {
         this.status.remove(RoomUnitStatus.MOVE);
         return false;
       }
@@ -287,9 +281,7 @@ public class RoomUnit {
 
       HabboItem habboItem = room.getTopItemAt(this.getX(), this.getY());
       if (habboItem != null) {
-        if (habboItem != item || !RoomLayout.pointInSquare(habboItem.getX(), habboItem.getY(),
-                habboItem.getX() + habboItem.getBaseItem().getWidth() - 1,
-                habboItem.getY() + habboItem.getBaseItem().getLength() - 1, next.x, next.y)) {
+        if (habboItem != item || !itemOccupiesTile(habboItem, next.x, next.y)) {
           habboItem.onWalkOff(this, room, new Object[]{this.getCurrentLocation(), next});
         }
       }
@@ -300,9 +292,7 @@ public class RoomUnit {
       this.setRotation(
               RoomUserRotation.values()[Rotation.Calculate(this.getX(), this.getY(), next.x, next.y)]);
       if (item != null) {
-        if (item != habboItem || !RoomLayout.pointInSquare(item.getX(), item.getY(),
-                item.getX() + item.getBaseItem().getWidth() - 1,
-                item.getY() + item.getBaseItem().getLength() - 1, this.getX(), this.getY())) {
+        if (item != habboItem || !itemOccupiesTile(item, this.getX(), this.getY())) {
           if (item.canWalkOn(this, room, null)) {
             item.onWalkOn(this, room, new Object[]{this.getCurrentLocation(), next});
           } else if (item instanceof ConditionalGate) {
@@ -354,11 +344,9 @@ public class RoomUnit {
             ridingUnit.setStatus(RoomUnitStatus.MOVE,
                     next.x + "," + next.y + "," + (zHeight - 1.0));
             room.sendComposer(new RoomUserStatusComposer(ridingUnit).compose());
-            //ridingUnit.setZ(zHeight - 1.0);
           }
         }
       }
-      //room.sendComposer(new RoomUserStatusComposer(this).compose());
 
       this.setZ(zHeight);
       this.setCurrentLocation(room.getLayout().getTile(next.x, next.y));
@@ -384,6 +372,20 @@ public class RoomUnit {
       LOGGER.error("Caught exception", e);
       return false;
     }
+  }
+
+  private static boolean itemOccupiesTile(HabboItem item, short x, short y) {
+    int width = item.getBaseItem().getWidth() > 0 ? item.getBaseItem().getWidth() : 1;
+    int length = item.getBaseItem().getLength() > 0 ? item.getBaseItem().getLength() : 1;
+
+    if (item.getRotation() == 2 || item.getRotation() == 6) {
+      int swap = width;
+      width = length;
+      length = swap;
+    }
+
+    return RoomLayout.pointInSquare(item.getX(), item.getY(),
+            item.getX() + width - 1, item.getY() + length - 1, x, y);
   }
 
   private static boolean canMoveToTile(Room room, RoomTile next, double height,
@@ -513,10 +515,8 @@ public class RoomUnit {
 
   public void setGoalLocation(RoomTile goalLocation) {
     if (goalLocation != null) {
-      //      if (goalLocation.state != RoomTileState.INVALID) {
       this.setGoalLocation(goalLocation, false);
     }
-    //}
   }
 
   public void setGoalLocation(RoomTile goalLocation, boolean noReset) {
@@ -529,7 +529,6 @@ public class RoomUnit {
       }
     }
 
-    /// Set start location
     this.startLocation = this.currentLocation;
 
     if (goalLocation != null && !noReset) {
@@ -675,11 +674,6 @@ public class RoomUnit {
     return this.moveStatusTimestamp;
   }
 
-  /**
-   * Checks if enough time has passed since the last roller movement to allow rolling again.
-   * This prevents desync issues where the client hasn't finished the roller animation.
-   * @return true if the unit can be rolled, false if still in roller cooldown
-   */
   public boolean canBeRolled() {
     return System.currentTimeMillis() - this.lastRollerTime >= 480;
   }
@@ -719,7 +713,7 @@ public class RoomUnit {
   }
 
   public boolean isIdle() {
-    return this.idleTimer > Room.IDLE_CYCLES; //Amount of room cycles / 2 = seconds.
+    return this.idleTimer > Room.IDLE_CYCLES;
   }
 
   public int getIdleTimer() {

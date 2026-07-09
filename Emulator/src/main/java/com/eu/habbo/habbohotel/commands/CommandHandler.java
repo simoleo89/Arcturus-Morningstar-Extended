@@ -195,6 +195,7 @@ public class CommandHandler {
         addCommand(new FilterWordCommand());
         addCommand(new FreezeBotsCommand());
         addCommand(new FreezeCommand());
+        addCommand(new FurniDataCommand());
         addCommand(new GiftCommand());
         addCommand(new GiveRankCommand());
         addCommand(new HabnamCommand());

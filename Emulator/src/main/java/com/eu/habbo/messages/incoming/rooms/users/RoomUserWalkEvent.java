@@ -58,7 +58,6 @@ public class RoomUserWalkEvent extends MessageHandler {
       int count = (countObj instanceof Integer) ? (Integer) countObj : 0;
 
       if (now - windowStart > 1000) {
-        // New 1-second window
         windowStart = now;
         count = 0;
       }
@@ -103,13 +102,14 @@ public class RoomUserWalkEvent extends MessageHandler {
           return;
         }
 
-        // Don't calculate a new path if we are on a horse
-        if (habboInfo.getRiding() != null && habboInfo.getRiding().getTask() != null
-            && habboInfo.getRiding().getTask().equals(PetTasks.JUMP)) {
+        if (habboInfo.getRiding() != null
+            && ((habboInfo.getRiding().getRoomUnit() != null
+            && habboInfo.getRiding().getRoomUnit().hasStatus(RoomUnitStatus.JUMP))
+            || (habboInfo.getRiding().getTask() != null
+            && habboInfo.getRiding().getTask().equals(PetTasks.JUMP)))) {
           return;
         }
 
-        // Don't calulcate a new path if are already at the end position
         if (x == roomUnit.getX() && y == roomUnit.getY()) {
           return;
         }
@@ -124,7 +124,6 @@ public class RoomUserWalkEvent extends MessageHandler {
 
         RoomTile tile = room.getLayout().getTile((short) x, (short) y);
 
-        // this should never happen, if it does it would be a design flaw
         if (tile == null) {
           return;
         }
@@ -157,19 +156,15 @@ public class RoomUserWalkEvent extends MessageHandler {
           }
         }
 
-        // This is where we set the end location and begin finding a path
-        if (tile.isWalkable() || room.canSitOrLayAt(tile.x, tile.y)) {
+        if (tile.isWalkable() || room.canSitOrLayAt(tile.x, tile.y) || roomUnit.canOverrideTile(tile)) {
           if (WiredEffectMoveRotateUser.handleWalkWhileActive(room, roomUnit, tile)) {
             return;
           }
 
           if (roomUnit.getMoveBlockingTask() != null) {
             try {
-              // Bound the wait so a stuck/delayed move-blocking task can't park
-              // the Netty event loop (and thus every client on it) indefinitely.
               roomUnit.getMoveBlockingTask().get(2, java.util.concurrent.TimeUnit.SECONDS);
             } catch (java.util.concurrent.TimeoutException | java.util.concurrent.ExecutionException | InterruptedException e) {
-              // proceed with the walk regardless
             }
           }
 
@@ -204,7 +199,6 @@ public class RoomUserWalkEvent extends MessageHandler {
       BedProfile profile = new BedProfile(bed);
       RoomTile pillow = profile.getPillow(room, x, y, bed);
 
-      // If pillow position is occupied, try the other side (double beds only)
       if (pillow != null && !room.canLayAt(pillow.x, pillow.y)) {
         pillow = profile.getOtherSide(room, bed, pillow);
       }
