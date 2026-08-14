@@ -45,5 +45,8 @@ public enum CatalogPageLayouts {
     builders_club_loyalty,
     monkey,
     niko,
-    mad_money
+    mad_money,
+    /** Retained for plugin ABI compatibility; the layout is no longer registered or selectable. */
+    @Deprecated
+    custom_prefix
 }

@@ -1,7 +1,8 @@
 package com.eu.habbo.habbohotel.catalog;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
@@ -14,8 +15,9 @@ class CatalogCustomPrefixLayoutRemovalTest {
             Path.of("src/main/resources/db/migration/V20260814210000__remove_catalog_custom_prefix_layout.sql");
 
     @Test
-    void catalogLayoutIsNoLongerExposedByTheEmulator() {
-        assertThrows(IllegalArgumentException.class, () -> CatalogPageLayouts.valueOf("custom_prefix"));
+    void catalogLayoutKeepsItsPluginAbiWithoutBeingRuntimeSelectable() {
+        assertEquals(CatalogPageLayouts.custom_prefix, CatalogPageLayouts.valueOf("custom_prefix"));
+        assertFalse(CatalogManager.pageDefinitions.containsKey("custom_prefix"));
     }
 
     @Test

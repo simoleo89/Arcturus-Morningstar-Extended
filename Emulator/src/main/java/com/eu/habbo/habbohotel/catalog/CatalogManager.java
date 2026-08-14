@@ -236,6 +236,9 @@ public class CatalogManager {
                             case mad_money:
                                 this.put(layout.name().toLowerCase(), MadMoneyLayout.class);
                                 break;
+                            case custom_prefix:
+                                // Retained in the public enum for plugin ABI compatibility only.
+                                break;
                             case root:
                             case productpage1:
                             case collectibles:
