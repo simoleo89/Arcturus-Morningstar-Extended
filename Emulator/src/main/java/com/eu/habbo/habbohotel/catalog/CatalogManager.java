@@ -12,7 +12,6 @@ import com.eu.habbo.habbohotel.catalog.layouts.CatalogRootLayout;
 import com.eu.habbo.habbohotel.catalog.layouts.ClubBuyLayout;
 import com.eu.habbo.habbohotel.catalog.layouts.ClubGiftsLayout;
 import com.eu.habbo.habbohotel.catalog.layouts.ColorGroupingLayout;
-import com.eu.habbo.habbohotel.catalog.layouts.CustomPrefixLayout;
 import com.eu.habbo.habbohotel.catalog.layouts.Default_3x3Layout;
 import com.eu.habbo.habbohotel.catalog.layouts.FrontPageFeaturedLayout;
 import com.eu.habbo.habbohotel.catalog.layouts.FrontpageLayout;
@@ -236,9 +235,6 @@ public class CatalogManager {
                                 break;
                             case mad_money:
                                 this.put(layout.name().toLowerCase(), MadMoneyLayout.class);
-                                break;
-                            case custom_prefix:
-                                this.put(layout.name().toLowerCase(), CustomPrefixLayout.class);
                                 break;
                             case root:
                             case productpage1:
